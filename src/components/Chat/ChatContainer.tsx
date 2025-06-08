@@ -1,9 +1,13 @@
 'use client';
 import { useChat } from '@ai-sdk/react';
 import { ChatMessageList, ChatInput, ChatStatus, ChatQuickActions } from './index';
-import { useCallback } from 'react';
+import ChatBar from './ChatBar';
+import { useCallback, useState } from 'react';
+
+const DEFAULT_MODEL = 'gpt-4o';
 
 export default function ChatContainer() {
+  const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL);
   const {
     messages,
     input,
@@ -13,7 +17,9 @@ export default function ChatContainer() {
     stop,
     reload,
     setInput,
-  } = useChat({});
+  } = useChat({
+    body: { model: selectedModel },
+  });
 
   // Handle quick action prompt click
   const handleQuickPrompt = useCallback((prompt: string) => {
@@ -22,11 +28,12 @@ export default function ChatContainer() {
 
   // Custom submit handler to support attachments
   const onSubmit = (e: React.FormEvent<HTMLFormElement>, files?: FileList) => {
-    handleSubmit(e, files ? { experimental_attachments: files } : undefined);
+    handleSubmit(e, files ? { experimental_attachments: files, body: { model: selectedModel } } : { body: { model: selectedModel } });
   };
 
   return (
     <section className="flex flex-col flex-1 h-full bg-pink-50">
+      <ChatBar selectedModelId={selectedModel} onModelChange={setSelectedModel} />
       <div className="flex-1 flex flex-col justify-center items-center">
         <h1 className="text-4xl font-bold text-purple-700 mb-4">How can I help you?</h1>
         <div className="flex gap-2 mb-8">

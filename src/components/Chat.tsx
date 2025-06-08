@@ -1,6 +1,6 @@
 import { useChat } from 'ai/react';
 import { useState } from 'react';
-
+import { Send } from 'lucide-react';
 export default function Chat() {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     api: '/api/chat',
@@ -12,16 +12,14 @@ export default function Chat() {
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`flex ${
-              message.role === 'user' ? 'justify-end' : 'justify-start'
-            }`}
+            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'
+              }`}
           >
             <div
-              className={`max-w-[80%] rounded-lg p-4 ${
-                message.role === 'user'
+              className={`max-w-[80%] rounded-lg p-4 ${message.role === 'user'
                   ? 'bg-blue-500 text-white'
                   : 'bg-gray-200 text-gray-800'
-              }`}
+                }`}
             >
               {message.content}
             </div>
@@ -39,7 +37,7 @@ export default function Chat() {
           type="submit"
           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          Send
+          <Send />
         </button>
       </form>
     </div>

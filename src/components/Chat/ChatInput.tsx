@@ -1,6 +1,7 @@
 import Input from '../UI/Input';
 import Button from '../UI/Button';
 import { ChangeEvent, FormEvent, useRef, useState } from 'react';
+import { Paperclip, Send } from 'lucide-react';
 
 interface ChatInputProps {
   input: string;
@@ -26,7 +27,7 @@ export default function ChatInput({ input, onInputChange, onSubmit, disabled }: 
         value={input}
         onChange={onInputChange}
         placeholder="Type your message here..."
-        className="flex-1"
+        className="flex-1 text-black"
         disabled={disabled}
       />
       <input
@@ -38,10 +39,10 @@ export default function ChatInput({ input, onInputChange, onSubmit, disabled }: 
         id="chat-file-upload"
       />
       <label htmlFor="chat-file-upload" className="cursor-pointer px-3 py-2 rounded-lg bg-purple-100 text-purple-600 hover:bg-purple-200">
-        <span className="material-symbols-outlined">attach_file</span>
+        <span className="material-symbols-outlined"><Paperclip/></span>
       </label>
       <Button type="submit" disabled={disabled} className="ml-2">
-        <span className="material-symbols-outlined">send</span>
+        <span className="material-symbols-outlined"><Send/></span>
       </Button>
     </form>
   );
