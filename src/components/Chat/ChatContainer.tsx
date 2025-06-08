@@ -7,10 +7,11 @@ import { useSession } from '@supabase/auth-helpers-react';
 import { supabase } from '@/lib/supabase/client';
 import type { Tables } from '@/lib/supabase/types';
 
-const DEFAULT_MODEL = 'gpt-4o';
+const DEFAULT_MODEL = 'gemini-2.0-flash';
 
-export default function ChatContainer() {
+export default function ChatContainer({ chatId, initialMessages = [] }: { chatId: string, initialMessages?: any[] }) {
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL);
+  console.log('initialMessages', initialMessages, chatId);
   const [userSettings, setUserSettings] = useState<Tables<'user_settings'> | null>(null);
   const session = useSession();
 
@@ -39,10 +40,12 @@ export default function ChatContainer() {
     reload,
     setInput,
   } = useChat({
-    body: { 
+    body: {
+      chat_id: chatId,
       model: selectedModel,
-      userSettings 
+      userSettings,
     },
+    initialMessages,
   });
 
   // Handle quick action prompt click
@@ -52,21 +55,24 @@ export default function ChatContainer() {
 
   // Custom submit handler to support attachments
   const onSubmit = (e: React.FormEvent<HTMLFormElement>, files?: FileList) => {
-    handleSubmit(e, files ? { 
-      experimental_attachments: files, 
-      body: { 
+    handleSubmit(e, files ? {
+      experimental_attachments: files,
+      body: {
+        chat_id: chatId,
         model: selectedModel,
-        userSettings 
-      } 
-    } : { 
-      body: { 
+        userSettings,
+      },
+    } : {
+      body: {
+        chat_id: chatId,
         model: selectedModel,
-        userSettings 
-      } 
+        userSettings,
+      },
     });
   };
 
-  const showWelcome = messages.length === 0;
+  const showWelcome = messages && messages.length === 0;
+  console.log('messages', messages);
 
   return (
     <section className="flex flex-col flex-1 h-full bg-pink-50">

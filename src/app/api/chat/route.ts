@@ -5,7 +5,8 @@ import { mistral } from '@ai-sdk/mistral';
 import { google } from '@ai-sdk/google';
 import { deepseek } from '@ai-sdk/deepseek';
 import { cerebras } from '@ai-sdk/cerebras';
-import { streamText } from 'ai';
+import { streamText, appendResponseMessages } from 'ai';
+import { supabaseServer } from '@/lib/supabase/server';
 
 export const maxDuration = 30;
 
@@ -69,7 +70,9 @@ const modelMap: Record<string, any> = {
 };
 
 export async function POST(req: Request) {
-    const { messages, model: modelId, userSettings, ...customFields } = await req.json();
+    const body = await req.json();
+    console.log('Incoming request body:', JSON.stringify(body));
+    const { messages, model: modelId, userSettings, chat_id, ...customFields } = body;
     const model = modelMap[modelId] || openai('gpt-4o');
 
     // Build system prompt with user settings
@@ -85,7 +88,7 @@ export async function POST(req: Request) {
         }
 
         // Add communication style if we have traits
-        const traits = Array.isArray(userSettings.traits) ? userSettings.traits.filter(t => typeof t === 'string' && t.trim()) : [];
+        const traits = Array.isArray(userSettings.traits) ? userSettings.traits.filter((t: string) => typeof t === 'string' && t.trim()) : [];
         if (traits.length > 0) {
             promptParts.push(`Your communication style should be: ${traits.join(', ')}.`);
         }
@@ -106,7 +109,90 @@ export async function POST(req: Request) {
         system: systemPrompt,
         messages,
         ...customFields,
+        async onFinish({ response }) {
+            if (!chat_id) {
+                console.log('No chat_id provided, skipping message persistence.');
+                return;
+            }
+            // Only persist the new user message and new assistant message(s)
+            const newUserMsg = messages[messages.length - 1];
+            const newAssistantMsgs = response.messages;
+            const toPersist = [];
+            // Map user message
+            if (newUserMsg) {
+                let content = newUserMsg.content;
+                if (!content && Array.isArray(newUserMsg.parts)) {
+                    content = newUserMsg.parts
+                        .filter((p: any) => p.type === 'text' && typeof p.text === 'string')
+                        .map((p: any) => p.text)
+                        .join('\n');
+                }
+                let createdAt: string | undefined = undefined;
+                if (newUserMsg.createdAt instanceof Date) {
+                    createdAt = newUserMsg.createdAt.toISOString();
+                } else if (typeof newUserMsg.createdAt === 'string') {
+                    createdAt = newUserMsg.createdAt;
+                } else {
+                    createdAt = new Date().toISOString();
+                }
+                toPersist.push({
+                    chat_id,
+                    role: newUserMsg.role,
+                    content: content ?? '',
+                    type: 'text',
+                    metadata: null,
+                    created_at: createdAt,
+                });
+            }
+            // Map assistant messages (response.messages)
+            for (const msg of newAssistantMsgs) {
+                let content: string = '';
+                if (Array.isArray(msg.content)) {
+                    content = msg.content
+                        .filter((p: any) => p.type === 'text' && typeof p.text === 'string')
+                        .map((p: any) => p.text)
+                        .join('\n');
+                } else {
+                    content = msg.content ?? '';
+                }
+                toPersist.push({
+                    chat_id,
+                    role: msg.role,
+                    content,
+                    type: 'text',
+                    metadata: null,
+                    created_at: new Date().toISOString(),
+                });
+            }
+            console.log('Persisting only new messages for chat_id:', chat_id, toPersist);
+            for (const dbMsg of toPersist) {
+                console.log('Upserting mapped message:', dbMsg);
+                const { error } = await supabaseServer.from('messages').upsert(dbMsg);
+                if (error) {
+                    console.error('Error upserting message:', error);
+                } else {
+                    console.log('Message upserted successfully.');
+                }
+            }
+        },
     });
 
     return result.toDataStreamResponse();
+}
+
+export async function GET(req: Request) {
+    const { searchParams } = new URL(req.url);
+    const chatId = searchParams.get('chatId');
+    if (!chatId) {
+        return new Response(JSON.stringify({ error: 'chatId is required' }), { status: 400 });
+    }
+    const { data, error } = await supabaseServer
+        .from('messages')
+        .select('*')
+        .eq('chat_id', chatId)
+        .order('created_at', { ascending: true });
+    if (error) {
+        return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    }
+    return new Response(JSON.stringify(data), { status: 200 });
 } 
