@@ -2,12 +2,33 @@
 import { useChat } from '@ai-sdk/react';
 import { ChatMessageList, ChatInput, ChatStatus, ChatQuickActions } from './index';
 import ChatBar from './ChatBar';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
+import { useSession } from '@supabase/auth-helpers-react';
+import { supabase } from '@/lib/supabase/client';
+import type { Tables } from '@/lib/supabase/types';
 
 const DEFAULT_MODEL = 'gpt-4o';
 
 export default function ChatContainer() {
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL);
+  const [userSettings, setUserSettings] = useState<Tables<'user_settings'> | null>(null);
+  const session = useSession();
+
+  // Fetch user settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      if (session?.user) {
+        const { data } = await supabase
+          .from('user_settings')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single();
+        setUserSettings(data);
+      }
+    };
+    fetchSettings();
+  }, [session]);
+
   const {
     messages,
     input,
@@ -18,7 +39,10 @@ export default function ChatContainer() {
     reload,
     setInput,
   } = useChat({
-    body: { model: selectedModel },
+    body: { 
+      model: selectedModel,
+      userSettings 
+    },
   });
 
   // Handle quick action prompt click
@@ -28,7 +52,18 @@ export default function ChatContainer() {
 
   // Custom submit handler to support attachments
   const onSubmit = (e: React.FormEvent<HTMLFormElement>, files?: FileList) => {
-    handleSubmit(e, files ? { experimental_attachments: files, body: { model: selectedModel } } : { body: { model: selectedModel } });
+    handleSubmit(e, files ? { 
+      experimental_attachments: files, 
+      body: { 
+        model: selectedModel,
+        userSettings 
+      } 
+    } : { 
+      body: { 
+        model: selectedModel,
+        userSettings 
+      } 
+    });
   };
 
   const showWelcome = messages.length === 0;

@@ -14,9 +14,13 @@ create table if not exists public.profiles (
 create table if not exists public.user_settings (
     id uuid default uuid_generate_v4() primary key,
     user_id uuid references public.profiles(id) on delete cascade not null,
+    name text,
+    occupation text,
+    traits jsonb,
     theme text,
     language text,
     notification_preferences jsonb,
+    extra text,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null,
     updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
     unique(user_id)
@@ -74,6 +78,10 @@ create policy "Users can view their own profile"
 create policy "Users can update their own profile"
     on public.profiles for update
     using (auth.uid() = id);
+
+create policy "Users can insert their own profile"
+    on public.profiles for insert
+    with check (auth.uid() = id);
 
 -- User settings policies
 create policy "Users can view their own settings"
@@ -175,3 +183,7 @@ create policy "Users can delete attachments in their messages"
             and chats.user_id = auth.uid()
         )
     ); 
+
+create policy "Users can insert their own settings"
+    on public.user_settings for insert
+    with check (auth.uid() = user_id);

@@ -156,28 +156,40 @@ export type Database = {
       user_settings: {
         Row: {
           created_at: string
+          extra: string | null
           id: string
           language: string | null
+          name: string | null
           notification_preferences: Json | null
+          occupation: string | null
           theme: string | null
+          traits: Json | null
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          extra?: string | null
           id?: string
           language?: string | null
+          name?: string | null
           notification_preferences?: Json | null
+          occupation?: string | null
           theme?: string | null
+          traits?: Json | null
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          extra?: string | null
           id?: string
           language?: string | null
+          name?: string | null
           notification_preferences?: Json | null
+          occupation?: string | null
           theme?: string | null
+          traits?: Json | null
           updated_at?: string
           user_id?: string
         }
