@@ -2,6 +2,7 @@
 import { useSession } from '@supabase/auth-helpers-react';
 import { supabase } from '@/lib/supabase/client';
 import { useState } from 'react';
+import SettingsModal from '../Settings/SettingsModal';
 
 function getInitials(email?: string) {
   if (!email) return '?';
@@ -11,6 +12,7 @@ function getInitials(email?: string) {
 export default function UserMenu() {
   const session = useSession();
   const [open, setOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   if (!session) return null;
   const user = session.user;
   const avatarUrl = user.user_metadata?.avatar_url;
@@ -34,6 +36,15 @@ export default function UserMenu() {
           <div className="px-4 py-2 border-b text-xs text-gray-500">{email}</div>
           <button
             className="w-full text-left px-4 py-2 hover:bg-purple-100 text-purple-700"
+            onClick={() => {
+              setSettingsOpen(true);
+              setOpen(false);
+            }}
+          >
+            Settings
+          </button>
+          <button
+            className="w-full text-left px-4 py-2 hover:bg-purple-100 text-purple-700"
             onClick={async () => {
               await supabase.auth.signOut();
               setOpen(false);
@@ -43,6 +54,7 @@ export default function UserMenu() {
           </button>
         </div>
       )}
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} onSave={() => setSettingsOpen(false)} />
     </div>
   );
 } 
