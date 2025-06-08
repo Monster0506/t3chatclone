@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase/client';
 import type { Tables } from '@/lib/supabase/types';
 import { MoreVertical, Pin, Trash2, Edit2 } from 'lucide-react';
 import SidebarChatItem from './SidebarChatItem';
+import TagModal from './TagModal';
 
 function formatTime(ts: string) {
   const date = new Date(ts);
@@ -13,6 +14,13 @@ function formatTime(ts: string) {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
   return date.toLocaleDateString();
+}
+
+function getTagsFromMetadata(metadata: any): string[] {
+  if (metadata && typeof metadata === 'object' && Array.isArray(metadata.tags)) {
+    return metadata.tags.filter((t: any) => typeof t === 'string');
+  }
+  return [];
 }
 
 export default function SidebarThreadList({ search }: { search: string }) {
@@ -26,6 +34,9 @@ export default function SidebarThreadList({ search }: { search: string }) {
   const pathname = usePathname();
   const inputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [tagModalOpen, setTagModalOpen] = useState(false);
+  const [currentThread, setCurrentThread] = useState<Tables<'chats'> | null>(null);
+  const [tagAnchorRef, setTagAnchorRef] = useState<React.RefObject<HTMLDivElement> | null>(null);
 
   useEffect(() => {
     if (renamingId && inputRef.current) {
@@ -84,6 +95,86 @@ export default function SidebarThreadList({ search }: { search: string }) {
       .eq('id', thread.id);
     setThreads(ts => ts.map(t => t.id === thread.id ? { ...t, metadata: { ...meta, archived: true } } : t));
     setMenuOpen(null);
+  };
+  const handleClone = async (thread: Tables<'chats'>) => {
+    const meta = typeof thread.metadata === 'object' && thread.metadata ? { ...thread.metadata, archived: false } : {};
+    // Create new chat
+    const { data: newChat, error } = await supabase
+      .from('chats')
+      .insert({
+        user_id: thread.user_id,
+        title: thread.title + ' (Copy)',
+        model: thread.model,
+        metadata: meta,
+      })
+      .select('id')
+      .single();
+    if (newChat && newChat.id) {
+      // Copy messages
+      const { data: messages } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('chat_id', thread.id);
+      if (messages && messages.length > 0) {
+        const newMessages = messages.map(m => ({
+          ...m,
+          id: undefined, // Let DB generate new UUID
+          chat_id: newChat.id,
+          created_at: new Date().toISOString(),
+        }));
+        // Insert all messages (in batches if needed)
+        for (const msg of newMessages) {
+          await supabase.from('messages').insert(msg);
+        }
+      }
+      setMenuOpen(null);
+      router.push(`/chat/${newChat.id}`);
+    }
+  };
+  const handleDownload = async (thread: Tables<'chats'>) => {
+    const { data: messages } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('chat_id', thread.id);
+    if (messages) {
+      const data = {
+        chat: thread,
+        messages,
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${thread.title || 'Untitled Chat'}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  };
+  const handleTags = (thread: Tables<'chats'>, menuRef: React.RefObject<HTMLDivElement> | null) => {
+    setCurrentThread(thread);
+    setTagAnchorRef(menuRef);
+    setTagModalOpen(true);
+  };
+
+  const handleSaveTags = async (tags: string[]) => {
+    if (currentThread) {
+      const meta = typeof currentThread.metadata === 'object' && currentThread.metadata ? { ...currentThread.metadata } : {};
+      meta.tags = tags;
+      await supabase
+        .from('chats')
+        .update({ metadata: meta })
+        .eq('id', currentThread.id);
+      setTagModalOpen(false);
+    }
+  };
+
+  const handleUpdateTags = async (thread: Tables<'chats'>, tags: string[]) => {
+    const meta = typeof thread.metadata === 'object' && thread.metadata ? { ...thread.metadata } : {};
+    meta.tags = tags;
+    await supabase
+      .from('chats')
+      .update({ metadata: meta })
+      .eq('id', thread.id);
   };
 
   // Filter and organize
@@ -146,6 +237,10 @@ export default function SidebarThreadList({ search }: { search: string }) {
                     onDelete={handleDelete}
                     onPin={handlePin}
                     onArchive={handleArchive}
+                    onClone={handleClone}
+                    onDownload={handleDownload}
+                    onTags={(thread, menuRef) => handleTags(thread, menuRef)}
+                    onUpdateTags={handleUpdateTags}
                     renamingId={renamingId}
                     renameValue={renameValue}
                     setRenamingId={setRenamingId}
@@ -153,6 +248,8 @@ export default function SidebarThreadList({ search }: { search: string }) {
                     menuOpen={menuOpen}
                     setMenuOpen={setMenuOpen}
                     inputRef={inputRef as React.RefObject<HTMLInputElement>}
+                    pinned={!!(typeof thread.metadata === 'object' && thread.metadata && (thread.metadata as any).pinned === true)}
+                    archived={!!(typeof thread.metadata === 'object' && thread.metadata && (thread.metadata as any).archived === true)}
                   />
                 ))}
               </ul>
@@ -171,6 +268,10 @@ export default function SidebarThreadList({ search }: { search: string }) {
                   onDelete={handleDelete}
                   onPin={handlePin}
                   onArchive={handleArchive}
+                  onClone={handleClone}
+                  onDownload={handleDownload}
+                  onTags={(thread, menuRef) => handleTags(thread, menuRef)}
+                  onUpdateTags={handleUpdateTags}
                   renamingId={renamingId}
                   renameValue={renameValue}
                   setRenamingId={setRenamingId}
@@ -178,6 +279,8 @@ export default function SidebarThreadList({ search }: { search: string }) {
                   menuOpen={menuOpen}
                   setMenuOpen={setMenuOpen}
                   inputRef={inputRef as React.RefObject<HTMLInputElement>}
+                  pinned={!!(typeof thread.metadata === 'object' && thread.metadata && (thread.metadata as any).pinned === true)}
+                  archived={!!(typeof thread.metadata === 'object' && thread.metadata && (thread.metadata as any).archived === true)}
                 />
               ))}
             </ul>

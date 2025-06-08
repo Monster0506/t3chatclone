@@ -1,6 +1,7 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect, RefObject } from 'react';
 import { MoreVertical, Pin, Trash2, Edit2 } from 'lucide-react';
 import type { Tables } from '@/lib/supabase/types';
+import SidebarChatContextMenu from './SidebarChatContextMenu';
 
 function formatTime(ts: string) {
   const date = new Date(ts);
@@ -19,6 +20,10 @@ export default function SidebarChatItem({
   onDelete,
   onPin,
   onArchive,
+  onClone,
+  onDownload,
+  onTags,
+  onUpdateTags,
   renamingId,
   renameValue,
   setRenamingId,
@@ -26,6 +31,8 @@ export default function SidebarChatItem({
   menuOpen,
   setMenuOpen,
   inputRef,
+  pinned,
+  archived,
 }: {
   thread: Tables<'chats'>;
   isActive: boolean;
@@ -34,6 +41,10 @@ export default function SidebarChatItem({
   onDelete: (thread: Tables<'chats'>) => void;
   onPin: (thread: Tables<'chats'>, pinned: boolean) => void;
   onArchive: (thread: Tables<'chats'>) => void;
+  onClone: (thread: Tables<'chats'>) => void;
+  onDownload: (thread: Tables<'chats'>) => void;
+  onTags: (thread: Tables<'chats'>, menuRef: React.RefObject<HTMLDivElement> | null) => void;
+  onUpdateTags: (thread: Tables<'chats'>, tags: string[]) => void;
   renamingId: string | null;
   renameValue: string;
   setRenamingId: (id: string | null) => void;
@@ -41,16 +52,20 @@ export default function SidebarChatItem({
   menuOpen: string | null;
   setMenuOpen: (id: string | null) => void;
   inputRef: React.RefObject<HTMLInputElement>;
+  pinned: boolean;
+  archived: boolean;
 }) {
-  const isPinned = !!(typeof thread.metadata === 'object' && thread.metadata && (thread.metadata as any).pinned === true);
+  const initialTags = typeof thread.metadata === 'object' && thread.metadata && (thread.metadata as any).tags || [];
+  const [tags, setTags] = useState<string[]>(initialTags);
+  useEffect(() => {
+    setTags(initialTags);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(initialTags)]);
+  const menuRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null);
+  const [tagInput, setTagInput] = useState('');
   return (
     <li
-      className={`relative group flex items-center px-2 py-2 cursor-pointer hover:bg-purple-50 transition rounded-lg ${isActive ? 'bg-purple-100' : ''}`}
-      onClick={onClick}
-      onContextMenu={e => {
-        e.preventDefault();
-        setMenuOpen(thread.id);
-      }}
+      className={`relative group flex items-center px-2 py-2 hover:bg-purple-50 transition rounded-lg ${isActive ? 'bg-purple-100' : ''}`}
     >
       {renamingId === thread.id ? (
         <input
@@ -63,7 +78,14 @@ export default function SidebarChatItem({
         />
       ) : (
         <>
-          <span className="flex-1 truncate font-medium text-purple-900">{thread.title || 'Untitled Chat'}</span>
+          <span
+            className="flex-1 truncate font-medium text-purple-900 flex items-center gap-1 cursor-pointer"
+            onClick={onClick}
+          >
+            {thread.title || 'Untitled Chat'}
+            {pinned && <Pin size={14} className="text-purple-400" />}
+            {archived && <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-archive text-purple-400" viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="2"/><path d="M4 8v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/></svg>}
+          </span>
           <span className="ml-2 text-xs text-gray-400">{formatTime(thread.updated_at)}</span>
           <button
             className="ml-2 p-1 rounded hover:bg-purple-200"
@@ -72,16 +94,40 @@ export default function SidebarChatItem({
             <MoreVertical size={16} />
           </button>
           {menuOpen === thread.id && (
-            <div className="absolute right-0 top-8 w-40 bg-white rounded shadow-lg border border-purple-100 z-50">
-              {isPinned ? (
-                <button className="w-full flex items-center gap-2 px-4 py-2 text-purple-700 hover:bg-purple-50" onClick={e => { e.stopPropagation(); onPin(thread, false); }}> <Pin size={16} /> Unpin</button>
-              ) : (
-                <button className="w-full flex items-center gap-2 px-4 py-2 text-purple-700 hover:bg-purple-50" onClick={e => { e.stopPropagation(); onPin(thread, true); }}> <Pin size={16} /> Pin</button>
-              )}
-              <button className="w-full flex items-center gap-2 px-4 py-2 text-purple-700 hover:bg-purple-50" onClick={e => { e.stopPropagation(); setRenamingId(thread.id); setRenameValue(thread.title); }}> <Edit2 size={16} /> Rename</button>
-              <button className="w-full flex items-center gap-2 px-4 py-2 text-purple-700 hover:bg-purple-50" onClick={e => { e.stopPropagation(); onArchive(thread); }}> <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-archive" viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="2"/><path d="M4 8v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/></svg> Archive</button>
-              <button className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50" onClick={e => { e.stopPropagation(); onDelete(thread); }}> <Trash2 size={16} /> Delete</button>
-            </div>
+            <SidebarChatContextMenu
+              menuRef={menuRef}
+              pinned={pinned}
+              onPin={() => onPin(thread, !pinned)}
+              onRename={() => { setRenamingId(thread.id); setRenameValue(thread.title); }}
+              onClone={() => onClone(thread)}
+              onDownload={() => onDownload(thread)}
+              onArchive={() => onArchive(thread)}
+              onDelete={() => onDelete(thread)}
+              tags={tags}
+              tagInput={tagInput}
+              setTagInput={setTagInput}
+              onAddTag={() => {
+                if (tagInput.trim() && !tags.includes(tagInput.trim())) {
+                  const newTags = [...tags, tagInput.trim()];
+                  setTags(newTags);
+                  onUpdateTags(thread, newTags);
+                  setTagInput('');
+                }
+              }}
+              onTagInputKeyDown={e => {
+                if (e.key === 'Enter' && tagInput.trim() && !tags.includes(tagInput.trim())) {
+                  const newTags = [...tags, tagInput.trim()];
+                  setTags(newTags);
+                  onUpdateTags(thread, newTags);
+                  setTagInput('');
+                }
+              }}
+              onRemoveTag={tag => {
+                const newTags = tags.filter((t: string) => t !== tag);
+                setTags(newTags);
+                onUpdateTags(thread, newTags);
+              }}
+            />
           )}
         </>
       )}
