@@ -31,19 +31,23 @@ export default function ChatContainer() {
     handleSubmit(e, files ? { experimental_attachments: files, body: { model: selectedModel } } : { body: { model: selectedModel } });
   };
 
+  const showWelcome = messages.length === 0;
+
   return (
     <section className="flex flex-col flex-1 h-full bg-pink-50">
       <ChatBar selectedModelId={selectedModel} onModelChange={setSelectedModel} />
-      <div className="flex-1 flex flex-col justify-center items-center">
-        <h1 className="text-4xl font-bold text-purple-700 mb-4">How can I help you?</h1>
-        <div className="flex gap-2 mb-8">
-          <span className="px-3 py-1 rounded bg-white border border-purple-100 text-purple-700 font-medium">Create</span>
-          <span className="px-3 py-1 rounded bg-white border border-purple-100 text-purple-700 font-medium">Explore</span>
-          <span className="px-3 py-1 rounded bg-white border border-purple-100 text-purple-700 font-medium">Code</span>
-          <span className="px-3 py-1 rounded bg-white border border-purple-100 text-purple-700 font-medium">Learn</span>
+      {showWelcome && (
+        <div className="flex-1 flex flex-col justify-center items-center">
+          <h1 className="text-4xl font-bold text-purple-700 mb-4">How can I help you?</h1>
+          <div className="flex gap-2 mb-8">
+            <span className="px-3 py-1 rounded bg-white border border-purple-100 text-purple-700 font-medium">Create</span>
+            <span className="px-3 py-1 rounded bg-white border border-purple-100 text-purple-700 font-medium">Explore</span>
+            <span className="px-3 py-1 rounded bg-white border border-purple-100 text-purple-700 font-medium">Code</span>
+            <span className="px-3 py-1 rounded bg-white border border-purple-100 text-purple-700 font-medium">Learn</span>
+          </div>
+          <ChatQuickActions onPrompt={handleQuickPrompt} />
         </div>
-        <ChatQuickActions onPrompt={handleQuickPrompt} />
-      </div>
+      )}
       <ChatMessageList messages={messages} />
       <ChatStatus status={status} onStop={stop} onReload={reload} />
       <ChatInput
