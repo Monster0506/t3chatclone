@@ -1,6 +1,7 @@
 import Input from '../UI/Input';
 import Button from '../UI/Button';
 import { ChangeEvent, FormEvent, useRef, useState } from 'react';
+import { useSession } from '@supabase/auth-helpers-react';
 import { Paperclip, Send } from 'lucide-react';
 
 interface ChatInputProps {
@@ -13,6 +14,7 @@ interface ChatInputProps {
 export default function ChatInput({ input, onInputChange, onSubmit, disabled }: ChatInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<FileList | undefined>(undefined);
+  const session = useSession();
 
   return (
     <form
@@ -28,7 +30,7 @@ export default function ChatInput({ input, onInputChange, onSubmit, disabled }: 
         onChange={onInputChange}
         placeholder="Type your message here..."
         className="flex-1 text-black"
-        disabled={disabled}
+        disabled={disabled || !session}
       />
       <input
         type="file"
@@ -37,6 +39,7 @@ export default function ChatInput({ input, onInputChange, onSubmit, disabled }: 
         onChange={e => setFiles(e.target.files ?? undefined)}
         className="hidden"
         id="chat-file-upload"
+        disabled={!session}
       />
       <label htmlFor="chat-file-upload" className="cursor-pointer px-3 py-2 rounded-lg bg-purple-100 text-purple-600 hover:bg-purple-200">
         <span className="material-symbols-outlined"><Paperclip/></span>
