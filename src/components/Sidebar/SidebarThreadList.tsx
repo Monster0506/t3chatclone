@@ -3,7 +3,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from '@supabase/auth-helpers-react';
 import { supabase } from '@/lib/supabase/client';
 import type { Tables } from '@/lib/supabase/types';
-import { MoreVertical, Pin, Trash2, Edit2 } from 'lucide-react';
+import { MoreVertical, Pin, Trash2, Edit2, MessageSquare, ChevronDown, ChevronRight, Archive } from 'lucide-react';
 import SidebarChatItem from './SidebarChatItem';
 import TagModal from './TagModal';
 
@@ -23,7 +23,7 @@ function getTagsFromMetadata(metadata: any): string[] {
   return [];
 }
 
-export default function SidebarThreadList({ search }: { search: string }) {
+export default function SidebarThreadList({ search, collapsed }: { search: string; collapsed?: boolean }) {
   const [threads, setThreads] = useState<Tables<'chats'>[]>([]);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
@@ -37,6 +37,7 @@ export default function SidebarThreadList({ search }: { search: string }) {
   const [tagModalOpen, setTagModalOpen] = useState(false);
   const [currentThread, setCurrentThread] = useState<Tables<'chats'> | null>(null);
   const [tagAnchorRef, setTagAnchorRef] = useState<React.RefObject<HTMLDivElement> | null>(null);
+  const [archivedOpen, setArchivedOpen] = useState(false);
 
   // Fetch threads function (extracted for polling)
   const fetchThreads = async () => {
@@ -230,6 +231,7 @@ export default function SidebarThreadList({ search }: { search: string }) {
   const notArchived = filtered.filter(t => !(typeof t.metadata === 'object' && t.metadata && (t.metadata as any).archived));
   const pinned = notArchived.filter(t => typeof t.metadata === 'object' && t.metadata && (t.metadata as any).pinned === true);
   const recent = notArchived.filter(t => !t.metadata || typeof t.metadata !== 'object' || !(t.metadata as any).pinned);
+  const archived = filtered.filter(t => typeof t.metadata === 'object' && t.metadata && (t.metadata as any).archived === true);
 
   // Helper: get last message preview (stub for now)
   const getLastMessage = (thread: Tables<'chats'>) => {
@@ -264,6 +266,39 @@ export default function SidebarThreadList({ search }: { search: string }) {
       <button className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50" onClick={e => { e.stopPropagation(); handleDelete(thread); }}> <Trash2 size={16} /> Delete</button>
     </div>
   );
+
+  if (collapsed) {
+    // Render a minimal list of all chat icons for each thread, clickable, with correct icon
+    // Order: pinned, recent, archived
+    const allCollapsedThreads = [
+      ...pinned.map(t => ({ ...t, _type: 'pinned' as const })),
+      ...recent.map(t => ({ ...t, _type: 'recent' as const })),
+      ...archived.map(t => ({ ...t, _type: 'archived' as const })),
+    ];
+    return (
+      <div className="flex flex-col gap-3 items-center mt-4">
+        {allCollapsedThreads.map(thread => {
+          let Icon = MessageSquare;
+          if (thread._type === 'pinned') Icon = Pin;
+          else if (thread._type === 'archived') Icon = Archive;
+          return (
+            <button
+              key={thread.id}
+              title={thread.title || 'Untitled Chat'}
+              className={`rounded-lg bg-white/60 p-2 shadow hover:bg-purple-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-400 ${thread._type === 'archived' ? 'opacity-70' : ''}`}
+              onClick={() => router.push(`/chat/${thread.id}`)}
+            >
+              <Icon size={22} className={
+                thread._type === 'pinned' ? 'text-purple-500' :
+                thread._type === 'archived' ? 'text-purple-300' :
+                'text-purple-400'
+              } />
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-y-auto flex flex-col px-1 pb-2">
@@ -333,6 +368,49 @@ export default function SidebarThreadList({ search }: { search: string }) {
               ))}
             </ul>
           </div>
+          {/* Archived dropdown */}
+          {archived.length > 0 && (
+            <div className="mt-4">
+              <button
+                className="flex items-center gap-2 w-full px-2 py-1 text-xs font-bold text-purple-500 uppercase tracking-widest hover:bg-purple-100 rounded transition"
+                onClick={() => setArchivedOpen(o => !o)}
+                aria-expanded={archivedOpen}
+              >
+                {archivedOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                Archived
+                <span className="ml-auto text-purple-400 font-normal">{archived.length}</span>
+              </button>
+              {archivedOpen && (
+                <ul className="flex flex-col gap-2 mt-2">
+                  {archived.map(thread => (
+                    <SidebarChatItem
+                      key={thread.id}
+                      thread={thread}
+                      isActive={isActive(thread.id)}
+                      onClick={() => router.push(`/chat/${thread.id}`)}
+                      onRename={handleRename}
+                      onDelete={handleDelete}
+                      onPin={handlePin}
+                      onArchive={handleArchive}
+                      onClone={handleClone}
+                      onDownload={handleDownload}
+                      onTags={(thread, menuRef) => handleTags(thread, menuRef)}
+                      onUpdateTags={handleUpdateTags}
+                      renamingId={renamingId}
+                      renameValue={renameValue}
+                      setRenamingId={setRenamingId}
+                      setRenameValue={setRenameValue}
+                      menuOpen={menuOpen}
+                      setMenuOpen={setMenuOpen}
+                      inputRef={inputRef as React.RefObject<HTMLInputElement>}
+                      pinned={!!(typeof thread.metadata === 'object' && thread.metadata && (thread.metadata as any).pinned === true)}
+                      archived={!!(typeof thread.metadata === 'object' && thread.metadata && (thread.metadata as any).archived === true)}
+                    />
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </>
       )}
     </div>

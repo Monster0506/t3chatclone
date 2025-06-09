@@ -2,10 +2,13 @@
 import Sidebar from '../Sidebar/Sidebar';
 import { useSession } from '@supabase/auth-helpers-react';
 import LoginModal from '../Auth/LoginModal';
-import NewChatEntry from './NewChatEntry';
-import { useState } from 'react';
+import { ReactNode } from 'react';
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default function AppLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const session = useSession();
 
   return (
@@ -14,7 +17,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <Sidebar />
       </div>
       <main className="flex-1 flex flex-col">
-        <NewChatEntry />
+        {children}
       </main>
       {!session && <LoginModal open={true} />}
     </div>

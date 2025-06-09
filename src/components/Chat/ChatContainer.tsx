@@ -23,7 +23,7 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
-export default function ChatContainer({ chatId, initialMessages = [] }: { chatId: string, initialMessages?: any[] }) {
+export default function ChatContainer({ chatId, initialMessages = [], sidebarCollapsed }: { chatId: string, initialMessages?: any[], sidebarCollapsed?: boolean }) {
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL);
   const [userSettings, setUserSettings] = useState<Tables<'user_settings'> | null>(null);
   const session = useSession();
@@ -133,7 +133,7 @@ export default function ChatContainer({ chatId, initialMessages = [] }: { chatId
 
 
   return (
-    <section className="flex flex-col flex-1 h-full bg-pink-50">
+    <section className={`flex flex-col flex-1 h-full bg-pink-50 transition-all duration-300 ${sidebarCollapsed ? 'px-8' : ''}`}>
       <ChatBar selectedModelId={selectedModel} onModelChange={setSelectedModel} />
       {showWelcome && (
         <div className="flex-1 flex flex-col justify-center items-center">

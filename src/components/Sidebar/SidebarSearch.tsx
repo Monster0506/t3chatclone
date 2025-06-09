@@ -1,7 +1,14 @@
 import Input from '../UI/Input';
 import { Search } from 'lucide-react';
 
-export default function SidebarSearch({ value, onChange }: { value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
+export default function SidebarSearch({ value, onChange, collapsed }: { value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; collapsed?: boolean }) {
+  if (collapsed) {
+    return (
+      <div className="mb-6 flex justify-center items-center h-10">
+        <Search size={22} className="text-purple-400" />
+      </div>
+    );
+  }
   return (
     <div className="mb-6 relative">
       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-400">

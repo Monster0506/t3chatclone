@@ -16,7 +16,7 @@ export default function Page() {
         .insert({
           user_id: session.user.id,
           title: 'New Chat',
-          model: 'gpt-4o',
+          model: 'gemini-2.0-flash',
         })
         .select('id')
         .single();
