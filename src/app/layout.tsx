@@ -31,7 +31,7 @@ export default function RootLayout({
       >
         <SupabaseProvider>
           <AppLayout>
-            {children}
+        {children}
           </AppLayout>
         </SupabaseProvider>
       </body>

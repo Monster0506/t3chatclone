@@ -6,6 +6,7 @@ import { useCallback, useState, useEffect } from 'react';
 import { useSession } from '@supabase/auth-helpers-react';
 import { supabase } from '@/lib/supabase/client';
 import type { Tables } from '@/lib/supabase/types';
+import AllChatsIndex from './AllChatsIndex';
 
 const DEFAULT_MODEL = 'gemini-2.0-flash';
 
@@ -135,6 +136,7 @@ export default function ChatContainer({ chatId, initialMessages = [], sidebarCol
   return (
     <section className="flex flex-col flex-1 h-full bg-pink-50 w-full mx-auto transition-all duration-300">
       <ChatBar selectedModelId={selectedModel} onModelChange={setSelectedModel} />
+      <AllChatsIndex />
       {showWelcome && (
         <div className="flex-1 flex flex-col justify-center items-center">
           <h1 className="text-4xl font-bold text-purple-700 mb-4">How can I help you?</h1>

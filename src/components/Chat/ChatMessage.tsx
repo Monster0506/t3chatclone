@@ -106,7 +106,7 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
   // If it's a tool message, render it differently
   if (isTool) {
     return (
-      <div className="flex justify-start mb-4">
+      <div id={`msg-${message.id}`} className="flex justify-start mb-4">
         <div className="flex-shrink-0 mr-2">
           <div className="w-8 h-8 rounded-full bg-yellow-200 flex items-center justify-center">
             <Calculator className="text-yellow-700" size={20} />
@@ -124,7 +124,7 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
   }
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
+    <div id={`msg-${message.id}`} className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
       {!isUser && (
         <div className="flex-shrink-0 mr-2">
           <div className="w-8 h-8 rounded-full bg-purple-200 flex items-center justify-center">

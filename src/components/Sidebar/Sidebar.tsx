@@ -38,7 +38,7 @@ export default function Sidebar({ collapsed = false, onCollapse }: SidebarProps)
           >
             <PanelTopClose size={24} />
           </button>
-        </div>
+      </div>
       )}
       {!collapsed && <SidebarSearch value={search} onChange={e => setSearch(e.target.value)} collapsed={collapsed} />}
       <SidebarThreadList search={search} collapsed={collapsed} />

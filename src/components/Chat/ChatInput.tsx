@@ -75,29 +75,29 @@ export default function ChatInput({ input, onInputChange, onSubmit, disabled }: 
         <FilePreview files={files} onRemove={removeFile} />
       )}
       <div className="flex items-center gap-2 w-full">
-        <Input
-          value={input}
-          onChange={onInputChange}
-          placeholder="Type your message here..."
+      <Input
+        value={input}
+        onChange={onInputChange}
+        placeholder="Type your message here..."
           className="flex-1 min-w-0 max-w-full text-black bg-purple-50 rounded-lg px-3 py-2 border border-purple-200"
-          disabled={disabled || !session}
-        />
-        <input
-          type="file"
-          multiple
-          ref={fileInputRef}
+        disabled={disabled || !session}
+      />
+      <input
+        type="file"
+        multiple
+        ref={fileInputRef}
           onChange={handleFileChange}
-          className="hidden"
-          id="chat-file-upload"
-          disabled={!session}
+        className="hidden"
+        id="chat-file-upload"
+        disabled={!session}
           accept="image/*"
-        />
+      />
         <label htmlFor="chat-file-upload" className="cursor-pointer p-2 rounded-lg bg-purple-100 text-purple-600 hover:bg-purple-200 flex-shrink-0">
           <Paperclip size={20} />
-        </label>
+      </label>
         <Button type="submit" disabled={disabled} className="ml-1 flex-shrink-0 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow hover:from-purple-600 hover:to-pink-600">
           <Send size={20} />
-        </Button>
+      </Button>
       </div>
     </form>
   );

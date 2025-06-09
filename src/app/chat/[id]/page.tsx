@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { useSession } from '@supabase/auth-helpers-react';
 import { supabase } from '@/lib/supabase/client';
@@ -60,6 +60,23 @@ export default function Page() {
     };
     fetchChat();
   }, [session, id]);
+
+  // Scroll to message if hash is present
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hash = window.location.hash;
+    console.log(hash);
+    if (hash && hash.startsWith('#')) {
+      const el = document.getElementById(`msg-${hash.substring(1)}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('ring-2', 'ring-purple-400', 'transition');
+        setTimeout(() => {
+          el.classList.remove('ring-2', 'ring-purple-400', 'transition');
+        }, 2000);
+      }
+    }
+  }, [initialMessages]);
 
   return (
     <div className="flex h-screen w-screen bg-pink-50">

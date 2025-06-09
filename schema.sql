@@ -58,11 +58,25 @@ create table if not exists public.attachments (
     metadata jsonb
 );
 
+-- All Chats Index table
+create table if not exists public.chat_index (
+    id uuid default uuid_generate_v4() primary key,
+    chat_id uuid references public.chats(id) on delete cascade not null,
+    message_id uuid references public.messages(id) on delete cascade,
+    type text not null, -- e.g. 'question', 'answer', 'code', 'summary', 'decision'
+    snippet text not null,
+    score float,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    metadata jsonb -- extensible for future use (e.g. tags, Gemini output, etc)
+);
+
 -- Create indexes
 create index if not exists idx_profiles_email on public.profiles(email);
 create index if not exists idx_chats_user_id on public.chats(user_id);
 create index if not exists idx_messages_chat_id on public.messages(chat_id);
 create index if not exists idx_attachments_message_id on public.attachments(message_id);
+create index if not exists idx_chat_index_chat_id on public.chat_index(chat_id);
+create index if not exists idx_chat_index_message_id on public.chat_index(message_id);
 
 -- Create RLS policies
 alter table public.profiles enable row level security;
@@ -188,3 +202,47 @@ create policy "Users can delete attachments in their messages"
 create policy "Users can insert their own settings"
     on public.user_settings for insert
     with check (auth.uid() = user_id);
+
+    -- Enable RLS for chat_index
+alter table public.chat_index enable row level security;
+
+-- RLS policies for chat_index
+create policy "Users can view index items in their chats"
+    on public.chat_index for select
+    using (
+        exists (
+            select 1 from public.chats
+            where chats.id = chat_index.chat_id
+            and chats.user_id = auth.uid()
+        )
+    );
+
+create policy "Users can insert index items in their chats"
+    on public.chat_index for insert
+    with check (
+        exists (
+            select 1 from public.chats
+            where chats.id = chat_index.chat_id
+            and chats.user_id = auth.uid()
+        )
+    );
+
+create policy "Users can update index items in their chats"
+    on public.chat_index for update
+    using (
+        exists (
+            select 1 from public.chats
+            where chats.id = chat_index.chat_id
+            and chats.user_id = auth.uid()
+        )
+    );
+
+create policy "Users can delete index items in their chats"
+    on public.chat_index for delete
+    using (
+        exists (
+            select 1 from public.chats
+            where chats.id = chat_index.chat_id
+            and chats.user_id = auth.uid()
+        )
+    );

@@ -9,6 +9,7 @@ import { streamText, appendResponseMessages, generateObject } from 'ai';
 import { z } from 'zod';
 import { supabaseServer } from '@/lib/supabase/server';
 import { calculatorTool } from '@/tools/calculator-tool';
+import type { Tables } from '@/lib/supabase/types';
 
 export const maxDuration = 30;
 
@@ -96,6 +97,14 @@ async function generateTitleAndTags(messages: any[]): Promise<{ title?: string; 
 }
 
 export async function POST(req: Request) {
+    // Zod schema for index generation (move inside POST to avoid global scope issues)
+    const indexSchema = z.object({
+      important: z.boolean().describe('Whether this message is important for future reference.'),
+      type: z.enum(['question', 'answer', 'code', 'summary', 'decision'])
+        .describe('The type of important message: question, answer, code, summary, or decision.'),
+      snippet: z.string().describe('A short, user-facing summary or excerpt of the important message.'),
+      metadata: z.any().describe('Additional metadata or context for this index item.'),
+    });
     const body = await req.json();
     console.log('Incoming request body:', JSON.stringify(body));
     const { messages, model: modelId, userSettings, chat_id, ...customFields } = body;
@@ -147,7 +156,8 @@ export async function POST(req: Request) {
             // Only persist the new user message and new assistant message(s)
             const newUserMsg = messages[messages.length - 1];
             const newAssistantMsgs = response.messages;
-            const toPersist = [];
+            const toPersist: any[] = [];
+            let lastSavedMessageId: string | null = null;
             // Map user message
             if (newUserMsg) {
                 let content = newUserMsg.content;
@@ -182,26 +192,50 @@ export async function POST(req: Request) {
 
                 if (saveError) {
                     console.error('Error saving message:', saveError);
-                } else if (savedMessage && newUserMsg.experimental_attachments) {
+                } else {
+                    lastSavedMessageId = savedMessage.id;
                     // Process attachments
-                    for (const attachment of newUserMsg.experimental_attachments) {
-                        const { error: attachmentError } = await supabaseServer
-                            .from('attachments')
-                            .insert({
-                                message_id: savedMessage.id,
-                                file_name: attachment.name,
-                                file_type: attachment.contentType,
-                                file_size: attachment.size || 0,
-                                url: attachment.url,
-                                metadata: {
-                                    width: attachment.width,
-                                    height: attachment.height,
-                                }
-                            });
-                        
-                        if (attachmentError) {
-                            console.error('Error saving attachment:', attachmentError);
+                    if (savedMessage && newUserMsg.experimental_attachments) {
+                        for (const attachment of newUserMsg.experimental_attachments) {
+                            const { error: attachmentError } = await supabaseServer
+                                .from('attachments')
+                                .insert({
+                                    message_id: savedMessage.id,
+                                    file_name: attachment.name,
+                                    file_type: attachment.contentType,
+                                    file_size: attachment.size || 0,
+                                    url: attachment.url,
+                                    metadata: {
+                                        width: attachment.width,
+                                        height: attachment.height,
+                                    }
+                                });
+                            if (attachmentError) {
+                                console.error('Error saving attachment:', attachmentError);
+                            }
                         }
+                    }
+                    // --- Index Generation for User Message ---
+                    try {
+                        const prompt = `Given the following message in a chat, determine if it is important for future reference (e.g., a key question, answer, code, decision, or summary). If so, return true for 'important' and provide a type, a short snippet, and any relevant metadata.\n\nMessage:\nrole: ${newUserMsg.role}\ncontent: ${content}`;
+                        const { object: indexResult } = await generateObject({
+                            model: google('gemini-2.0-flash'),
+                            schema: indexSchema,
+                            prompt,
+                        });
+                        console.log(indexResult);
+                        if (indexResult.important && indexResult.type && indexResult.snippet) {
+                            await supabaseServer.from('chat_index' as any).insert({
+                                chat_id,
+                                message_id: savedMessage.id,
+                                type: indexResult.type,
+                                snippet: indexResult.snippet,
+                                score: 0,
+                                metadata: indexResult.metadata || null,
+                            });
+                        }
+                    } catch (e) {
+                        console.error('Error generating or saving chat index for user message:', e);
                     }
                 }
             }
@@ -221,7 +255,6 @@ export async function POST(req: Request) {
                     } else {
                         content = '[Tool result]';
                     }
-                    // Store the entire tool message as metadata
                     metadata = { toolMessage: msg };
                 } else {
                     if (Array.isArray(msg.content)) {
@@ -233,14 +266,44 @@ export async function POST(req: Request) {
                         content = msg.content ?? '';
                     }
                 }
-                toPersist.push({
-                    chat_id,
-                    role: msg.role,
-                    content,
-                    type: 'text',
-                    metadata,
-                    created_at: new Date().toISOString(),
-                });
+                // Save assistant/tool message
+                const { data: savedMsg, error: saveError } = await supabaseServer
+                    .from('messages')
+                    .insert({
+                        chat_id,
+                        role: msg.role,
+                        content,
+                        type: 'text',
+                        metadata,
+                        created_at: new Date().toISOString(),
+                    })
+                    .select()
+                    .single();
+                if (saveError) {
+                    console.error('Error saving assistant/tool message:', saveError);
+                } else {
+                    // --- Index Generation for Assistant/Tool Message ---
+                    try {
+                        const prompt = `Given the following message in a chat, determine if it is important for future reference (e.g., a key question, answer, code, decision, or summary). If so, return true for 'important' and provide a type, a short snippet, and any relevant metadata.\n\nMessage:\nrole: ${msg.role}\ncontent: ${content}`;
+                        const { object: indexResult } = await generateObject({
+                            model: google('gemini-2.0-flash'),
+                            schema: indexSchema,
+                            prompt,
+                        });
+                        if (indexResult.important && indexResult.type && indexResult.snippet) {
+                            await supabaseServer.from('chat_index' as any).insert({
+                                chat_id,
+                                message_id: savedMsg.id,
+                                type: indexResult.type,
+                                snippet: indexResult.snippet,
+                                score: indexResult.score,
+                                metadata: indexResult.metadata || null,
+                            });
+                        }
+                    } catch (e) {
+                        console.error('Error generating or saving chat index for assistant/tool message:', e);
+                    }
+                }
             }
             console.log('Persisting only new messages for chat_id:', chat_id, toPersist);
             for (const dbMsg of toPersist) {
