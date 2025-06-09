@@ -8,6 +8,7 @@ import { cerebras } from '@ai-sdk/cerebras';
 import { streamText, appendResponseMessages, generateObject } from 'ai';
 import { z } from 'zod';
 import { supabaseServer } from '@/lib/supabase/server';
+import { calculatorTool } from '@/tools/calculator-tool';
 
 export const maxDuration = 30;
 
@@ -134,6 +135,10 @@ export async function POST(req: Request) {
         system: systemPrompt,
         messages,
         ...customFields,
+        tools: {
+            calculator: calculatorTool,
+        },
+        maxSteps: 5,
         async onFinish({ response }) {
             if (!chat_id) {
                 console.log('No chat_id provided, skipping message persistence.');
@@ -203,20 +208,37 @@ export async function POST(req: Request) {
             // Map assistant messages (response.messages)
             for (const msg of newAssistantMsgs) {
                 let content: string = '';
-                if (Array.isArray(msg.content)) {
-                    content = msg.content
-                        .filter((p: any) => p.type === 'text' && typeof p.text === 'string')
-                        .map((p: any) => p.text)
-                        .join('\n');
+                let metadata: any = null;
+                if (msg.role === 'tool') {
+                    // For tool messages, store a summary in content and the full message as metadata
+                    if (typeof msg.content === 'string') {
+                        content = msg.content;
+                    } else if (Array.isArray(msg.content)) {
+                        content = msg.content
+                            .filter((p: any) => p.type === 'text' && typeof p.text === 'string')
+                            .map((p: any) => p.text)
+                            .join('\n');
+                    } else {
+                        content = '[Tool result]';
+                    }
+                    // Store the entire tool message as metadata
+                    metadata = { toolMessage: msg };
                 } else {
-                    content = msg.content ?? '';
+                    if (Array.isArray(msg.content)) {
+                        content = msg.content
+                            .filter((p: any) => p.type === 'text' && typeof p.text === 'string')
+                            .map((p: any) => p.text)
+                            .join('\n');
+                    } else {
+                        content = msg.content ?? '';
+                    }
                 }
                 toPersist.push({
                     chat_id,
                     role: msg.role,
                     content,
                     type: 'text',
-                    metadata: null,
+                    metadata,
                     created_at: new Date().toISOString(),
                 });
             }

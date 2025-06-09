@@ -1,7 +1,38 @@
 import { Message } from '@ai-sdk/react';
-import { User, Bot, Image as ImageIcon } from 'lucide-react';
+import { User, Bot, Image as ImageIcon, Calculator } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import CodeBlock from './CodeBlock';
+import ToolResult from './ToolResult';
+
+// Extend the Message type to include tool messages and invocations
+type ExtendedMessage = Omit<Message, 'role'> & {
+  role: 'system' | 'user' | 'assistant' | 'data' | 'tool';
+  content: string;
+  parts?: Array<{
+    type: string;
+    text: string;
+    toolName?: string;
+    result?: {
+      expression: string;
+      result: string | number;
+    };
+  }>;
+  toolInvocations?: Array<{
+    toolName: string;
+    toolCallId: string;
+    state: 'loading' | 'result' | 'error' | 'partial-call' | 'call';
+    result?: {
+      expression: string;
+      result: string | number;
+    } | {
+      error: string;
+    };
+    step?: number;
+    args?: {
+      expression: string;
+    };
+  }>;
+};
 
 interface FileAttachment {
   type: 'file';
@@ -43,11 +74,20 @@ const markdownComponents = {
   },
 };
 
-export default function ChatMessage({ message }: { message: Message }) {
+export default function ChatMessage({ message }: { message: ExtendedMessage }) {
   const isUser = message.role === 'user';
+  const isTool = message.role === 'tool';
+
+  // If message.parts is missing but message.content is an array, treat content as parts
+  const parts = Array.isArray(message.parts)
+    ? message.parts
+    : Array.isArray(message.content)
+      ? message.content
+      : [];
+
 
   // Get attachments from message parts, experimental_attachments, or metadata
-  const partsAttachments = (message.parts?.filter(part => part.type === 'file') || []) as FileAttachment[];
+  const partsAttachments = (parts.filter((part: any) => part.type === 'file') || []) as FileAttachment[];
   const expAttachments = (message as any).experimental_attachments || [];
   // Map experimental_attachments to FileAttachment shape if present
   const expFileAttachments = Array.isArray(expAttachments)
@@ -63,8 +103,25 @@ export default function ChatMessage({ message }: { message: Message }) {
   const allAttachments = [...partsAttachments, ...expFileAttachments];
   const hasAttachments = allAttachments.length > 0 || dbAttachments.length > 0;
 
-
- 
+  // If it's a tool message, render it differently
+  if (isTool) {
+    return (
+      <div className="flex justify-start mb-4">
+        <div className="flex-shrink-0 mr-2">
+          <div className="w-8 h-8 rounded-full bg-yellow-200 flex items-center justify-center">
+            <Calculator className="text-yellow-700" size={20} />
+          </div>
+        </div>
+        <div className="max-w-[80%] rounded-lg p-4 shadow-sm bg-yellow-50 border border-yellow-200">
+          <ToolResult 
+            toolName="calculator"
+            result={message.content}
+            state="result"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
@@ -83,7 +140,7 @@ export default function ChatMessage({ message }: { message: Message }) {
         }`}
       >
         {/* Text content */}
-        {message.parts?.map((part, idx) => {
+        {parts.map((part: any, idx: number) => {
           if (part.type === 'text') {
             return (
               <ReactMarkdown
@@ -94,6 +151,16 @@ export default function ChatMessage({ message }: { message: Message }) {
               </ReactMarkdown>
             );
           }
+          if (part.type === 'tool-result' && part.toolName === 'calculator' && part.result) {
+            return (
+              <ToolResult
+                key={idx}
+                toolName="calculator"
+                result={part.result}
+                state="result"
+              />
+            );
+          }
           if (part.type === 'reasoning') return <pre key={idx} className="text-xs text-purple-400">{part.reasoning}</pre>;
           if (part.type === 'source') return (
             <a key={idx} href={part.source.url} target="_blank" rel="noopener noreferrer" className="text-xs underline text-blue-500">
@@ -101,6 +168,36 @@ export default function ChatMessage({ message }: { message: Message }) {
             </a>
           );
           return null;
+        })}
+
+        {/* Tool invocations */}
+        {message.toolInvocations?.map((invocation) => {
+          // Map the tool invocation state to our ToolResult state
+          const state = invocation.state === 'partial-call' || invocation.state === 'call' 
+            ? 'loading' 
+            : invocation.state === 'result' 
+              ? 'result' 
+              : 'error';
+
+          // Get the result based on the state
+          let result;
+          if (state === 'loading') {
+            result = { expression: invocation.args?.expression || 'Calculating...', result: '...' };
+          } else if (state === 'error') {
+            result = { error: 'An error occurred' };
+          } else {
+            result = invocation.result || { expression: '', result: '' };
+          }
+
+          return (
+            <div key={invocation.toolCallId} className="mt-2">
+              <ToolResult
+                toolName={invocation.toolName}
+                result={result}
+                state={state}
+              />
+            </div>
+          );
         })}
 
         {/* Attachments grid */}

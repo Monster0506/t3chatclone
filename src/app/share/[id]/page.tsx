@@ -32,7 +32,19 @@ export default function SharePage() {
       // Fetch messages from the API
       try {
         const res = await fetch(`/api/chat?chatId=${id}`);
-        const messages = await res.json();
+        let messages = await res.json();
+        // Hydrate tool messages
+        messages = messages.map((msg: any, idx: number) => {
+          if (msg.role === 'tool' && msg.metadata?.toolMessage) {
+            return {
+              ...msg,
+              ...msg.metadata.toolMessage,
+              db_id: msg.id,
+              db_created_at: msg.created_at,
+            };
+          }
+          return msg;
+        });
         setInitialMessages(messages);
       } catch (err) {
         console.error('Error fetching initial messages:', err);

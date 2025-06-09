@@ -34,7 +34,24 @@ export default function Page() {
       // Fetch messages from the API
       try {
         const res = await fetch(`/api/chat?chatId=${id}`);
-        const messages = await res.json();
+        let messages = await res.json();
+        console.log('[Hydration] Raw messages from DB:', messages);
+        // Hydrate tool messages
+        messages = messages.map((msg: any, idx: number) => {
+          if (msg.role === 'tool' && msg.metadata?.toolMessage) {
+            console.log(`[Hydration] Tool message found at idx ${idx}:`, msg);
+            const hydrated = {
+              ...msg,
+              ...msg.metadata.toolMessage,
+              db_id: msg.id,
+              db_created_at: msg.created_at,
+            };
+            console.log(`[Hydration] Hydrated tool message at idx ${idx}:`, hydrated);
+            return hydrated;
+          }
+          return msg;
+        });
+        console.log('[Hydration] Final hydrated messages:', messages);
         setInitialMessages(messages);
       } catch (err) {
         console.error('Error fetching initial messages:', err);
