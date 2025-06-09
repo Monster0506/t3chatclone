@@ -149,14 +149,18 @@ export default function ChatContainer({ chatId, initialMessages = [], sidebarCol
           <ChatQuickActions onPrompt={handleQuickPrompt} />
         </div>
       )}
-      <ChatMessageList messages={mergedMessages} />
-      <ChatStatus status={status} onStop={stop} onReload={reload} />
-      <ChatInput
-        input={input}
-        onInputChange={handleInputChange}
-        onSubmit={onSubmit}
-        disabled={status !== 'ready' || disabled}
-      />
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <ChatMessageList messages={mergedMessages} />
+        <ChatStatus status={status} onStop={stop} onReload={reload} />
+      </div>
+      <div className="sticky bottom-0 z-20 bg-pink-50 pt-2 pb-2">
+        <ChatInput
+          input={input}
+          onInputChange={handleInputChange}
+          onSubmit={onSubmit}
+          disabled={status !== 'ready' || disabled}
+        />
+      </div>
     </section>
   );
 } 

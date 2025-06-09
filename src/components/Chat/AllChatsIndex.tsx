@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { MessageSquare, X, HelpCircle, FileText, Code2, ListChecks, Info } from 'lucide-react';
+import { MessageSquare, X, HelpCircle, FileText, Code2, ListChecks, Info, List } from 'lucide-react';
 import { useSession } from '@supabase/auth-helpers-react';
 
 // Type for index items
@@ -109,7 +109,7 @@ export default function AllChatsIndex() {
         onClick={() => setOpen(true)}
         aria-label="Open All Chats Index"
       >
-        <MessageSquare size={28} />
+        <List size={28} />
       </button>
 
       {/* Overlay panel */}
@@ -124,7 +124,7 @@ export default function AllChatsIndex() {
               <X size={24} />
             </button>
             <h2 className="text-2xl font-bold mb-4 text-purple-700 flex items-center gap-2">
-              <MessageSquare size={24} /> All Chats Index
+              <List size={24} /> All Chats Index
             </h2>
             <div className="max-h-[60vh] overflow-y-auto pr-2">
               {loading && <div className="text-center text-purple-400 py-8">Loading...</div>}

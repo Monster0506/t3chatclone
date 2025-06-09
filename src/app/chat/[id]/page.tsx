@@ -3,7 +3,6 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { useSession } from '@supabase/auth-helpers-react';
 import { supabase } from '@/lib/supabase/client';
-import Sidebar from '@/components/Sidebar/Sidebar';
 import ChatContainer from '@/components/Chat/ChatContainer';
 import LoginModal from '@/components/Auth/LoginModal';
 
@@ -79,7 +78,7 @@ export default function Page() {
   }, [initialMessages]);
 
   return (
-    <div className="flex h-screen w-screen bg-pink-50">
+    <>
       <main className="flex-1 flex flex-col">
         {loading ? (
           <div className="flex flex-1 items-center justify-center text-lg text-gray-400">Loading...</div>
@@ -90,6 +89,6 @@ export default function Page() {
         ) : null}
       </main>
       {!session && <LoginModal open={true} />}
-    </div>
+    </>
   );
 } 
