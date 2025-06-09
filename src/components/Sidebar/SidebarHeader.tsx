@@ -5,7 +5,7 @@ export default function SidebarHeader({ collapsed }: { collapsed?: boolean }) {
         <span className="text-white text-2xl font-bold">T3</span>
       </div>
       {!collapsed && (
-        <span className="text-2xl font-extrabold text-purple-700 tracking-tight">T3.chat</span>
+        <span className="text-2xl font-extrabold text-purple-700 tracking-tight">T3 Clone</span>
       )}
     </div>
   );

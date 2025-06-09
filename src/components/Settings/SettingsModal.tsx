@@ -66,9 +66,9 @@ export default function SettingsModal({ open, onClose, onSave, initial, loading 
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
             <div className="bg-neutral-900 text-white rounded-xl shadow-xl w-full max-w-lg p-8 relative">
                 <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white">×</button>
-                <h2 className="text-2xl font-bold mb-6">Customize T3 Chat</h2>
+                <h2 className="text-2xl font-bold mb-6">Customize T3 Clone</h2>
                 <div className="mb-4">
-                    <label className="block mb-1 font-semibold">What should T3 Chat call you?</label>
+                    <label className="block mb-1 font-semibold">What should T3 Clone call you?</label>
                     <input
                         className="w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                         maxLength={NAME_LIMIT}
@@ -135,7 +135,7 @@ export default function SettingsModal({ open, onClose, onSave, initial, loading 
                     <div className="text-xs text-gray-400 text-right">{traits.length}/{TRAIT_LIMIT}</div>
                 </div>
                 <div className="mb-6">
-                    <label className="block mb-1 font-semibold">Anything else T3 Chat should know about you?</label>
+                    <label className="block mb-1 font-semibold">Anything else T3 Clone should know about you?</label>
                     <textarea
                         className="w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-[80px]"
                         maxLength={EXTRA_LIMIT}

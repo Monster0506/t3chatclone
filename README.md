@@ -1,4 +1,28 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# T3 Clone
+
+A modern, full-featured AI chat application built with Next.js, Supabase, and the latest AI SDKs. Supports attachments, beautiful UI, and a collapsible sidebar.
+
+## Setup
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Set up your environment variables (see `.env.example` if available)
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+## Features
+- Chat with AI models
+- Upload and view image attachments
+- Collapsible sidebar with chat threads
+- User settings and customization
+
+## License
+MIT
 
 ## Getting Started
 

@@ -33,7 +33,7 @@ export default function NewChatEntry() {
       <div className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-purple-200 rounded-full opacity-30 blur-3xl z-0" />
       <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] bg-pink-200 rounded-full opacity-30 blur-3xl z-0" />
       <div className="z-10 flex flex-col items-center text-center px-4">
-        <h1 className="text-5xl md:text-6xl font-extrabold text-purple-700 mb-6 drop-shadow-lg">Welcome to T3 Chat</h1>
+        <h1 className="text-5xl md:text-6xl font-extrabold text-purple-700 mb-6 drop-shadow-lg">Welcome to T3 Clone</h1>
         <p className="text-lg md:text-2xl text-purple-900 mb-8 max-w-xl">
           Your all-in-one AI chat assistant. Start a new conversation and experience the power of modern AI, tailored just for you.
         </p>
