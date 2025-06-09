@@ -1,7 +1,24 @@
 import { Message } from '@ai-sdk/react';
-import { User, Bot } from 'lucide-react';
+import { User, Bot, Image as ImageIcon } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import CodeBlock from './CodeBlock';
+
+interface FileAttachment {
+  type: 'file';
+  mimeType?: string;
+  data?: string;
+  name?: string;
+  url?: string;
+}
+
+interface DBAttachment {
+  id: string;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  url: string;
+  metadata: any;
+}
 
 const markdownComponents = {
   code({ inline, className, children, ...props }: { inline?: boolean; className?: string; children?: React.ReactNode }) {
@@ -9,7 +26,6 @@ const markdownComponents = {
     if (!inline) {
       return (
         <CodeBlock
-          language={match ? match[1] : ''}
           value={String(children ?? '').replace(/\n$/, '')}
         />
       );
@@ -28,6 +44,12 @@ const markdownComponents = {
 
 export default function ChatMessage({ message }: { message: Message }) {
   const isUser = message.role === 'user';
+
+  // Get attachments from message parts or metadata
+  const partsAttachments = (message.parts?.filter(part => part.type === 'file') || []) as FileAttachment[];
+  const dbAttachments = (message as any).attachments || [];
+  const hasAttachments = partsAttachments.length > 0 || dbAttachments.length > 0;
+
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
       {!isUser && (
@@ -44,6 +66,7 @@ export default function ChatMessage({ message }: { message: Message }) {
             : 'bg-white text-purple-900 border border-purple-100 rounded-bl-none'
         }`}
       >
+        {/* Text content */}
         {message.parts?.map((part, idx) => {
           if (part.type === 'text') {
             return (
@@ -61,11 +84,48 @@ export default function ChatMessage({ message }: { message: Message }) {
               {part.source.title ?? new URL(part.source.url).hostname}
             </a>
           );
-          if (part.type === 'file' && part.mimeType?.startsWith('image/')) return (
-            <img key={idx} src={`data:${part.mimeType};base64,${part.data}`} alt="attachment" className="rounded mt-2 max-w-xs" />
-          );
           return null;
         })}
+
+        {/* Attachments grid */}
+        {hasAttachments && (
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            {/* Render attachments from message parts */}
+            {partsAttachments.map((attachment, idx) => {
+              if (attachment.type === 'file' && attachment.mimeType?.startsWith('image/')) {
+                const imageUrl = attachment.data 
+                  ? `data:${attachment.mimeType};base64,${attachment.data}`
+                  : attachment.url;
+                return (
+                  <div key={`part-${idx}`} className="relative group">
+                    <img 
+                      src={imageUrl}
+                      alt={attachment.name || 'Attachment'} 
+                      className="rounded-lg w-full h-48 object-cover hover:opacity-90 transition-opacity"
+                    />
+                  </div>
+                );
+              }
+              return null;
+            })}
+
+            {/* Render attachments from database */}
+            {dbAttachments.map((attachment: DBAttachment, idx: number) => {
+              if (attachment.file_type.startsWith('image/')) {
+                return (
+                  <div key={`db-${attachment.id}`} className="relative group">
+                    <img 
+                      src={attachment.url} 
+                      alt={attachment.file_name} 
+                      className="rounded-lg w-full h-48 object-cover hover:opacity-90 transition-opacity"
+                    />
+                  </div>
+                );
+              }
+              return null;
+            })}
+          </div>
+        )}
       </div>
       {isUser && (
         <div className="flex-shrink-0 ml-2">

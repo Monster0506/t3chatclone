@@ -5,7 +5,8 @@ import { mistral } from '@ai-sdk/mistral';
 import { google } from '@ai-sdk/google';
 import { deepseek } from '@ai-sdk/deepseek';
 import { cerebras } from '@ai-sdk/cerebras';
-import { streamText, appendResponseMessages } from 'ai';
+import { streamText, appendResponseMessages, generateObject } from 'ai';
+import { z } from 'zod';
 import { supabaseServer } from '@/lib/supabase/server';
 
 export const maxDuration = 30;
@@ -50,16 +51,16 @@ const modelMap: Record<string, any> = {
     'mistral-small-latest': mistral('mistral-small-latest'),
     'pixtral-12b-2409': mistral('pixtral-12b-2409'),
     // Google Generative AI
-    'gemini-2.5-pro-preview-05-06': google('models/gemini-2.5-pro-preview-05-06'),
-    'gemini-2.5-flash-preview-04-17': google('models/gemini-2.5-flash-preview-04-17'),
-    'gemini-2.5-pro-exp-03-25': google('models/gemini-2.5-pro-exp-03-25'),
-    'gemini-2.0-flash': google('models/gemini-2.0-flash'),
-    'gemini-1.5-pro': google('models/gemini-1.5-pro'),
-    'gemini-1.5-pro-latest': google('models/gemini-1.5-pro-latest'),
-    'gemini-1.5-flash': google('models/gemini-1.5-flash'),
-    'gemini-1.5-flash-latest': google('models/gemini-1.5-flash-latest'),
-    'gemini-1.5-flash-8b': google('models/gemini-1.5-flash-8b'),
-    'gemini-1.5-flash-8b-latest': google('models/gemini-1.5-flash-8b-latest'),
+    'gemini-2.5-pro-preview-05-06': google('gemini-2.5-pro-preview-05-06'),
+    'gemini-2.5-flash-preview-04-17': google('gemini-2.5-flash-preview-04-17'),
+    'gemini-2.5-pro-exp-03-25': google('gemini-2.5-pro-exp-03-25'),
+    'gemini-2.0-flash': google('gemini-2.0-flash'),
+    'gemini-1.5-pro': google('gemini-1.5-pro'),
+    'gemini-1.5-pro-latest': google('gemini-1.5-pro-latest'),
+    'gemini-1.5-flash': google('gemini-1.5-flash'),
+    'gemini-1.5-flash-latest': google('gemini-1.5-flash-latest'),
+    'gemini-1.5-flash-8b': google('gemini-1.5-flash-8b'),
+    'gemini-1.5-flash-8b-latest': google('gemini-1.5-flash-8b-latest'),
     // DeepSeek
     'deepseek-chat': deepseek('deepseek-chat'),
     'deepseek-reasoner': deepseek('deepseek-reasoner'),
@@ -68,6 +69,31 @@ const modelMap: Record<string, any> = {
     'llama3.1-70b': cerebras('llama3.1-70b'),
     'llama3.3-70b': cerebras('llama3.3-70b'),
 };
+
+// Gemini helper with Zod schema
+async function generateTitleAndTags(messages: any[]): Promise<{ title?: string; tags: string[] }> {
+  const context = messages.slice(0, 2).map((m: any) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n');
+  const prompt = `Given the following conversation, generate a concise chat title and 3-5 relevant tags.`;
+  const schema = z.object({
+    title: z.string(),
+    tags: z.array(z.string()),
+  });
+  try {
+    const { object } = await generateObject({
+      model: google('gemini-2.0-flash'),
+      schema,
+      prompt: `${prompt}\n\n${context}`,
+    });
+    console.log('Generated title/tags object:', object);
+    return {
+      title: object.title,
+      tags: object.tags,
+    };
+  } catch (e) {
+    console.error('Failed to generate Gemini title/tags object:', e);
+    return { title: undefined, tags: [] };
+  }
+}
 
 export async function POST(req: Request) {
     const body = await req.json();
@@ -135,14 +161,45 @@ export async function POST(req: Request) {
                 } else {
                     createdAt = new Date().toISOString();
                 }
-                toPersist.push({
-                    chat_id,
-                    role: newUserMsg.role,
-                    content: content ?? '',
-                    type: 'text',
-                    metadata: null,
-                    created_at: createdAt,
-                });
+
+                // Save the message first to get its ID
+                const { data: savedMessage, error: saveError } = await supabaseServer
+                    .from('messages')
+                    .insert({
+                        chat_id,
+                        role: newUserMsg.role,
+                        content: content ?? '',
+                        type: 'text',
+                        metadata: null,
+                        created_at: createdAt,
+                    })
+                    .select()
+                    .single();
+
+                if (saveError) {
+                    console.error('Error saving message:', saveError);
+                } else if (savedMessage && newUserMsg.experimental_attachments) {
+                    // Process attachments
+                    for (const attachment of newUserMsg.experimental_attachments) {
+                        const { error: attachmentError } = await supabaseServer
+                            .from('attachments')
+                            .insert({
+                                message_id: savedMessage.id,
+                                file_name: attachment.name,
+                                file_type: attachment.contentType,
+                                file_size: attachment.size || 0,
+                                url: attachment.url,
+                                metadata: {
+                                    width: attachment.width,
+                                    height: attachment.height,
+                                }
+                            });
+                        
+                        if (attachmentError) {
+                            console.error('Error saving attachment:', attachmentError);
+                        }
+                    }
+                }
             }
             // Map assistant messages (response.messages)
             for (const msg of newAssistantMsgs) {
@@ -174,6 +231,36 @@ export async function POST(req: Request) {
                     console.log('Message upserted successfully.');
                 }
             }
+
+            // --- Gemini title/tags generation logic ---
+            // Fetch all messages for this chat
+            const { data: allMsgs, error: fetchErr } = await supabaseServer
+                .from('messages')
+                .select('role,content')
+                .eq('chat_id', chat_id)
+                .order('created_at', { ascending: true });
+            if (!fetchErr && allMsgs && allMsgs.length === 2) {
+                // Fetch chat row
+                const { data: chatRow, error: chatErr } = await supabaseServer
+                    .from('chats')
+                    .select('id,title,metadata')
+                    .eq('id', chat_id)
+                    .single();
+                if (!chatErr && chatRow) {
+                    const { title, tags } = await generateTitleAndTags(allMsgs);
+                    let newTitle = chatRow.title;
+                    if (newTitle === 'New Chat' && title) newTitle = title;
+                    // Merge tags with existing tags
+                    let meta = typeof chatRow.metadata === 'object' && chatRow.metadata ? { ...chatRow.metadata } : {};
+                    const existingTags = Array.isArray((meta as any).tags) ? ((meta as any).tags as any[]).filter((t: any) => typeof t === 'string') : [];
+                    const allTags = Array.from(new Set([...(existingTags as string[]), ...(tags as string[])]));
+                    (meta as any).tags = allTags;
+                    await supabaseServer
+                        .from('chats')
+                        .update({ title: newTitle, metadata: meta })
+                        .eq('id', chat_id);
+                }
+            }
         },
     });
 
@@ -186,13 +273,23 @@ export async function GET(req: Request) {
     if (!chatId) {
         return new Response(JSON.stringify({ error: 'chatId is required' }), { status: 400 });
     }
-    const { data, error } = await supabaseServer
+    const { data: messages, error } = await supabaseServer
         .from('messages')
-        .select('*')
+        .select(`
+            *,
+            attachments (
+                id,
+                file_name,
+                file_type,
+                file_size,
+                url,
+                metadata
+            )
+        `)
         .eq('chat_id', chatId)
         .order('created_at', { ascending: true });
     if (error) {
         return new Response(JSON.stringify({ error: error.message }), { status: 500 });
     }
-    return new Response(JSON.stringify(data), { status: 200 });
+    return new Response(JSON.stringify(messages), { status: 200 });
 } 

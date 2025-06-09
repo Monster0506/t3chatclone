@@ -38,6 +38,19 @@ export default function SidebarThreadList({ search }: { search: string }) {
   const [currentThread, setCurrentThread] = useState<Tables<'chats'> | null>(null);
   const [tagAnchorRef, setTagAnchorRef] = useState<React.RefObject<HTMLDivElement> | null>(null);
 
+  // Fetch threads function (extracted for polling)
+  const fetchThreads = async () => {
+    if (!session?.user) return;
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('chats')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('updated_at', { ascending: false });
+    if (!error && data) setThreads(data);
+    setLoading(false);
+  };
+
   useEffect(() => {
     if (renamingId && inputRef.current) {
       inputRef.current.focus();
@@ -45,19 +58,49 @@ export default function SidebarThreadList({ search }: { search: string }) {
   }, [renamingId]);
 
   useEffect(() => {
-    const fetchThreads = async () => {
-      if (!session?.user) return;
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('chats')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .order('updated_at', { ascending: false });
-      if (!error && data) setThreads(data);
-      setLoading(false);
-    };
     fetchThreads();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
+
+  // --- Poll for Gemini title/tags update after first exchange ---
+  useEffect(() => {
+    // Find any chat with title 'New Chat' and exactly 2 messages
+    const pollForGeminiUpdate = async () => {
+      if (!session?.user) return;
+      // Find candidate chats
+      const newChats = threads.filter(t => t.title === 'New Chat');
+      for (const chat of newChats) {
+        // Count messages for this chat
+        const { data: msgs } = await supabase
+          .from('messages')
+          .select('id')
+          .eq('chat_id', chat.id);
+        if (msgs && msgs.length === 2) {
+          let tries = 0;
+          const poll = setInterval(async () => {
+            tries++;
+            const { data: updated, error } = await supabase
+              .from('chats')
+              .select('title,metadata')
+              .eq('id', chat.id)
+              .maybeSingle();
+            if (error || !updated) {
+              clearInterval(poll);
+              return;
+            }
+            const tags = getTagsFromMetadata(updated.metadata);
+            if (updated.title !== 'New Chat' || tags.length > 0) {
+              await fetchThreads();
+              clearInterval(poll);
+            }
+            if (tries > 5) clearInterval(poll);
+          }, 2000);
+        }
+      }
+    };
+    pollForGeminiUpdate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threads, session]);
 
   // Actions
   const handlePin = async (thread: Tables<'chats'>, pinned: boolean) => {
@@ -178,7 +221,12 @@ export default function SidebarThreadList({ search }: { search: string }) {
   };
 
   // Filter and organize
-  const filtered = threads.filter(t => t.title.toLowerCase().includes(search.toLowerCase()));
+  const filtered = threads.filter(t => {
+    const titleMatch = t.title.toLowerCase().includes(search.toLowerCase());
+    const tags = getTagsFromMetadata(t.metadata);
+    const tagMatch = tags.some((tag: string) => tag.toLowerCase().includes(search.toLowerCase()));
+    return titleMatch || tagMatch;
+  });
   const notArchived = filtered.filter(t => !(typeof t.metadata === 'object' && t.metadata && (t.metadata as any).archived));
   const pinned = notArchived.filter(t => typeof t.metadata === 'object' && t.metadata && (t.metadata as any).pinned === true);
   const recent = notArchived.filter(t => !t.metadata || typeof t.metadata !== 'object' || !(t.metadata as any).pinned);
@@ -218,15 +266,15 @@ export default function SidebarThreadList({ search }: { search: string }) {
   );
 
   return (
-    <div className="flex-1 overflow-y-auto flex flex-col">
+    <div className="flex-1 overflow-y-auto flex flex-col px-1 pb-2">
       {loading ? (
         <div className="text-gray-400 text-sm text-center mt-8">Loading...</div>
       ) : (
         <>
           {pinned.length > 0 && (
-            <div className="mb-2">
-              <div className="px-4 py-1 text-xs text-purple-400 uppercase tracking-widest">Pinned</div>
-              <ul className="divide-y divide-purple-100">
+            <div className="mb-3">
+              <div className="px-2 py-1 text-xs font-bold text-purple-500 uppercase tracking-widest mb-1">Pinned</div>
+              <ul className="flex flex-col gap-2">
                 {pinned.map(thread => (
                   <SidebarChatItem
                     key={thread.id}
@@ -256,8 +304,8 @@ export default function SidebarThreadList({ search }: { search: string }) {
             </div>
           )}
           <div>
-            {pinned.length > 0 && <div className="px-4 py-1 text-xs text-purple-400 uppercase tracking-widest">Recent</div>}
-            <ul className="divide-y divide-purple-100">
+            {pinned.length > 0 && <div className="px-2 py-1 text-xs font-bold text-purple-500 uppercase tracking-widest mb-1">Recent</div>}
+            <ul className="flex flex-col gap-2">
               {recent.map(thread => (
                 <SidebarChatItem
                   key={thread.id}
