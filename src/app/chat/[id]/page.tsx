@@ -35,7 +35,6 @@ export default function Page() {
       try {
         const res = await fetch(`/api/chat?chatId=${id}`);
         const messages = await res.json();
-        console.log('Fetched initial messages:', messages);
         setInitialMessages(messages);
       } catch (err) {
         console.error('Error fetching initial messages:', err);

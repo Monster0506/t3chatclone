@@ -9,9 +9,22 @@ import type { Tables } from '@/lib/supabase/types';
 
 const DEFAULT_MODEL = 'gemini-2.0-flash';
 
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      // Remove the data URL prefix, keep only base64
+      const result = reader.result as string;
+      const base64 = result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function ChatContainer({ chatId, initialMessages = [] }: { chatId: string, initialMessages?: any[] }) {
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL);
-  console.log('initialMessages', initialMessages, chatId);
   const [userSettings, setUserSettings] = useState<Tables<'user_settings'> | null>(null);
   const session = useSession();
 
@@ -48,31 +61,76 @@ export default function ChatContainer({ chatId, initialMessages = [] }: { chatId
     initialMessages,
   });
 
+  const [optimisticMessages, setOptimisticMessages] = useState<any[]>([]);
+
   // Handle quick action prompt click
   const handleQuickPrompt = useCallback((prompt: string) => {
     setInput(prompt);
   }, [setInput]);
 
   // Custom submit handler to support attachments
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>, files?: FileList) => {
-    handleSubmit(e, files ? {
-      experimental_attachments: files,
-      body: {
-        chat_id: chatId,
-        model: selectedModel,
-        userSettings,
-      },
-    } : {
-      body: {
-        chat_id: chatId,
-        model: selectedModel,
-        userSettings,
-      },
-    });
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>, files?: FileList) => {
+    e.preventDefault();
+    if (files && files.length > 0) {
+      const attachments = await Promise.all(
+        Array.from(files).map(async (file) => ({
+          type: 'file',
+          mimeType: file.type,
+          name: file.name,
+          data: await fileToBase64(file),
+        }))
+      );
+      // Create an optimistic message object
+      const optimisticMsg = {
+        id: `optimistic-${Date.now()}`,
+        role: 'user',
+        content: input,
+        type: 'text',
+        created_at: new Date().toISOString(),
+        parts: [
+          { type: 'text', text: input },
+          ...attachments,
+        ],
+      };
+      setOptimisticMessages((prev) => [...prev, optimisticMsg]);
+      handleSubmit(e, {
+        experimental_attachments: files,
+        body: {
+          chat_id: chatId,
+          model: selectedModel,
+          userSettings,
+        },
+      });
+    } else {
+      const optimisticMsg = {
+        id: `optimistic-${Date.now()}`,
+        role: 'user',
+        content: input,
+        type: 'text',
+        created_at: new Date().toISOString(),
+        parts: [{ type: 'text', text: input }],
+      };
+      setOptimisticMessages((prev) => [...prev, optimisticMsg]);
+      handleSubmit(e, {
+        body: {
+          chat_id: chatId,
+          model: selectedModel,
+          userSettings,
+        },
+      });
+    }
   };
 
+  // Clear optimistic messages after real messages update
+  useEffect(() => {
+    setOptimisticMessages([]);
+  }, [messages]);
+
   const showWelcome = messages && messages.length === 0;
-  console.log('messages', messages);
+
+  // Add logging for merged messages
+  const mergedMessages = [...messages, ...optimisticMessages];
+
 
   return (
     <section className="flex flex-col flex-1 h-full bg-pink-50">
@@ -89,7 +147,7 @@ export default function ChatContainer({ chatId, initialMessages = [] }: { chatId
           <ChatQuickActions onPrompt={handleQuickPrompt} />
         </div>
       )}
-      <ChatMessageList messages={messages} />
+      <ChatMessageList messages={mergedMessages} />
       <ChatStatus status={status} onStop={stop} onReload={reload} />
       <ChatInput
         input={input}

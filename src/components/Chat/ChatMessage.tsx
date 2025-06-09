@@ -45,10 +45,25 @@ const markdownComponents = {
 export default function ChatMessage({ message }: { message: Message }) {
   const isUser = message.role === 'user';
 
-  // Get attachments from message parts or metadata
+  // Get attachments from message parts, experimental_attachments, or metadata
   const partsAttachments = (message.parts?.filter(part => part.type === 'file') || []) as FileAttachment[];
+  const expAttachments = (message as any).experimental_attachments || [];
+  // Map experimental_attachments to FileAttachment shape if present
+  const expFileAttachments = Array.isArray(expAttachments)
+    ? expAttachments.map((att: any) => ({
+        type: 'file',
+        mimeType: att.mimeType || att.contentType,
+        data: att.data || (att.url && att.url.startsWith('data:') ? att.url.split(',')[1] : undefined),
+        name: att.name,
+        url: att.url,
+      }))
+    : [];
   const dbAttachments = (message as any).attachments || [];
-  const hasAttachments = partsAttachments.length > 0 || dbAttachments.length > 0;
+  const allAttachments = [...partsAttachments, ...expFileAttachments];
+  const hasAttachments = allAttachments.length > 0 || dbAttachments.length > 0;
+
+
+ 
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
@@ -90,17 +105,17 @@ export default function ChatMessage({ message }: { message: Message }) {
         {/* Attachments grid */}
         {hasAttachments && (
           <div className="mt-4 grid grid-cols-2 gap-2">
-            {/* Render attachments from message parts */}
-            {partsAttachments.map((attachment, idx) => {
+            {/* Render attachments from parts and experimental_attachments */}
+            {allAttachments.map((attachment, idx) => {
               if (attachment.type === 'file' && attachment.mimeType?.startsWith('image/')) {
-                const imageUrl = attachment.data 
+                const imageUrl = attachment.data
                   ? `data:${attachment.mimeType};base64,${attachment.data}`
                   : attachment.url;
                 return (
                   <div key={`part-${idx}`} className="relative group">
-                    <img 
+                    <img
                       src={imageUrl}
-                      alt={attachment.name || 'Attachment'} 
+                      alt={attachment.name || 'Attachment'}
                       className="rounded-lg w-full h-48 object-cover hover:opacity-90 transition-opacity"
                     />
                   </div>
@@ -108,15 +123,14 @@ export default function ChatMessage({ message }: { message: Message }) {
               }
               return null;
             })}
-
             {/* Render attachments from database */}
             {dbAttachments.map((attachment: DBAttachment, idx: number) => {
               if (attachment.file_type.startsWith('image/')) {
                 return (
                   <div key={`db-${attachment.id}`} className="relative group">
-                    <img 
-                      src={attachment.url} 
-                      alt={attachment.file_name} 
+                    <img
+                      src={attachment.url}
+                      alt={attachment.file_name}
                       className="rounded-lg w-full h-48 object-cover hover:opacity-90 transition-opacity"
                     />
                   </div>

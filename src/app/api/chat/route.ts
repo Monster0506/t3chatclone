@@ -84,7 +84,6 @@ async function generateTitleAndTags(messages: any[]): Promise<{ title?: string; 
       schema,
       prompt: `${prompt}\n\n${context}`,
     });
-    console.log('Generated title/tags object:', object);
     return {
       title: object.title,
       tags: object.tags,
