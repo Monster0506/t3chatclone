@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, RefObject } from 'react';
-import { MoreVertical, Pin, Trash2, Edit2 } from 'lucide-react';
+import { MoreVertical, Pin, Trash2, Edit2, Globe } from 'lucide-react';
 import type { Tables } from '@/lib/supabase/types';
 import SidebarChatContextMenu from './SidebarChatContextMenu';
 
@@ -40,6 +40,9 @@ export default function SidebarChatItem({
   inputRef,
   pinned,
   archived,
+  collapsed,
+  isPublic,
+  onTogglePublic,
 }: {
   thread: Tables<'chats'>;
   isActive: boolean;
@@ -61,6 +64,9 @@ export default function SidebarChatItem({
   inputRef: React.RefObject<HTMLInputElement>;
   pinned: boolean;
   archived: boolean;
+  collapsed?: boolean;
+  isPublic: boolean;
+  onTogglePublic: () => void;
 }) {
   const initialTags = getTags(thread.metadata);
   const [tags, setTags] = useState<string[]>(initialTags);
@@ -69,6 +75,7 @@ export default function SidebarChatItem({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(initialTags)]);
   const [tagInput, setTagInput] = useState('');
+  const menuRef = useRef<HTMLDivElement>(null);
   return (
     <li
       className={`group flex items-center px-4 py-2 transition-colors duration-150 cursor-pointer select-none ${isActive ? 'bg-purple-900/10 text-purple-900 font-semibold' : 'hover:bg-purple-900/5 text-purple-800'}`}
@@ -91,7 +98,13 @@ export default function SidebarChatItem({
             {thread.title || 'Untitled Chat'}
             {pinned && <Pin size={14} className="text-purple-400" />}
             {archived && <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-archive text-purple-400" viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="2"/><path d="M4 8v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/></svg>}
+            {thread.public && (
+              <span title="Public chat" className="ml-1 text-blue-500"><Globe size={14} /></span>
+            )}
           </span>
+          {collapsed && thread.public && (
+            <span title="Public chat" className="ml-2 text-blue-500"><Globe size={16} /></span>
+          )}
           <div className="relative">
             <button
               className="ml-2 p-1 rounded hover:bg-purple-200"
@@ -101,6 +114,7 @@ export default function SidebarChatItem({
             </button>
             {menuOpen === thread.id && (
               <SidebarChatContextMenu
+                chatId={thread.id}
                 pinned={pinned}
                 onPin={() => onPin(thread, !pinned)}
                 onRename={() => { setRenamingId(thread.id); setRenameValue(thread.title); }}
@@ -132,7 +146,9 @@ export default function SidebarChatItem({
                   setTags(newTags);
                   onUpdateTags(thread, newTags);
                 }}
-                className="absolute right-0 top-8 z-[9999]"
+                menuRef={menuRef}
+                isPublic={isPublic}
+                onTogglePublic={onTogglePublic}
               />
             )}
           </div>

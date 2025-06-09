@@ -27,6 +27,7 @@ const markdownComponents = {
       return (
         <CodeBlock
           value={String(children ?? '').replace(/\n$/, '')}
+          language={match ? match[1] : undefined}
         />
       );
     }

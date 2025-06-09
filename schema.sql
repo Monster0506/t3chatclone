@@ -33,7 +33,8 @@ create table if not exists public.chats (
     model text not null,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null,
     updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
-    metadata jsonb
+    metadata jsonb,
+    public boolean not null default false -- Whether this chat is public/shareable
 );
 
 create table if not exists public.messages (
@@ -95,7 +96,7 @@ create policy "Users can update their own settings"
 -- Chats policies
 create policy "Users can view their own chats"
     on public.chats for select
-    using (auth.uid() = user_id);
+    using (auth.uid() = user_id OR public);
 
 create policy "Users can create their own chats"
     on public.chats for insert

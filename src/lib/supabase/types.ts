@@ -59,6 +59,7 @@ export type Database = {
           title: string
           updated_at: string
           user_id: string
+          public: boolean
         }
         Insert: {
           created_at?: string
@@ -68,6 +69,7 @@ export type Database = {
           title: string
           updated_at?: string
           user_id: string
+          public?: boolean
         }
         Update: {
           created_at?: string
@@ -77,6 +79,7 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+          public?: boolean
         }
         Relationships: [
           {

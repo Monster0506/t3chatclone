@@ -3,7 +3,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from '@supabase/auth-helpers-react';
 import { supabase } from '@/lib/supabase/client';
 import type { Tables } from '@/lib/supabase/types';
-import { MoreVertical, Pin, Trash2, Edit2, MessageSquare, ChevronDown, ChevronRight, Archive } from 'lucide-react';
+import { MoreVertical, Pin, Trash2, Edit2, MessageSquare, ChevronDown, ChevronRight, Archive, Globe } from 'lucide-react';
 import SidebarChatItem from './SidebarChatItem';
 import TagModal from './TagModal';
 
@@ -221,6 +221,14 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
       .eq('id', thread.id);
   };
 
+  const handleTogglePublic = async (thread: Tables<'chats'>) => {
+    await supabase
+      .from('chats')
+      .update({ public: !thread.public })
+      .eq('id', thread.id);
+    setThreads(ts => ts.map(t => t.id === thread.id ? { ...t, public: !thread.public } : t));
+  };
+
   // Filter and organize
   const filtered = threads.filter(t => {
     const titleMatch = t.title.toLowerCase().includes(search.toLowerCase());
@@ -281,6 +289,7 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
           let Icon = MessageSquare;
           if (thread._type === 'pinned') Icon = Pin;
           else if (thread._type === 'archived') Icon = Archive;
+          else if (thread.public) Icon = Globe;
           return (
             <button
               key={thread.id}
@@ -291,6 +300,7 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
               <Icon size={22} className={
                 thread._type === 'pinned' ? 'text-purple-500' :
                 thread._type === 'archived' ? 'text-purple-300' :
+                thread.public ? 'text-blue-500' :
                 'text-purple-400'
               } />
             </button>
@@ -333,6 +343,8 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
                     inputRef={inputRef as React.RefObject<HTMLInputElement>}
                     pinned={!!(typeof thread.metadata === 'object' && thread.metadata && (thread.metadata as any).pinned === true)}
                     archived={!!(typeof thread.metadata === 'object' && thread.metadata && (thread.metadata as any).archived === true)}
+                    isPublic={thread.public}
+                    onTogglePublic={() => handleTogglePublic(thread)}
                   />
                 ))}
               </ul>
@@ -364,6 +376,8 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
                   inputRef={inputRef as React.RefObject<HTMLInputElement>}
                   pinned={!!(typeof thread.metadata === 'object' && thread.metadata && (thread.metadata as any).pinned === true)}
                   archived={!!(typeof thread.metadata === 'object' && thread.metadata && (thread.metadata as any).archived === true)}
+                  isPublic={thread.public}
+                  onTogglePublic={() => handleTogglePublic(thread)}
                 />
               ))}
             </ul>
@@ -405,6 +419,8 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
                       inputRef={inputRef as React.RefObject<HTMLInputElement>}
                       pinned={!!(typeof thread.metadata === 'object' && thread.metadata && (thread.metadata as any).pinned === true)}
                       archived={!!(typeof thread.metadata === 'object' && thread.metadata && (thread.metadata as any).archived === true)}
+                      isPublic={thread.public}
+                      onTogglePublic={() => handleTogglePublic(thread)}
                     />
                   ))}
                 </ul>

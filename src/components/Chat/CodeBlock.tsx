@@ -1,3 +1,4 @@
+// @ts-expect-error: No types for react-syntax-highlighter
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import CodeBlockActions from './CodeBlockActions';

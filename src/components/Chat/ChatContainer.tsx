@@ -23,7 +23,7 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
-export default function ChatContainer({ chatId, initialMessages = [], sidebarCollapsed }: { chatId: string, initialMessages?: any[], sidebarCollapsed?: boolean }) {
+export default function ChatContainer({ chatId, initialMessages = [], sidebarCollapsed, disabled = false }: { chatId: string, initialMessages?: any[], sidebarCollapsed?: boolean, disabled?: boolean }) {
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL);
   const [userSettings, setUserSettings] = useState<Tables<'user_settings'> | null>(null);
   const session = useSession();
@@ -153,7 +153,7 @@ export default function ChatContainer({ chatId, initialMessages = [], sidebarCol
         input={input}
         onInputChange={handleInputChange}
         onSubmit={onSubmit}
-        disabled={status !== 'ready'}
+        disabled={status !== 'ready' || disabled}
       />
     </section>
   );
