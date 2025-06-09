@@ -12,7 +12,7 @@ export default function ChatBar({ selectedModelId, onModelChange }: {
   const selectedModel = modelFamilies.flatMap(f => f.models).find(m => m.id === selectedModelId);
 
   return (
-    <div className="flex items-center gap-2 p-2 border-b border-purple-100 bg-white justify-between">
+    <div className="w-full max-w-2xl mx-auto p-2 sm:p-3 bg-white rounded-2xl shadow border border-purple-100 flex items-center gap-2">
       <Button
         className="flex items-center gap-2 bg-purple-100 text-purple-700 px-3 py-2 rounded-lg hover:bg-purple-200"
         onClick={() => setModalOpen(true)}
@@ -25,8 +25,10 @@ export default function ChatBar({ selectedModelId, onModelChange }: {
         onSelect={onModelChange}
         selectedModelId={selectedModelId}
       />
-      <div className="flex-1" />
-      <UserMenu />
+      <div className="flex-1 min-w-0" />
+      <div className="flex-shrink-0">
+        <UserMenu />
+      </div>
     </div>
   );
 } 

@@ -46,9 +46,6 @@ export default function Page() {
 
   return (
     <div className="flex h-screen w-screen bg-pink-50">
-      <div className="w-72 flex-shrink-0">
-        <Sidebar />
-      </div>
       <main className="flex-1 flex flex-col">
         {loading ? (
           <div className="flex flex-1 items-center justify-center text-lg text-gray-400">Loading...</div>

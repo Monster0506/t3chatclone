@@ -2,9 +2,13 @@ import { useState } from 'react';
 import { SidebarHeader, SidebarSearch, SidebarThreadList, SidebarNewChatButton } from './index';
 import { PanelTopClose, PanelTopOpen } from 'lucide-react';
 
-export default function Sidebar() {
+interface SidebarProps {
+  collapsed?: boolean;
+  onCollapse?: (collapsed: boolean) => void;
+}
+
+export default function Sidebar({ collapsed = false, onCollapse }: SidebarProps) {
   const [search, setSearch] = useState('');
-  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <aside
@@ -16,7 +20,7 @@ export default function Sidebar() {
         <div className="flex flex-col items-center justify-center mt-4 mb-6">
           <button
             className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-purple-600 shadow-lg border border-purple-200 hover:bg-purple-100 transition"
-            onClick={() => setCollapsed(false)}
+            onClick={() => onCollapse?.(false)}
             aria-label="Expand sidebar"
           >
             <PanelTopOpen size={26} />
@@ -29,7 +33,7 @@ export default function Sidebar() {
           </div>
           <button
             className="ml-2 p-1 rounded-full bg-white text-purple-600 shadow border border-purple-200 hover:bg-purple-100 transition"
-            onClick={() => setCollapsed(true)}
+            onClick={() => onCollapse?.(true)}
             aria-label="Collapse sidebar"
           >
             <PanelTopClose size={24} />

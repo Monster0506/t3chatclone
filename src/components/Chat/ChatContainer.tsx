@@ -133,7 +133,7 @@ export default function ChatContainer({ chatId, initialMessages = [], sidebarCol
 
 
   return (
-    <section className={`flex flex-col flex-1 h-full bg-pink-50 transition-all duration-300 ${sidebarCollapsed ? 'px-8' : ''}`}>
+    <section className="flex flex-col flex-1 h-full bg-pink-50 w-full mx-auto transition-all duration-300">
       <ChatBar selectedModelId={selectedModel} onModelChange={setSelectedModel} />
       {showWelcome && (
         <div className="flex-1 flex flex-col justify-center items-center">
