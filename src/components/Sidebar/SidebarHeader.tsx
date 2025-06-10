@@ -16,7 +16,7 @@ export default function SidebarHeader() {
       style={{ background: theme.glass, borderColor: theme.buttonBorder }}
     >
       <span className="text-xl font-extrabold tracking-tight" style={{ color: theme.buttonText, letterSpacing: '-0.02em' }}>
-        T3 Chat
+        T3 Clone
       </span>
 
     </Card>

@@ -1,6 +1,6 @@
 import { supabaseServer } from '@/lib/supabase/server';
-import { openai } from '@ai-sdk/openai';
-import { modelMap } from '../route';
+import { google } from '@ai-sdk/google';
+import { modelFamilies as modelMap } from '@/components/ModelSelector/modelData';
 
 export const runtime = 'edge';
 
@@ -53,7 +53,7 @@ export default async function handler(req: Request) {
     .eq('id', assistantMsg.chat_id)
     .single();
   const modelId = chatRow?.model || 'gpt-4o';
-  const model = modelMap[modelId] || openai('gpt-4o');
+  const model = modelMap[modelId] || google('gpt-4o');
 
   // Call the model with the user message
   const systemPrompt = 'You are a helpful assistant.';
