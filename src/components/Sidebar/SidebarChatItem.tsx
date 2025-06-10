@@ -2,6 +2,8 @@ import { useRef, useState, useEffect, RefObject } from 'react';
 import { MoreVertical, Pin, Trash2, Edit2, Globe } from 'lucide-react';
 import type { Tables } from '@/lib/supabase/types';
 import SidebarChatContextMenu from './SidebarChatContextMenu';
+import Badge from '../UI/Badge';
+import { useTheme } from '../../theme/ThemeProvider';
 
 function formatTime(ts: string) {
   const date = new Date(ts);
@@ -68,6 +70,7 @@ export default function SidebarChatItem({
   isPublic: boolean;
   onTogglePublic: () => void;
 }) {
+  const { theme } = useTheme();
   const initialTags = getTags(thread.metadata);
   const [tags, setTags] = useState<string[]>(initialTags);
   useEffect(() => {
@@ -78,12 +81,13 @@ export default function SidebarChatItem({
   const menuRef = useRef<HTMLDivElement>(null);
   return (
     <li
-      className={`group flex items-center px-4 py-2 transition-colors duration-150 cursor-pointer select-none ${isActive ? 'bg-purple-900/10 text-purple-900 font-semibold' : 'hover:bg-purple-900/5 text-purple-800'}`}
+      className={`group flex items-center px-4 py-2 transition-colors duration-150 cursor-pointer select-none rounded-xl mb-1`}
+      style={{ background: isActive ? theme.buttonGlass : 'transparent', color: theme.foreground, border: isActive ? `2px solid ${theme.buttonBorder}` : 'none' }}
     >
       {renamingId === thread.id ? (
         <input
           ref={inputRef}
-          className="flex-1 bg-transparent border border-purple-200 rounded px-2 py-1 text-purple-900 text-sm"
+          className={`flex-1 bg-transparent border border-${theme.buttonBorder} rounded px-2 py-1 text-${theme.foreground} text-sm`}
           value={renameValue}
           onChange={e => setRenameValue(e.target.value)}
           onBlur={() => setRenamingId(null)}
@@ -107,7 +111,7 @@ export default function SidebarChatItem({
           )}
           <div className="relative">
             <button
-              className="ml-2 p-1 rounded hover:bg-purple-200"
+              className={`ml-2 p-1 rounded hover:bg-${theme.buttonBorder}`}
               onClick={e => { e.stopPropagation(); setMenuOpen(thread.id === menuOpen ? null : thread.id); }}
             >
               <MoreVertical size={16} />

@@ -4,6 +4,9 @@ import { supabase } from '@/lib/supabase/client';
 import { useState } from 'react';
 import SettingsModal from '../Settings/SettingsModal';
 import type { Tables } from '@/lib/supabase/types';
+import Avatar from '../UI/Avatar';
+import Modal from '../UI/Modal';
+import { useTheme } from '../../theme/ThemeProvider';
 
 function getInitials(email?: string) {
   if (!email) return '?';
@@ -16,6 +19,7 @@ export default function UserMenu() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [userSettings, setUserSettings] = useState<Tables<'user_settings'> | null>(null);
+  const { theme } = useTheme();
 
   if (!session) return null;
   const user = session.user;
@@ -107,21 +111,18 @@ export default function UserMenu() {
   return (
     <div className="relative flex items-center justify-center">
       <button
-        className="w-9 h-9 rounded-full bg-purple-200 flex items-center justify-center text-lg font-bold text-purple-700 border-2 border-purple-300 hover:border-purple-500 transition"
+        className="w-10 h-10 rounded-full border-2 flex items-center justify-center text-lg font-bold transition focus:outline-none"
+        style={{ borderColor: theme.buttonBorder, background: theme.glass, color: theme.foreground }}
         onClick={() => setOpen(o => !o)}
         title={email || 'User'}
       >
-        {avatarUrl ? (
-          <img src={avatarUrl} alt="avatar" className="w-9 h-9 rounded-full object-cover" />
-        ) : (
-          getInitials(email)
-        )}
+        <Avatar src={avatarUrl} initials={getInitials(email)} />
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-40 bg-white text-black rounded shadow-lg z-50">
-          <div className="px-4 py-2 border-b text-xs text-gray-500">{email}</div>
+        <div className="absolute right-0 mt-2 w-44 glass shadow-lg z-50" style={{ background: theme.glass, color: theme.foreground }}>
+          <div className="px-4 py-2 border-b text-xs opacity-70" style={{ borderColor: theme.buttonBorder }}>{email}</div>
           <button
-            className="w-full text-left px-4 py-2 hover:bg-purple-100 text-purple-700"
+            className="w-full text-left px-4 py-2 hover:opacity-80"
             onClick={() => {
               handleOpenSettings();
               setOpen(false);
@@ -130,7 +131,7 @@ export default function UserMenu() {
             Settings
           </button>
           <button
-            className="w-full text-left px-4 py-2 hover:bg-purple-100 text-purple-700"
+            className="w-full text-left px-4 py-2 hover:opacity-80"
             onClick={async () => {
               await supabase.auth.signOut();
               setOpen(false);
@@ -140,13 +141,15 @@ export default function UserMenu() {
           </button>
         </div>
       )}
-      <SettingsModal
-        open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        onSave={handleSaveSettings}
-        initial={userSettings}
-        loading={settingsLoading}
-      />
+      <Modal open={settingsOpen} onClose={() => setSettingsOpen(false)}>
+        <SettingsModal
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          onSave={handleSaveSettings}
+          initial={userSettings}
+          loading={settingsLoading}
+        />
+      </Modal>
     </div>
   );
 } 

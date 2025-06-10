@@ -1,4 +1,4 @@
-import { Message } from '@ai-sdk/react';
+import { useTheme } from '../../theme/ThemeProvider';
 import ChatMessage from './ChatMessage';
 
 // Extend the Message type to include tool messages
@@ -17,10 +17,19 @@ type ExtendedMessage = Omit<Message, 'role'> & {
 };
 
 export default function ChatMessageList({ messages }: { messages: ExtendedMessage[] }) {
+  const { theme } = useTheme();
   return (
-    <div className="flex flex-col gap-2 px-2 py-1 overflow-y-auto flex-1 max-w-4xl mx-auto w-full">
-      {messages.map((message) => (
-        <ChatMessage key={message.id} message={message as Message} />
+    <div
+      className="flex flex-col gap-6 px-2 py-6 w-full max-w-2xl mx-auto"
+      style={{
+        background: theme.glass,
+        borderRadius: '2rem',
+        boxShadow: '0 8px 32px 0 rgba(31,38,135,0.10)',
+        border: `1.5px solid ${theme.buttonBorder}`,
+      }}
+    >
+      {messages.map((msg, i) => (
+        <ChatMessage message={msg} key={msg.id || i} />
       ))}
     </div>
   );

@@ -7,6 +7,8 @@ import { useSession } from '@supabase/auth-helpers-react';
 import { supabase } from '@/lib/supabase/client';
 import type { Tables } from '@/lib/supabase/types';
 import AllChatsIndex from './AllChatsIndex';
+import { useTheme } from '../../theme/ThemeProvider';
+import Card from '../UI/Card';
 
 const DEFAULT_MODEL = 'gemini-2.0-flash';
 
@@ -28,6 +30,7 @@ export default function ChatContainer({ chatId, initialMessages = [], sidebarCol
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL);
   const [userSettings, setUserSettings] = useState<Tables<'user_settings'> | null>(null);
   const session = useSession();
+  const { theme } = useTheme();
 
   // Fetch user settings
   useEffect(() => {
@@ -132,34 +135,47 @@ export default function ChatContainer({ chatId, initialMessages = [], sidebarCol
   // Add logging for merged messages
   const mergedMessages = [...messages, ...optimisticMessages];
 
-
   return (
-    <section className="flex flex-col flex-1 h-full bg-pink-50 w-full mx-auto transition-all duration-300">
-      <ChatBar selectedModelId={selectedModel} onModelChange={setSelectedModel} />
-      <AllChatsIndex />
-      {showWelcome && (
-        <div className="flex-1 flex flex-col justify-center items-center">
-          <h1 className="text-4xl font-bold text-purple-700 mb-4">How can I help you?</h1>
-          <div className="flex gap-2 mb-8">
-            <span className="px-3 py-1 rounded bg-white border border-purple-100 text-purple-700 font-medium">Create</span>
-            <span className="px-3 py-1 rounded bg-white border border-purple-100 text-purple-700 font-medium">Explore</span>
-            <span className="px-3 py-1 rounded bg-white border border-purple-100 text-purple-700 font-medium">Code</span>
-            <span className="px-3 py-1 rounded bg-white border border-purple-100 text-purple-700 font-medium">Learn</span>
-          </div>
-          <ChatQuickActions onPrompt={handleQuickPrompt} />
-        </div>
-      )}
-      <div className="flex-1 min-h-0 overflow-y-auto">
-        <ChatMessageList messages={mergedMessages} />
-        <ChatStatus status={status} onStop={stop} onReload={reload} />
+    <section
+      className="flex flex-col flex-1 h-full w-full mx-auto transition-all duration-300"
+      style={{ background: theme.background, color: theme.foreground }}
+    >
+      <div className="w-full px-0 md:px-8 pt-4 pb-2">
+        <Card className="w-full max-w-4xl mx-auto p-0 md:p-2 shadow-none bg-transparent">
+          <ChatBar selectedModelId={selectedModel} onModelChange={setSelectedModel} />
+        </Card>
       </div>
-      <div className="sticky bottom-0 z-20 bg-pink-50 pt-2 pb-2">
-        <ChatInput
-          input={input}
-          onInputChange={handleInputChange}
-          onSubmit={onSubmit}
-          disabled={status !== 'ready' || disabled}
-        />
+      <div className="w-full px-0 md:px-8">
+        <Card className="w-full max-w-4xl mx-auto p-0 md:p-2 shadow-none bg-transparent">
+          <AllChatsIndex />
+        </Card>
+      </div>
+      {showWelcome ? (
+        <div className="flex-1 flex flex-col justify-center items-center w-full px-2">
+          <Card className="w-full max-w-3xl mx-auto p-0 md:p-8">
+            <ChatQuickActions onPrompt={handleQuickPrompt} />
+          </Card>
+        </div>
+      ) : (
+        <>
+          <div className="flex-1 min-h-0 overflow-y-auto w-full px-0 md:px-8">
+            <Card className="w-full max-w-4xl mx-auto p-0 md:p-4 shadow-none bg-transparent">
+              <ChatMessageList messages={mergedMessages} />
+              <ChatStatus status={status} onStop={stop} onReload={reload} />
+            </Card>
+          </div>
+
+        </>
+      )}
+      <div className="sticky bottom-0 z-20 w-full px-0 md:px-8 pt-2 pb-2" style={{ background: 'transparent' }}>
+        <Card className="w-full max-w-4xl mx-auto p-0 md:p-2 shadow-none bg-transparent">
+          <ChatInput
+            input={input}
+            onInputChange={handleInputChange}
+            onSubmit={onSubmit}
+            disabled={status !== 'ready' || disabled}
+          />
+        </Card>
       </div>
     </section>
   );

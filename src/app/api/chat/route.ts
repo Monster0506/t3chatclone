@@ -108,6 +108,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log('Incoming request body:', JSON.stringify(body));
     const { messages, model: modelId, userSettings, chat_id, ...customFields } = body;
+    console.log(messages);
     const model = modelMap[modelId] || openai('gpt-4o');
 
     // Build system prompt with user settings
@@ -142,7 +143,7 @@ export async function POST(req: Request) {
     const result = streamText({
         model,
         system: systemPrompt,
-        messages,
+        messages: messages.filter((m: any) => m.role !== 'tool'),
         ...customFields,
         tools: {
             calculator: calculatorTool,

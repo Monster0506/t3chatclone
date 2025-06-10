@@ -1,22 +1,31 @@
-import { useState } from 'react';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Play } from 'lucide-react';
+import Button from '../UI/Button';
+import { useTheme } from '../../theme/ThemeProvider';
 
-export default function CodeBlockActions({ value }: { value: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(value);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
-  };
-
+export default function CodeBlockActions({ onCopy, onRun }: { onCopy?: () => void; onRun?: () => void }) {
+  const { theme } = useTheme();
   return (
-    <button
-      onClick={handleCopy}
-      className="p-1 rounded bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs"
-      title="Copy code"
-    >
-      {copied ? <Check size={16} /> : <Copy size={16} />}
-    </button>
+    <div className="flex gap-2 mt-2">
+      {onCopy && (
+        <Button
+          type="button"
+          onClick={onCopy}
+          className="rounded-xl px-3 py-1 shadow"
+          style={{ background: theme.inputGlass, color: theme.buttonText, borderColor: theme.buttonBorder }}
+        >
+          <Copy size={16} />
+        </Button>
+      )}
+      {onRun && (
+        <Button
+          type="button"
+          onClick={onRun}
+          className="rounded-xl px-3 py-1 shadow"
+          style={{ background: theme.inputGlass, color: theme.buttonText, borderColor: theme.buttonBorder }}
+        >
+          <Play size={16} />
+        </Button>
+      )}
+    </div>
   );
 } 

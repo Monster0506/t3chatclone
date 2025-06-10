@@ -1,5 +1,6 @@
 import Spinner from '../UI/Spinner';
 import Button from '../UI/Button';
+import { useTheme } from '../../theme/ThemeProvider';
 
 interface ChatStatusProps {
   status: 'submitted' | 'streaming' | 'ready' | 'error';
@@ -9,23 +10,46 @@ interface ChatStatusProps {
 }
 
 export default function ChatStatus({ status, error, onStop, onReload }: ChatStatusProps) {
+  const { theme } = useTheme();
   if (status === 'submitted' || status === 'streaming') {
     return (
-      <div className="flex items-center gap-2 px-4 py-2">
+      <div
+        className="flex items-center gap-3 px-5 py-3 mt-4 mb-2 rounded-2xl shadow-xl mx-auto max-w-lg"
+        style={{
+          background: theme.glass,
+          color: theme.inputText,
+          border: `1.5px solid ${theme.buttonBorder}`,
+          boxShadow: '0 8px 32px 0 rgba(31,38,135,0.10)',
+        }}
+      >
         <Spinner />
-        <span className="text-purple-500">Thinking...</span>
+        <span className="font-medium">Thinking...</span>
         {onStop && (
-          <Button type="button" onClick={onStop} className="ml-2 bg-white text-purple-600 border border-purple-200 hover:bg-purple-50">Stop</Button>
+          <Button type="button" onClick={onStop} className="ml-2 font-semibold px-4 py-2 rounded-xl"
+            style={{ background: theme.inputGlass, color: theme.buttonText, borderColor: theme.buttonBorder }}>
+            Stop
+          </Button>
         )}
       </div>
     );
   }
   if (status === 'error') {
     return (
-      <div className="flex items-center gap-2 px-4 py-2 text-red-500">
-        <span>Something went wrong.</span>
+      <div
+        className="flex items-center gap-3 px-5 py-3 mt-4 mb-2 rounded-2xl shadow-xl mx-auto max-w-lg"
+        style={{
+          background: theme.glass,
+          color: '#e53935',
+          border: `1.5px solid ${theme.buttonBorder}`,
+          boxShadow: '0 8px 32px 0 rgba(31,38,135,0.10)',
+        }}
+      >
+        <span className="font-medium">Something went wrong.</span>
         {onReload && (
-          <Button type="button" onClick={onReload} className="ml-2 bg-white text-purple-600 border border-purple-200 hover:bg-purple-50">Retry</Button>
+          <Button type="button" onClick={onReload} className="ml-2 font-semibold px-4 py-2 rounded-xl"
+            style={{ background: theme.inputGlass, color: theme.buttonText, borderColor: theme.buttonBorder }}>
+            Retry
+          </Button>
         )}
       </div>
     );

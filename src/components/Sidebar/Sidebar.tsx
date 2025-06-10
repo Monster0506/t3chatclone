@@ -1,6 +1,11 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { SidebarHeader, SidebarSearch, SidebarThreadList, SidebarNewChatButton } from './index';
 import { PanelTopClose, PanelTopOpen } from 'lucide-react';
+import Card from '../UI/Card';
+import { useTheme } from '../../theme/ThemeProvider';
+import { useSession } from '@supabase/auth-helpers-react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase/client';
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -9,17 +14,39 @@ interface SidebarProps {
 
 export default function Sidebar({ collapsed = false, onCollapse }: SidebarProps) {
   const [search, setSearch] = useState('');
+  const { theme } = useTheme();
+  const session = useSession();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const handleNewChat = async () => {
+    if (!session?.user) return;
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('chats')
+      .insert({
+        user_id: session.user.id,
+        title: 'New Chat',
+        model: 'gemini-2.0-flash',
+      })
+      .select('id')
+      .single();
+    setLoading(false);
+    if (data && data.id) {
+      router.replace(`/chat/${data.id}`);
+    }
+  };
 
   return (
-    <aside
-      className={`bg-gradient-to-b from-purple-200 to-pink-100 rounded-xl shadow-xl border-r border-purple-100 transition-all duration-300 ${
-        collapsed ? 'w-16 p-2' : 'w-72 p-6'
-      }`}
+    <Card
+      className={`h-screen flex flex-col justify-between transition-all duration-300 ${collapsed ? 'w-16 p-2' : 'w-72 p-6'}`}
+      style={{ background: theme.glass, borderColor: theme.buttonBorder, boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)' }}
     >
       {collapsed ? (
         <div className="flex flex-col items-center justify-center mt-4 mb-6">
           <button
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-purple-600 shadow-lg border border-purple-200 hover:bg-purple-100 transition"
+            className="w-10 h-10 flex items-center justify-center rounded-full border-2 transition focus:outline-none"
+            style={{ borderColor: theme.buttonBorder, background: theme.buttonGlass, color: theme.foreground }}
             onClick={() => onCollapse?.(false)}
             aria-label="Expand sidebar"
           >
@@ -33,7 +60,8 @@ export default function Sidebar({ collapsed = false, onCollapse }: SidebarProps)
               <SidebarHeader collapsed={collapsed} />
             </div>
             <button
-              className="ml-2 p-1 rounded-full bg-white text-purple-600 shadow border border-purple-200 hover:bg-purple-100 transition"
+              className="ml-2 p-1 rounded-full border-2 transition focus:outline-none"
+              style={{ borderColor: theme.buttonBorder, background: theme.buttonGlass, color: theme.foreground }}
               onClick={() => onCollapse?.(true)}
               aria-label="Collapse sidebar"
             >
@@ -49,8 +77,8 @@ export default function Sidebar({ collapsed = false, onCollapse }: SidebarProps)
       )}
       <SidebarThreadList search={search} collapsed={collapsed} />
       <div className="mt-4">
-        <SidebarNewChatButton collapsed={collapsed} />
+        <SidebarNewChatButton collapsed={collapsed} onClick={handleNewChat} />
       </div>
-    </aside>
+    </Card>
   );
 } 

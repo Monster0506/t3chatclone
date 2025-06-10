@@ -1,9 +1,12 @@
-import { ButtonHTMLAttributes } from 'react';
+import { ButtonHTMLAttributes, useContext } from 'react';
+import { ThemeContext } from '../../theme/ThemeProvider';
 
 export default function Button({ className = '', ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
+  const { theme } = useContext(ThemeContext);
   return (
     <button
-      className={`px-4 py-2 rounded-lg font-medium transition bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-purple-400 ${className}`}
+      className={`px-4 py-2 rounded-xl font-medium transition shadow-lg backdrop-blur-md border border-transparent focus:outline-none focus:ring-2 ${theme.buttonBg} ${theme.buttonText} ${theme.buttonHover} ${className}`}
+      style={{ background: theme.buttonGlass, borderColor: theme.buttonBorder, color: theme.buttonText }}
       {...props}
     />
   );

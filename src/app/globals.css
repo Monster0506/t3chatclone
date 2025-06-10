@@ -24,3 +24,17 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.themed-bg {
+  background: var(--theme-background, #fff);
+}
+.themed-fg {
+  color: var(--theme-foreground, #171717);
+}
+.glass {
+  background: var(--theme-glass, rgba(255,255,255,0.5));
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-radius: 1rem;
+  border: 1px solid rgba(255,255,255,0.18);
+}

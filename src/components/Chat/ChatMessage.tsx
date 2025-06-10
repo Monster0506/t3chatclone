@@ -3,6 +3,7 @@ import { User, Bot, Image as ImageIcon, Calculator } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import CodeBlock from './CodeBlock';
 import ToolResult from './ToolResult';
+import { useTheme } from '../../theme/ThemeProvider';
 
 // Extend the Message type to include tool messages and invocations
 type ExtendedMessage = Omit<Message, 'role'> & {
@@ -75,6 +76,7 @@ const markdownComponents = {
 };
 
 export default function ChatMessage({ message }: { message: ExtendedMessage }) {
+  const { theme } = useTheme();
   const isUser = message.role === 'user';
   const isTool = message.role === 'tool';
 
@@ -106,13 +108,13 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
   // If it's a tool message, render it differently
   if (isTool) {
     return (
-      <div id={`msg-${message.id}`} className="flex justify-start mb-4">
-        <div className="flex-shrink-0 mr-2">
-          <div className="w-8 h-8 rounded-full bg-yellow-200 flex items-center justify-center">
-            <Calculator className="text-yellow-700" size={20} />
+      <div id={`msg-${message.id}`} className="flex justify-start mb-8">
+        <div className="flex-shrink-0 mr-3">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg" style={{ background: theme.inputGlass }}>
+            <Calculator style={{ color: theme.inputText }} size={22} />
           </div>
         </div>
-        <div className="max-w-[80%] rounded-lg p-4 shadow-sm bg-yellow-50 border border-yellow-200">
+        <div className="max-w-[80%] rounded-2xl p-5 shadow-xl" style={{ background: theme.inputGlass, border: `1.5px solid ${theme.buttonBorder}`, color: theme.inputText }}>
           <ToolResult 
             toolName="calculator"
             result={message.content}
@@ -124,20 +126,31 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
   }
 
   return (
-    <div id={`msg-${message.id}`} className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
+    <div id={`msg-${message.id}`} className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-8`}>
       {!isUser && (
-        <div className="flex-shrink-0 mr-2">
-          <div className="w-8 h-8 rounded-full bg-purple-200 flex items-center justify-center">
-            <Bot className="text-purple-700" size={20} />
+        <div className="flex-shrink-0 mr-3">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg" style={{ background: theme.inputGlass, border: `1.5px solid ${theme.buttonBorder}` }}>
+            <Bot style={{ color: theme.inputText }} size={22} />
           </div>
         </div>
       )}
       <div
-        className={`max-w-[80%] rounded-lg p-4 shadow-sm whitespace-pre-wrap break-words ${
-          isUser
-            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-br-none'
-            : 'bg-white text-purple-900 border border-purple-100 rounded-bl-none'
-        }`}
+        className={`max-w-[80%] rounded-2xl p-5 shadow-xl whitespace-pre-wrap break-words ${isUser ? 'rounded-br-3xl' : 'rounded-bl-3xl'}`}
+        style={isUser
+          ? {
+              background: theme.buttonBg,
+              color: theme.buttonText,
+              border: `1.5px solid ${theme.buttonBorder}`,
+              boxShadow: '0 8px 32px 0 rgba(31,38,135,0.10)',
+              marginRight: 0,
+            }
+          : {
+              background: theme.inputGlass,
+              color: theme.inputText,
+              border: `1.5px solid ${theme.buttonBorder}`,
+              boxShadow: '0 8px 32px 0 rgba(31,38,135,0.10)',
+              marginLeft: 0,
+            }}
       >
         {/* Text content */}
         {parts.map((part: any, idx: number) => {
@@ -161,9 +174,9 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
               />
             );
           }
-          if (part.type === 'reasoning') return <pre key={idx} className="text-xs text-purple-400">{part.reasoning}</pre>;
+          if (part.type === 'reasoning') return <pre key={idx} className="text-xs" style={{ color: theme.inputText }}>{part.reasoning}</pre>;
           if (part.type === 'source') return (
-            <a key={idx} href={part.source.url} target="_blank" rel="noopener noreferrer" className="text-xs underline text-blue-500">
+            <a key={idx} href={part.source.url} target="_blank" rel="noopener noreferrer" className="text-xs underline" style={{ color: theme.buttonText }}>
               {part.source.title ?? new URL(part.source.url).hostname}
             </a>
           );
@@ -215,6 +228,7 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
                       src={imageUrl}
                       alt={attachment.name || 'Attachment'}
                       className="rounded-lg w-full h-48 object-cover hover:opacity-90 transition-opacity"
+                      style={{ border: `1.5px solid ${theme.buttonBorder}` }}
                     />
                   </div>
                 );
@@ -230,6 +244,7 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
                       src={attachment.url}
                       alt={attachment.file_name}
                       className="rounded-lg w-full h-48 object-cover hover:opacity-90 transition-opacity"
+                      style={{ border: `1.5px solid ${theme.buttonBorder}` }}
                     />
                   </div>
                 );
@@ -240,9 +255,9 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
         )}
       </div>
       {isUser && (
-        <div className="flex-shrink-0 ml-2">
-          <div className="w-8 h-8 rounded-full bg-pink-200 flex items-center justify-center">
-            <User className="text-pink-700" size={20} />
+        <div className="flex-shrink-0 ml-3">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg" style={{ background: theme.buttonBg, border: `1.5px solid ${theme.buttonBorder}` }}>
+            <User style={{ color: theme.buttonText }} size={20} />
           </div>
         </div>
       )}

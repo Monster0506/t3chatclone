@@ -3,6 +3,7 @@ import ModelSelectorModal from '../ModelSelector/ModelSelectorModal';
 import Button from '../UI/Button';
 import { modelFamilies } from '../ModelSelector/modelData';
 import UserMenu from './UserMenu';
+import { useTheme } from '../../theme/ThemeProvider';
 
 export default function ChatBar({ selectedModelId, onModelChange }: {
   selectedModelId: string;
@@ -10,14 +11,19 @@ export default function ChatBar({ selectedModelId, onModelChange }: {
 }) {
   const [modalOpen, setModalOpen] = useState(false);
   const selectedModel = modelFamilies.flatMap(f => f.models).find(m => m.id === selectedModelId);
+  const { theme } = useTheme();
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-2 sm:p-3 bg-white rounded-2xl shadow border border-purple-100 flex items-center gap-2">
+    <div
+      className="w-full max-w-2xl mx-auto p-2 sm:p-3 flex items-center gap-2 rounded-2xl shadow border"
+      style={{ background: theme.buttonGlass, borderColor: theme.buttonBorder }}
+    >
       <Button
-        className="flex items-center gap-2 bg-purple-100 text-purple-700 px-3 py-2 rounded-lg hover:bg-purple-200"
+        className="flex items-center gap-2 px-3 py-2 rounded-lg font-semibold"
+        style={{ background: theme.inputGlass, color: theme.buttonText, borderColor: theme.buttonBorder }}
         onClick={() => setModalOpen(true)}
       >
-        <span className="font-semibold">{selectedModel ? selectedModel.name : 'Select Model'}</span>
+        <span>{selectedModel ? selectedModel.name : 'Select Model'}</span>
       </Button>
       <ModelSelectorModal
         open={modalOpen}
@@ -27,7 +33,7 @@ export default function ChatBar({ selectedModelId, onModelChange }: {
       />
       <div className="flex-1 min-w-0" />
       <div className="flex-shrink-0">
-      <UserMenu />
+        <UserMenu />
       </div>
     </div>
   );

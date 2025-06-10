@@ -1,26 +1,16 @@
 import Input from '../UI/Input';
-import { Search } from 'lucide-react';
+import { useTheme } from '../../theme/ThemeProvider';
 
 export default function SidebarSearch({ value, onChange, collapsed }: { value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; collapsed?: boolean }) {
-  if (collapsed) {
-    return (
-      <div className="mb-6 flex justify-center items-center h-10">
-        <Search size={22} className="text-purple-400" />
-      </div>
-    );
-  }
+  const { theme } = useTheme();
+  if (collapsed) return null;
   return (
-    <div className="mb-6 relative">
-      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-400">
-        <Search size={18} />
-      </span>
-      <Input
-        className="w-full pl-10 pr-3 py-2 rounded-full bg-white shadow focus:ring-2 focus:ring-purple-300 border border-purple-200 text-black placeholder-purple-300"
-        placeholder="Search your threads..."
-        type="search"
-        value={value}
-        onChange={onChange}
-      />
-    </div>
+    <Input
+      value={value}
+      onChange={onChange}
+      placeholder="Search chats..."
+      className="w-full"
+      style={{ background: theme.inputGlass, color: theme.inputText, borderColor: theme.inputBorder }}
+    />
   );
 } 

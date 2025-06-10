@@ -6,6 +6,8 @@ import type { Tables } from '@/lib/supabase/types';
 import { MoreVertical, Pin, Trash2, Edit2, MessageSquare, ChevronDown, ChevronRight, Archive, Globe } from 'lucide-react';
 import SidebarChatItem from './SidebarChatItem';
 import TagModal from './TagModal';
+import Badge from '../UI/Badge';
+import { useTheme } from '../../theme/ThemeProvider';
 
 function formatTime(ts: string) {
   const date = new Date(ts);
@@ -38,6 +40,7 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
   const [currentThread, setCurrentThread] = useState<Tables<'chats'> | null>(null);
   const [tagAnchorRef, setTagAnchorRef] = useState<React.RefObject<HTMLDivElement> | null>(null);
   const [archivedOpen, setArchivedOpen] = useState(false);
+  const { theme } = useTheme();
 
   // Fetch threads function (extracted for polling)
   const fetchThreads = async () => {
@@ -284,28 +287,34 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
       ...archived.map(t => ({ ...t, _type: 'archived' as const })),
     ];
     return (
-      <div className="flex flex-col gap-3 items-center mt-4">
-        {allCollapsedThreads.map(thread => {
-          let Icon = MessageSquare;
-          if (thread._type === 'pinned') Icon = Pin;
-          else if (thread._type === 'archived') Icon = Archive;
-          else if (thread.public) Icon = Globe;
-          return (
-            <button
-              key={thread.id}
-              title={thread.title || 'Untitled Chat'}
-              className={`rounded-lg bg-white/60 p-2 shadow hover:bg-purple-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-400 ${thread._type === 'archived' ? 'opacity-70' : ''}`}
-              onClick={() => router.push(`/chat/${thread.id}`)}
-            >
-              <Icon size={22} className={
-                thread._type === 'pinned' ? 'text-purple-500' :
-                thread._type === 'archived' ? 'text-purple-300' :
-                thread.public ? 'text-blue-500' :
-                'text-purple-400'
-              } />
-            </button>
-          );
-        })}
+      <div className="flex flex-col items-center mt-4" style={{ height: 'calc(100vh - 7rem)' }}>
+        <div className="flex flex-col gap-3 items-center overflow-y-auto px-2" style={{ maxHeight: '100%', minWidth: 0}}>
+          {allCollapsedThreads.map(thread => {
+            let Icon = MessageSquare;
+            let iconColor = theme.buttonText;
+            if (thread._type === 'pinned') {
+              Icon = Pin;
+              iconColor = theme.buttonText;
+            } else if (thread._type === 'archived') {
+              Icon = Archive;
+              iconColor = theme.inputText;
+            } else if (thread.public) {
+              Icon = Globe;
+              iconColor = theme.inputText;
+            }
+            return (
+              <button
+                key={thread.id}
+                title={thread.title || 'Untitled Chat'}
+                className={`rounded-lg p-2 shadow cursor-pointer focus:outline-none focus:ring-2`}
+                style={{ background: theme.buttonGlass, color: iconColor, borderColor: theme.buttonBorder }}
+                onClick={() => router.push(`/chat/${thread.id}`)}
+              >
+                <Icon size={22} style={{ color: iconColor }} />
+              </button>
+            );
+          })}
+        </div>
       </div>
     );
   }
