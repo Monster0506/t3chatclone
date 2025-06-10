@@ -41,7 +41,7 @@ export default function LoginModal({ open, onClose }: { open: boolean; onClose?:
             className="text-3xl font-extrabold mb-6 tracking-tight text-center"
             style={{ color: theme.buttonText, letterSpacing: '-0.02em' }}
           >
-            Welcome to T3 Chat
+            Welcome to T3 Clone
           </h2>
           <div className="w-full">
             <Auth
