@@ -1,5 +1,5 @@
-import Button from '../UI/Button';
-import { useTheme } from '../../theme/ThemeProvider';
+import Button from '@/components/UI/Button';
+import { useTheme } from '@/theme/ThemeProvider';
 import { Plus } from 'lucide-react';
 
 export default function SidebarNewChatButton({ collapsed, onClick }: { collapsed?: boolean; onClick?: () => void }) {

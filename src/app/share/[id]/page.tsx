@@ -34,18 +34,64 @@ export default function SharePage() {
         const res = await fetch(`/api/chat?chatId=${id}`);
         let messages = await res.json();
         // Hydrate tool messages
-        messages = messages.map((msg: any, idx: number) => {
+        messages = messages.map((msg: any) => {
+          // If it's a tool message with content as an array (from DB)
+          if (msg.role === 'tool' && Array.isArray(msg.content)) {
+            const toolResultPart = msg.content.find((part: any) => part.type === 'tool-result');
+            if (toolResultPart) {
+              return {
+                ...msg,
+                toolName: toolResultPart.toolName,
+                result: toolResultPart.result,
+              };
+            }
+          }
+          // If it's a tool message with metadata.toolMessage (live or from API)
           if (msg.role === 'tool' && msg.metadata?.toolMessage) {
+            const toolMsg = msg.metadata.toolMessage;
+            if (Array.isArray(toolMsg.content)) {
+              const toolResultPart = toolMsg.content.find((part: any) => part.type === 'tool-result');
+              if (toolResultPart) {
+                return {
+                  ...msg,
+                  toolName: toolResultPart.toolName,
+                  result: toolResultPart.result,
+                };
+              }
+            }
             return {
               ...msg,
-              ...msg.metadata.toolMessage,
+              ...toolMsg,
               db_id: msg.id,
               db_created_at: msg.created_at,
             };
           }
           return msg;
         });
-        setInitialMessages(messages);
+        // Merge assistant, tool, and assistant messages into one
+        const mergedMessages = [];
+        for (let i = 0; i < messages.length; i++) {
+          const msg = messages[i];
+          if (
+            msg.role === 'assistant' &&
+            messages[i + 1] && messages[i + 1].role === 'tool' &&
+            messages[i + 2] && messages[i + 2].role === 'assistant' &&
+            (messages[i + 1].toolName || (messages[i + 1].result && messages[i + 1].result.expression))
+          ) {
+            mergedMessages.push({
+              ...msg,
+              mergedParts: [
+                { type: 'text', text: msg.content },
+                { type: 'tool', toolName: messages[i + 1].toolName, result: messages[i + 1].result },
+                { type: 'text', text: messages[i + 2].content }
+              ]
+            });
+            i += 2;
+          } else {
+            mergedMessages.push(msg);
+          }
+        }
+        setInitialMessages(mergedMessages);
       } catch (err) {
         console.error('Error fetching initial messages:', err);
       }

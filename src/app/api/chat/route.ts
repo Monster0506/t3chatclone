@@ -1,8 +1,8 @@
-
 import { streamText, generateObject } from 'ai';
 import { z } from 'zod';
 import { supabaseServer } from '@/lib/supabase/server';
 import { calculatorTool } from '@/tools/calculator-tool';
+import { wikipediaTool } from '@/tools/wikipedia-tool';
 
 export const maxDuration = 30;
 import { google } from '@ai-sdk/google';
@@ -47,7 +47,6 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log('Incoming request body:', JSON.stringify(body));
     const { messages, model: modelId, userSettings, chat_id, ...customFields } = body;
-    console.log(messages);
     const model = modelMap[modelId] || google('gemini-2.0-flash');
 
     // Build system prompt with user settings
@@ -86,6 +85,7 @@ export async function POST(req: Request) {
         ...customFields,
         tools: {
             calculator: calculatorTool,
+            wikipedia: wikipediaTool,
         },
         maxSteps: 5,
         async onFinish({ response }) {
@@ -163,7 +163,6 @@ export async function POST(req: Request) {
                             schema: indexSchema,
                             prompt,
                         });
-                        console.log(indexResult);
                         if (indexResult.important && indexResult.type && indexResult.snippet) {
                             await supabaseServer.from('chat_index' as any).insert({
                                 chat_id,
@@ -246,15 +245,11 @@ export async function POST(req: Request) {
                     }
                 }
             }
-            console.log('Persisting only new messages for chat_id:', chat_id, toPersist);
             for (const dbMsg of toPersist) {
-                console.log('Upserting mapped message:', dbMsg);
                 const { error } = await supabaseServer.from('messages').upsert(dbMsg);
                 if (error) {
                     console.error('Error upserting message:', error);
-                } else {
-                    console.log('Message upserted successfully.');
-                }
+                } 
             }
 
             // --- Gemini title/tags generation logic ---

@@ -1,5 +1,5 @@
 import { ButtonHTMLAttributes, useContext } from 'react';
-import { ThemeContext } from '../../theme/ThemeProvider';
+import { ThemeContext } from '@/theme/ThemeProvider';
 
 export default function Button({ className = '', ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
   const { theme } = useContext(ThemeContext);

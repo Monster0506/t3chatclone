@@ -1,6 +1,6 @@
-import Spinner from '../UI/Spinner';
-import Button from '../UI/Button';
-import { useTheme } from '../../theme/ThemeProvider';
+import Spinner from '@/components/UI/Spinner';
+import Button from '@/components/UI/Button';
+import { useTheme } from '@/theme/ThemeProvider';
 
 interface ChatStatusProps {
   status: 'submitted' | 'streaming' | 'ready' | 'error';

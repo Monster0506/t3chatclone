@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react';
 import { modelFamilies} from './modelData';
-import Button from '../UI/Button';
-import Card from '../UI/Card';
+import Button from '@/components/UI/Button';
+import Card from '@/components/UI/Card';
 import { X, Grid } from 'lucide-react';
-import { useTheme } from '../../theme/ThemeProvider';
+import { useTheme } from '@/theme/ThemeProvider';
 import Sidebar from './Sidebar';
+import { ModelFamily } from '@/lib/types';
 
 function ModelGrid({ models, selectedModelId, onSelect, onClose, theme }: any) {
   // Helper for model description (could be extended)

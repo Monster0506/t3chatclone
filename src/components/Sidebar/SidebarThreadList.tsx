@@ -5,8 +5,8 @@ import { supabase } from '@/lib/supabase/client';
 import type { Tables } from '@/lib/supabase/types';
 import { MoreVertical, Pin, Trash2, Edit2, MessageSquare, ChevronDown, ChevronRight, Archive, Globe } from 'lucide-react';
 import SidebarChatItem from './SidebarChatItem';
-import Badge from '../UI/Badge';
-import { useTheme } from '../../theme/ThemeProvider';
+import Badge from '@/components/UI/Badge';
+import { useTheme } from '@/theme/ThemeProvider';
 import { differenceInCalendarDays, parseISO } from 'date-fns';
 
 function formatTime(ts: string) {

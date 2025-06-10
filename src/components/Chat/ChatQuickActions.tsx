@@ -1,8 +1,8 @@
-import Card from '../UI/Card';
-import Button from '../UI/Button';
-import { useTheme } from '../../theme/ThemeProvider';
+import Card from '@/components/UI/Card';
+import Button from '@/components/UI/Button';
+import { useTheme } from '@/theme/ThemeProvider';
 import { useState } from 'react';
-import Badge from '../UI/Badge';
+import Badge from '@/components/UI/Badge';
 
 const promptGroups: Record<string, string[]> = {
   Create: [

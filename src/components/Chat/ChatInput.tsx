@@ -1,9 +1,9 @@
-import Input from '../UI/Input';
-import Button from '../UI/Button';
+import Input from '@/components/UI/Input';
+import Button from '@/components/UI/Button';
 import { ChangeEvent, FormEvent, useRef, useState } from 'react';
 import { useSession } from '@supabase/auth-helpers-react';
 import { Paperclip, Send, X, File as FileIcon, Image as ImageIcon } from 'lucide-react';
-import { useTheme } from '../../theme/ThemeProvider';
+import { useTheme } from '@/theme/ThemeProvider';
 
 interface ChatInputProps {
   input: string;

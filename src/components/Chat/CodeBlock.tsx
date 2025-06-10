@@ -1,4 +1,4 @@
-import { useTheme } from '../../theme/ThemeProvider';
+import { useTheme } from '@/theme/ThemeProvider';
 import CodeBlockActions from './CodeBlockActions';
 
 export default function CodeBlock({ code, language, onCopy, onRun }: { code: string; language?: string; onCopy?: () => void; onRun?: () => void }) {

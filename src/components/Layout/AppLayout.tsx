@@ -4,7 +4,7 @@ import { useSession } from '@supabase/auth-helpers-react';
 import LoginModal from '../Auth/LoginModal';
 import { ReactNode, useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { useTheme } from '../../theme/ThemeProvider';
+import { useTheme } from '@/theme/ThemeProvider';
 
 export default function AppLayout({
   children,

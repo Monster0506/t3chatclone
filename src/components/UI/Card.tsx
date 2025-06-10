@@ -1,5 +1,5 @@
 import { ReactNode, useContext, CSSProperties, forwardRef } from 'react';
-import { ThemeContext } from '../../theme/ThemeProvider';
+import { ThemeContext } from '@/theme/ThemeProvider';
 
 const Card = forwardRef<HTMLDivElement, { children: ReactNode; className?: string; style?: CSSProperties }>(
   ({ children, className = '', style }, ref) => {

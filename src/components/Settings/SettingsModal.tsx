@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import Button from '../UI/Button';
-import Spinner from '../UI/Spinner';
-import Card from '../UI/Card';
-import Input from '../UI/Input';
-import Select from '../UI/Select';
-import { useTheme } from '../../theme/ThemeProvider';
+import Button from '@/components/UI/Button';
+import Spinner from '@/components/UI/Spinner';
+import Card from '@/components/UI/Card';
+import Input from '@/components/UI/Input';
+import Select from '@/components/UI/Select';
+import { useTheme } from '@/theme/ThemeProvider';
 import { supabase } from '@/lib/supabase/client';
 
 const TRAIT_LIMIT = 50;

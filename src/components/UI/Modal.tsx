@@ -1,5 +1,5 @@
 import { ReactNode, useContext } from 'react';
-import { ThemeContext } from '../../theme/ThemeProvider';
+import { ThemeContext } from '@/theme/ThemeProvider';
 
 export default function Modal({ open, onClose, children, className = '' }: { open: boolean; onClose: () => void; children: ReactNode; className?: string }) {
   const { theme } = useContext(ThemeContext);

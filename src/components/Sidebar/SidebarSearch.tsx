@@ -1,6 +1,6 @@
-import Input from '../UI/Input';
+import Input from '@/components/UI/Input';
 import { Search } from 'lucide-react';
-import { useTheme } from '../../theme/ThemeProvider';
+import { useTheme } from '@/theme/ThemeProvider';
 
 export default function SidebarSearch({ value, onChange }: { value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
   const { theme } = useTheme();

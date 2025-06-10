@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { ThemeContext } from '../../theme/ThemeProvider';
+import { ThemeContext } from '@/theme/ThemeProvider';
 
 export default function Toggle({ checked, onChange, className = '' }: { checked: boolean; onChange: (v: boolean) => void; className?: string }) {
   const { theme } = useContext(ThemeContext);

@@ -1,7 +1,7 @@
 import React, { RefObject } from 'react';
 import { Pin, Edit2, Trash2, Link as LinkIcon, Globe } from 'lucide-react';
-import { useTheme } from '../../theme/ThemeProvider';
-import Card from '../UI/Card';
+import { useTheme } from '@/theme/ThemeProvider';
+import Card from '@/components/UI/Card';
 
 interface SidebarChatContextMenuProps {
   menuRef: RefObject<HTMLDivElement | null>;

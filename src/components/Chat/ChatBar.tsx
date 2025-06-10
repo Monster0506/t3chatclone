@@ -1,7 +1,7 @@
 
-import Button from '../UI/Button';
+import Button from '@/components/UI/Button';
 import { modelFamilies } from '../ModelSelector/modelData';
-import { useTheme } from '../../theme/ThemeProvider';
+import { useTheme } from '@/theme/ThemeProvider';
 
 export default function ChatBar({ selectedModelId, onModelChange, onOpenModelSelector, onOpenSettings }: {
   selectedModelId: string;

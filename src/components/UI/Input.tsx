@@ -1,5 +1,5 @@
 import { InputHTMLAttributes, useContext } from 'react';
-import { ThemeContext } from '../../theme/ThemeProvider';
+import { ThemeContext } from '@/theme/ThemeProvider';
 
 export default function Input({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) {
   const { theme } = useContext(ThemeContext);

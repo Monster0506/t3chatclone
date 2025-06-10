@@ -34,24 +34,68 @@ export default function Page() {
       try {
         const res = await fetch(`/api/chat?chatId=${id}`);
         let messages = await res.json();
-        console.log('[Hydration] Raw messages from DB:', messages);
         // Hydrate tool messages
-        messages = messages.map((msg: any, idx: number) => {
+        messages = messages.map((msg: any) => {
+          console.log("msg", msg);
+          // If it's a tool message with content as an array (from DB)
+          if (msg.role === 'tool' && Array.isArray(msg.content)) {
+            const toolResultPart = msg.content.find((part: any) => part.type === 'tool-result');
+            if (toolResultPart) {
+              console.log("toolResultPart", toolResultPart);
+              return {
+                ...msg,
+                toolName: toolResultPart.toolName,
+                result: toolResultPart.result,
+              };
+            }
+          }
+          // If it's a tool message with metadata.toolMessage (live or from API)
           if (msg.role === 'tool' && msg.metadata?.toolMessage) {
-            console.log(`[Hydration] Tool message found at idx ${idx}:`, msg);
-            const hydrated = {
+            const toolMsg = msg.metadata.toolMessage;
+            if (Array.isArray(toolMsg.content)) {
+              const toolResultPart = toolMsg.content.find((part: any) => part.type === 'tool-result');
+              if (toolResultPart) {
+                return {
+                  ...msg,
+                  toolName: toolResultPart.toolName,
+                  result: toolResultPart.result,
+                };
+              }
+            }
+            return {
               ...msg,
-              ...msg.metadata.toolMessage,
+              ...toolMsg,
               db_id: msg.id,
               db_created_at: msg.created_at,
             };
-            console.log(`[Hydration] Hydrated tool message at idx ${idx}:`, hydrated);
-            return hydrated;
           }
           return msg;
         });
-        console.log('[Hydration] Final hydrated messages:', messages);
-        setInitialMessages(messages);
+        // Merge assistant, tool, and assistant messages into one
+        const mergedMessages = [];
+        for (let i = 0; i < messages.length; i++) {
+          const msg = messages[i];
+          if (
+            msg.role === 'assistant' &&
+            messages[i + 1] && messages[i + 1].role === 'tool' &&
+            messages[i + 2] && messages[i + 2].role === 'assistant' &&
+            (messages[i + 1].toolName || (messages[i + 1].result && messages[i + 1].result.expression))
+          ) {
+            mergedMessages.push({
+              ...msg,
+              mergedParts: [
+                { type: 'text', text: msg.content },
+                { type: 'tool', toolName: messages[i + 1].toolName, result: messages[i + 1].result },
+                { type: 'text', text: messages[i + 2].content }
+              ]
+            });
+            i += 2;
+          } else {
+            mergedMessages.push(msg);
+          }
+        }
+        console.log("mergedMessages", mergedMessages);
+        setInitialMessages(mergedMessages);
       } catch (err) {
         console.error('Error fetching initial messages:', err);
       }
@@ -64,7 +108,6 @@ export default function Page() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const hash = window.location.hash;
-    console.log(hash);
     if (hash && hash.startsWith('#')) {
       const el = document.getElementById(`msg-${hash.substring(1)}`);
       if (el) {

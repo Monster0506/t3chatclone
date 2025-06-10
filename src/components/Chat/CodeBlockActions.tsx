@@ -1,6 +1,6 @@
 import { Copy, Play } from 'lucide-react';
-import Button from '../UI/Button';
-import { useTheme } from '../../theme/ThemeProvider';
+import Button from '@/components/UI/Button';
+import { useTheme } from '@/theme/ThemeProvider';
 
 export default function CodeBlockActions({ onCopy, onRun }: { onCopy?: () => void; onRun?: () => void }) {
   const { theme } = useTheme();

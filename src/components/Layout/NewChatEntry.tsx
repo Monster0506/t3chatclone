@@ -3,10 +3,10 @@ import { useRouter } from 'next/navigation';
 import { useSession } from '@supabase/auth-helpers-react';
 import { supabase } from '@/lib/supabase/client';
 import { useState } from 'react';
-import Card from '../UI/Card';
-import Button from '../UI/Button';
-import Select from '../UI/Select';
-import { useTheme } from '../../theme/ThemeProvider';
+import Card from '@/components/UI/Card';
+import Button from '@/components/UI/Button';
+import Select from '@/components/UI/Select';
+import { useTheme } from '@/theme/ThemeProvider';
 
 export default function NewChatEntry() {
   const session = useSession();

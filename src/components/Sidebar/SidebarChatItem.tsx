@@ -2,8 +2,8 @@ import { useRef, useState, useEffect, RefObject } from 'react';
 import { MoreVertical, Pin, Trash2, Edit2, Globe } from 'lucide-react';
 import type { Tables } from '@/lib/supabase/types';
 import SidebarChatContextMenu from './SidebarChatContextMenu';
-import Badge from '../UI/Badge';
-import { useTheme } from '../../theme/ThemeProvider';
+import Badge from '@/components/UI/Badge';
+import { useTheme } from '@/theme/ThemeProvider';
 
 function formatTime(ts: string) {
   const date = new Date(ts);

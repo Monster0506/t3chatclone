@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {X, HelpCircle, FileText, Code2, ListChecks, Info} from 'lucide-react';
 import { useSession } from '@supabase/auth-helpers-react';
-import { useTheme } from '../../theme/ThemeProvider';
-import Card from '../UI/Card';
+import { useTheme } from '@/theme/ThemeProvider';
+import Card from '@/components/UI/Card';
 import { IndexItem } from '@/lib/types';
 
 

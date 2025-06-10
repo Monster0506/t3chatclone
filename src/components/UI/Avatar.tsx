@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { ThemeContext } from '../../theme/ThemeProvider';
+import { ThemeContext } from '@/theme/ThemeProvider';
 
 export default function Avatar({ src, alt, initials, className = '' }: { src?: string; alt?: string; initials?: string; className?: string }) {
   const { theme } = useContext(ThemeContext);

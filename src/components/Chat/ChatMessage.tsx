@@ -2,8 +2,8 @@ import { Message } from '@ai-sdk/react';
 import { User, Bot, Image as ImageIcon, Calculator } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import CodeBlock from './CodeBlock';
-import ToolResult from './ToolResult';
-import { useTheme } from '../../theme/ThemeProvider';
+import ToolResult from './ToolResults/ToolResult';
+import { useTheme } from '@/theme/ThemeProvider';
 import { ExtendedMessage, FileAttachment, DBAttachment } from '@/lib/types';
 
 
@@ -61,7 +61,7 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
   const hasAttachments = allAttachments.length > 0 || dbAttachments.length > 0;
 
   // If it's a tool message, render it differently
-  if (isTool) {
+  if (isTool && (message as any).toolName && (message as any).result) {
     return (
       <div id={`msg-${message.id}`} className="flex justify-start mb-8">
         <div className="flex-shrink-0 mr-3">
@@ -71,10 +71,38 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
         </div>
         <div className="max-w-[80%] rounded-2xl p-5 shadow-xl" style={{ background: theme.inputGlass, border: `1.5px solid ${theme.buttonBorder}`, color: theme.inputText }}>
           <ToolResult 
-            toolName="calculator"
-            result={message.content}
+            toolName={(message as any).toolName}
+            result={(message as any).result}
             state="result"
           />
+        </div>
+      </div>
+    );
+  }
+
+  // If mergedParts exists, render them in order
+  if ((message as any).mergedParts) {
+    return (
+      <div id={`msg-${message.id}`} className={`flex justify-start mb-8`}>
+        <div className="flex-shrink-0 mr-3">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg" style={{ background: theme.inputGlass }}>
+            <Calculator style={{ color: theme.inputText }} size={22} />
+          </div>
+        </div>
+        <div className="max-w-[80%] rounded-2xl p-5 shadow-xl" style={{ background: theme.inputGlass, border: `1.5px solid ${theme.buttonBorder}`, color: theme.inputText }}>
+          {(message as any).mergedParts.map((part: any, idx: number) => {
+            if (part.type === 'text') {
+              return (
+                <ReactMarkdown key={idx} components={markdownComponents}>{part.text}</ReactMarkdown>
+              );
+            }
+            if (part.type === 'tool') {
+              return (
+                <ToolResult key={idx} toolName={part.toolName} result={part.result} state="result" />
+              );
+            }
+            return null;
+          })}
         </div>
       </div>
     );
@@ -154,7 +182,7 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
           } else if (state === 'error') {
             result = { error: 'An error occurred' };
           } else {
-            result = invocation.result || { expression: '', result: '' };
+            result = (invocation as any).result || { expression: '', result: '' };
           }
 
           return (

@@ -1,8 +1,8 @@
 import { useState, useContext } from 'react';
 import { SidebarHeader, SidebarSearch, SidebarThreadList, SidebarNewChatButton } from './index';
 import { PanelTopClose, PanelTopOpen } from 'lucide-react';
-import Card from '../UI/Card';
-import { useTheme } from '../../theme/ThemeProvider';
+import Card from '@/components/UI/Card';
+import { useTheme } from '@/theme/ThemeProvider';
 import { useSession } from '@supabase/auth-helpers-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
@@ -70,7 +70,7 @@ export default function Sidebar({ collapsed = false, onCollapse }: SidebarProps)
           </div>
           {!collapsed && (
             <div className="pt-2">
-              <SidebarSearch value={search} onChange={e => setSearch(e.target.value)} collapsed={collapsed} />
+              <SidebarSearch value={search} onChange={e => setSearch(e.target.value)}  />
             </div>
           )}
         </div>

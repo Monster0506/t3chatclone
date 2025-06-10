@@ -1,5 +1,5 @@
 import { ReactNode, useContext, CSSProperties, MouseEventHandler } from 'react';
-import { ThemeContext } from '../../theme/ThemeProvider';
+import { ThemeContext } from '@/theme/ThemeProvider';
 
 export default function Badge({ children, className = '', style, onClick }: { children: ReactNode; className?: string; style?: CSSProperties; onClick?: MouseEventHandler<HTMLSpanElement> }) {
   const { theme } = useContext(ThemeContext);

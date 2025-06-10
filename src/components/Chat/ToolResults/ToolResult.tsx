@@ -1,6 +1,8 @@
-import { Calculator } from 'lucide-react';
+import { Calculator, BookOpen } from 'lucide-react';
 import CalculatorResult from './CalculatorResult';
-import { useTheme } from '../../theme/ThemeProvider';
+import { useTheme } from '@/theme/ThemeProvider';
+import React from 'react';
+import { WikipediaResult } from './WikipediaResult';
 
 interface ToolResultProps {
   toolName: string;
@@ -29,23 +31,47 @@ export default function ToolResult({ toolName, result, state }: ToolResultProps)
         style={{ background: theme.inputGlass, color: '#e53935', border: `1.5px solid ${theme.buttonBorder}` }}
       >
         Error: {result?.error || 'An error occurred'}
+        {result?.details && (
+          <div className="text-sm mt-1 opacity-70">{result.details}</div>
+        )}
       </div>
     );
   }
   
-
   if (Array.isArray(result)) {
     result = result[0];
   }
-
+  
   switch (toolName) {
-    case 'calculator':
+    case 'calculator': {
+      const { expression, result: calcResult, details, inputDetails } = result;
       return (
         <CalculatorResult
-          expression={result.result.expression}
-          result={result.result.result}
+          expression={expression}
+          result={calcResult}
+          details={details}
+          inputDetails={inputDetails}
         />
       );
+    }
+    case 'wikipedia': {
+      if (result.error) {
+        return (
+          <div className="px-4 py-2 rounded-xl shadow font-medium" style={{ background: theme.inputGlass, color: '#e53935', border: `1.5px solid ${theme.buttonBorder}` }}>
+            Error: {result.error}
+          </div>
+        );
+      }
+      const { title, summary, url, thumbnail } = result;
+      return (
+        <WikipediaResult
+          title={title}
+          summary={summary}
+          url={url}
+          thumbnail={thumbnail}
+        />
+      );
+    }
     default:
       return (
         <div

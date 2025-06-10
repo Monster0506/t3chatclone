@@ -1,5 +1,5 @@
-import { useTheme } from '../../theme/ThemeProvider';
-import Card from '../UI/Card';
+import { useTheme } from '@/theme/ThemeProvider';
+import Card from '@/components/UI/Card';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/lib/supabase/client';
