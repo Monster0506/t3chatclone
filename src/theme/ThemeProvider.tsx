@@ -199,7 +199,7 @@ const themes: Theme[] = [
     {
       name: 'Cerulean Sky',
       buttonBg: 'bg-gradient-to-r from-sky-400 to-blue-600',
-      buttonText: 'text-white',
+      buttonText: 'text-blue-900',
       buttonHover: 'hover:from-sky-500 hover:to-blue-700',
       buttonGlass: 'rgba(180,220,255,0.7)',
       buttonBorder: 'rgba(100,150,255,0.3)',
@@ -247,7 +247,7 @@ const themes: Theme[] = [
     {
       name: 'Crimson Ember',
       buttonBg: 'bg-gradient-to-r from-red-700 to-pink-600',
-      buttonText: 'text-white',
+      buttonText: 'text-red-900',
       buttonHover: 'hover:from-red-800 hover:to-pink-700',
       buttonGlass: 'rgba(255,180,180,0.7)',
       buttonBorder: 'rgba(255,50,50,0.3)',
@@ -263,7 +263,7 @@ const themes: Theme[] = [
     {
       name: 'Rainforest Canopy',
       buttonBg: 'bg-gradient-to-r from-emerald-600 to-teal-400',
-      buttonText: 'text-white',
+      buttonText: 'text-teal-900',
       buttonHover: 'hover:from-emerald-700 hover:to-teal-500',
       buttonGlass: 'rgba(150,255,200,0.7)',
       buttonBorder: 'rgba(50,200,100,0.3)',
@@ -343,7 +343,7 @@ const themes: Theme[] = [
     {
       name: 'Ocean Ripple',
       buttonBg: 'bg-gradient-to-r from-teal-400 to-blue-500',
-      buttonText: 'text-white',
+      buttonText: 'text-teal-900',
       buttonHover: 'hover:from-teal-500 hover:to-blue-600',
       buttonGlass: 'rgba(150,220,255,0.7)',
       buttonBorder: 'rgba(100,200,255,0.3)',
@@ -359,7 +359,7 @@ const themes: Theme[] = [
     {
       name: 'Amethyst Aura',
       buttonBg: 'bg-gradient-to-r from-purple-500 to-fuchsia-600',
-      buttonText: 'text-white',
+      buttonText: 'text-purple-900',
       buttonHover: 'hover:from-purple-600 hover:to-fuchsia-700',
       buttonGlass: 'rgba(220,180,255,0.7)',
       buttonBorder: 'rgba(180,100,255,0.3)',
