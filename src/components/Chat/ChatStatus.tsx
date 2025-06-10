@@ -34,6 +34,9 @@ export default function ChatStatus({ status, error, onStop, onReload }: ChatStat
     );
   }
   if (status === 'error') {
+    // Get error message from error object or use default
+    let errorMessage = error?.message.startsWith("Failed to parse") ? "The selected model is not supported. Please choose a different model." : (error?.message || 'Something went wrong.');
+
     return (
       <div
         className="flex items-center gap-3 px-5 py-3 mt-4 mb-2 rounded-2xl shadow-xl mx-auto max-w-lg"
@@ -44,7 +47,7 @@ export default function ChatStatus({ status, error, onStop, onReload }: ChatStat
           boxShadow: '0 8px 32px 0 rgba(31,38,135,0.10)',
         }}
       >
-        <span className="font-medium">Something went wrong.</span>
+        <span className="font-medium">{errorMessage}</span>
         {onReload && (
           <Button type="button" onClick={onReload} className="ml-2 font-semibold px-4 py-2 rounded-xl"
             style={{ background: theme.inputGlass, color: theme.buttonText, borderColor: theme.buttonBorder }}>

@@ -102,3 +102,7 @@ export type ModelDefinition = {
   };
 
   
+
+  export type FlatModelMap = {
+    [modelId: string]: ModelDefinition;
+  };

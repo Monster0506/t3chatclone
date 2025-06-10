@@ -7,50 +7,83 @@ import { wikipediaTool } from '@/tools/wikipedia-tool';
 export const maxDuration = 30;
 import { google } from '@ai-sdk/google';
 
-import  {modelFamilies as modelMap } from '@/components/ModelSelector/modelData';
+import { modelFamilies as modelMap } from '@/components/ModelSelector/modelData';
+import { FlatModelMap } from '@/lib/types';
 
 
 
 // Gemini helper with Zod schema
 async function generateTitleAndTags(messages: any[]): Promise<{ title?: string; tags: string[] }> {
-  const context = messages.slice(0, 2).map((m: any) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n');
-  const prompt = `Given the following conversation, generate a concise chat title and 3-5 relevant tags.`;
-  const schema = z.object({
-    title: z.string(),
-    tags: z.array(z.string()),
-  });
-  try {
-    const { object } = await generateObject({
-      model: google('gemini-2.0-flash'),
-      schema,
-      prompt: `${prompt}\n\n${context}`,
+    const context = messages.slice(0, 2).map((m: any) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n');
+    const prompt = `Given the following conversation, generate a concise chat title and 3-5 relevant tags.`;
+    const schema = z.object({
+        title: z.string(),
+        tags: z.array(z.string()),
     });
-    return {
-      title: object.title,
-      tags: object.tags,
-    };
-  } catch (e) {
-    console.error('Failed to generate Gemini title/tags object:', e);
-    return { title: undefined, tags: [] };
-  }
+    try {
+        const { object } = await generateObject({
+            model: google('gemini-2.0-flash'),
+            schema,
+            prompt: `${prompt}\n\n${context}`,
+        });
+        return {
+            title: object.title,
+            tags: object.tags,
+        };
+    } catch (e) {
+        console.error('Failed to generate Gemini title/tags object:', e);
+        return { title: undefined, tags: [] };
+    }
 }
 
 export async function POST(req: Request) {
-    
+
     // Zod schema for index generation (move inside POST to avoid global scope issues)
     const indexSchema = z.object({
-      important: z.boolean().describe('Whether this message is important for future reference.'),
-      type: z.enum(['question', 'answer', 'code', 'summary', 'decision'])
-        .describe('The type of important message: question, answer, code, summary, or decision.'),
-      snippet: z.string().describe('A short, user-facing summary or excerpt of the important message.'),
-      metadata: z.any().describe('Additional metadata or context for this index item.'),
+        important: z.boolean().describe('Whether this message is important for future reference.'),
+        type: z.enum(['question', 'answer', 'code', 'summary', 'decision'])
+            .describe('The type of important message: question, answer, code, summary, or decision.'),
+        snippet: z.string().describe('A short, user-facing summary or excerpt of the important message.'),
+        metadata: z.any().describe('Additional metadata or context for this index item.'),
     });
     const body = await req.json();
     console.log('Incoming request body:', JSON.stringify(body));
     const { messages, model: modelId, userSettings, chat_id, ...customFields } = body;
-    console.log('Model ID:', modelId);
-    const model = modelMap[modelId] || google('gemini-2.0-flash');
-    console.log('Model:', model);
+
+
+    const flatModelMap: FlatModelMap = modelMap.reduce((accumulator, family) => {
+        family.models.forEach((model) => {
+            accumulator[model.id] = model.aiFn;
+        });
+        return accumulator;
+    }, {} as FlatModelMap);
+    // console.log(flatModelMap)
+    // if the model id does not start with gemini for testing purposes, return an error as a message
+    if (!modelId.startsWith('gemini')) {
+        // Create a stream response for unsupported model
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+            start(controller) {
+                const message = {
+                    role: 'assistant',
+                    content: 'I\'m sorry, but the model you selected is not supported. Please select a different model.',
+                };
+                // Format as a proper stream chunk
+                const chunk = `data: ${JSON.stringify(message)}\n\n`;
+                controller.enqueue(encoder.encode(chunk));
+                controller.close();
+            },
+        });
+        return new Response(stream, {
+            headers: {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+            },
+        });
+    }
+    const model = flatModelMap[modelId] || google('gemini-2.0-flash');
+
 
     // Build system prompt with user settings
     let systemPrompt = 'You are a helpful assistant.';
@@ -252,7 +285,7 @@ export async function POST(req: Request) {
                 const { error } = await supabaseServer.from('messages').upsert(dbMsg);
                 if (error) {
                     console.error('Error upserting message:', error);
-                } 
+                }
             }
 
             // --- Gemini title/tags generation logic ---

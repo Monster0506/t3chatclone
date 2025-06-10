@@ -63,6 +63,7 @@ export default function ChatContainer({ chatId, initialMessages = [], sidebarCol
     stop,
     reload,
     setInput,
+    error
   } = useChat({
     body: {
       chat_id: chatId,
@@ -214,7 +215,7 @@ export default function ChatContainer({ chatId, initialMessages = [], sidebarCol
           <div className="flex-1 min-h-0 overflow-y-auto w-full px-0 md:px-8">
             <Card className="w-full max-w-4xl mx-auto p-0 md:p-4 shadow-none bg-transparent">
               <ChatMessageList messages={mergedMessages} />
-              <ChatStatus status={status} onStop={stop} onReload={reload} />
+              <ChatStatus status={status} error={error} onStop={stop} onReload={reload} />
             </Card>
           </div>
 
