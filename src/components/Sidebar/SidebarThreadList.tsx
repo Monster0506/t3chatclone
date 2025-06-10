@@ -5,9 +5,9 @@ import { supabase } from '@/lib/supabase/client';
 import type { Tables } from '@/lib/supabase/types';
 import { MoreVertical, Pin, Trash2, Edit2, MessageSquare, ChevronDown, ChevronRight, Archive, Globe } from 'lucide-react';
 import SidebarChatItem from './SidebarChatItem';
-import TagModal from './TagModal';
 import Badge from '../UI/Badge';
 import { useTheme } from '../../theme/ThemeProvider';
+import { differenceInCalendarDays, parseISO } from 'date-fns';
 
 function formatTime(ts: string) {
   const date = new Date(ts);
@@ -36,7 +36,6 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
   const pathname = usePathname();
   const inputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const [tagModalOpen, setTagModalOpen] = useState(false);
   const [currentThread, setCurrentThread] = useState<Tables<'chats'> | null>(null);
   const [tagAnchorRef, setTagAnchorRef] = useState<React.RefObject<HTMLDivElement> | null>(null);
   const [archivedOpen, setArchivedOpen] = useState(false);
@@ -200,7 +199,6 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
   const handleTags = (thread: Tables<'chats'>, menuRef: React.RefObject<HTMLDivElement> | null) => {
     setCurrentThread(thread);
     setTagAnchorRef(menuRef);
-    setTagModalOpen(true);
   };
 
   const handleSaveTags = async (tags: string[]) => {
@@ -211,7 +209,6 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
         .from('chats')
         .update({ metadata: meta })
         .eq('id', currentThread.id);
-      setTagModalOpen(false);
     }
   };
 
@@ -266,17 +263,28 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
     return () => document.removeEventListener('mousedown', handleClick);
   }, [menuOpen]);
 
-  const renderMenu = (thread: Tables<'chats'>, isPinned: boolean) => (
-    <div ref={menuRef} className="absolute z-50 mt-8 right-4 w-40 bg-white rounded shadow-lg border border-purple-100">
-      {isPinned ? (
-        <button className="w-full flex items-center gap-2 px-4 py-2 text-purple-700 hover:bg-purple-50" onClick={e => { e.stopPropagation(); handlePin(thread, false); }}> <Pin size={16} /> Unpin</button>
-      ) : (
-        <button className="w-full flex items-center gap-2 px-4 py-2 text-purple-700 hover:bg-purple-50" onClick={e => { e.stopPropagation(); handlePin(thread, true); }}> <Pin size={16} /> Pin</button>
-      )}
-      <button className="w-full flex items-center gap-2 px-4 py-2 text-purple-700 hover:bg-purple-50" onClick={e => { e.stopPropagation(); setRenamingId(thread.id); setRenameValue(thread.title); }}> <Edit2 size={16} /> Rename</button>
-      <button className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50" onClick={e => { e.stopPropagation(); handleDelete(thread); }}> <Trash2 size={16} /> Delete</button>
-    </div>
-  );
+  // Group threads by time
+  const now = new Date();
+  const groupByTime = (thread: Tables<'chats'>) => {
+    const updated = new Date(thread.updated_at);
+    const daysAgo = differenceInCalendarDays(now, updated);
+    if (daysAgo === 0) return 'Today';
+    if (daysAgo === 1) return 'Yesterday';
+    if (daysAgo <= 7) return 'Last 7 Days';
+    if (daysAgo <= 30) return 'Last 30 Days';
+    return 'Older';
+  };
+  const timeGroups = {
+    'Today': [] as Tables<'chats'>[],
+    'Yesterday': [] as Tables<'chats'>[],
+    'Last 7 Days': [] as Tables<'chats'>[],
+    'Last 30 Days': [] as Tables<'chats'>[],
+    'Older': [] as Tables<'chats'>[],
+  };
+  recent.forEach(thread => {
+    const group = groupByTime(thread);
+    timeGroups[group].push(thread);
+  });
 
   if (collapsed) {
     // Render a minimal list of all chat icons for each thread, clickable, with correct icon
@@ -359,38 +367,43 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
               </ul>
             </div>
           )}
-          <div>
-            {pinned.length > 0 && <div className="px-2 py-1 text-xs font-bold text-purple-500 uppercase tracking-widest mb-1">Recent</div>}
-            <ul className="flex flex-col gap-2">
-              {recent.map(thread => (
-                <SidebarChatItem
-                  key={thread.id}
-                  thread={thread}
-                  isActive={isActive(thread.id)}
-                  onClick={() => router.push(`/chat/${thread.id}`)}
-                  onRename={handleRename}
-                  onDelete={handleDelete}
-                  onPin={handlePin}
-                  onArchive={handleArchive}
-                  onClone={handleClone}
-                  onDownload={handleDownload}
-                  onTags={(thread, menuRef) => handleTags(thread, menuRef)}
-                  onUpdateTags={handleUpdateTags}
-                  renamingId={renamingId}
-                  renameValue={renameValue}
-                  setRenamingId={setRenamingId}
-                  setRenameValue={setRenameValue}
-                  menuOpen={menuOpen}
-                  setMenuOpen={setMenuOpen}
-                  inputRef={inputRef as React.RefObject<HTMLInputElement>}
-                  pinned={!!(typeof thread.metadata === 'object' && thread.metadata && (thread.metadata as any).pinned === true)}
-                  archived={!!(typeof thread.metadata === 'object' && thread.metadata && (thread.metadata as any).archived === true)}
-                  isPublic={thread.public}
-                  onTogglePublic={() => handleTogglePublic(thread)}
-                />
-              ))}
-            </ul>
-          </div>
+          {/* Time-based groups */}
+          {Object.entries(timeGroups).map(([label, threads]) => (
+            threads.length > 0 && (
+              <div key={label} className="mb-2">
+                <div className="px-2 py-1 text-xs font-bold text-purple-500 uppercase tracking-widest mb-1">{label}</div>
+                <ul className="flex flex-col gap-2">
+                  {threads.map(thread => (
+                    <SidebarChatItem
+                      key={thread.id}
+                      thread={thread}
+                      isActive={isActive(thread.id)}
+                      onClick={() => router.push(`/chat/${thread.id}`)}
+                      onRename={handleRename}
+                      onDelete={handleDelete}
+                      onPin={handlePin}
+                      onArchive={handleArchive}
+                      onClone={handleClone}
+                      onDownload={handleDownload}
+                      onTags={(thread, menuRef) => handleTags(thread, menuRef)}
+                      onUpdateTags={handleUpdateTags}
+                      renamingId={renamingId}
+                      renameValue={renameValue}
+                      setRenamingId={setRenamingId}
+                      setRenameValue={setRenameValue}
+                      menuOpen={menuOpen}
+                      setMenuOpen={setMenuOpen}
+                      inputRef={inputRef as React.RefObject<HTMLInputElement>}
+                      pinned={!!(typeof thread.metadata === 'object' && thread.metadata && (thread.metadata as any).pinned === true)}
+                      archived={!!(typeof thread.metadata === 'object' && thread.metadata && (thread.metadata as any).archived === true)}
+                      isPublic={thread.public}
+                      onTogglePublic={() => handleTogglePublic(thread)}
+                    />
+                  ))}
+                </ul>
+              </div>
+            )
+          ))}
           {/* Archived dropdown */}
           {archived.length > 0 && (
             <div className="mt-4">

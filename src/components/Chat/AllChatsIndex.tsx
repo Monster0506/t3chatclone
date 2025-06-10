@@ -24,8 +24,7 @@ const typeIcon: Record<IndexItem['type'], React.ReactNode> = {
   decision: <ListChecks size={16} />,
 };
 
-export default function AllChatsIndex() {
-  const [open, setOpen] = useState(false);
+export default function AllChatsIndex({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [indexData, setIndexData] = useState<IndexItem[]>([]);
@@ -100,79 +99,65 @@ export default function AllChatsIndex() {
   const handleJump = (chatId: string, messageId: string) => {
     // Navigate to the chat page with a hash for the message
     router.push(`/chat/${chatId}#${messageId}`);
-    setOpen(false);
+    onClose();
     // Optionally, you can implement scroll-to-message logic in the chat page using the hash
   };
 
+  if (!open) return null;
   return (
-    <>
-      {/* Floating round button */}
-      <button
-        className="fixed bottom-8 right-8 z-50 rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:scale-105 transition-all border-4"
-        style={{ background: theme.buttonBg, color: theme.buttonText, borderColor: theme.buttonBorder, boxShadow: '0 8px 32px 0 rgba(31,38,135,0.10)' }}
-        onClick={() => setOpen(true)}
-        aria-label="Open All Chats Index"
-      >
-        <List size={28} />
-      </button>
-
-      {/* Overlay panel */}
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
-          style={{ backdropFilter: 'blur(8px)' }}
-        >
-          <Card className="w-full max-w-2xl mx-auto p-0 md:p-6 rounded-2xl shadow-xl" style={{ background: theme.glass, border: `1.5px solid ${theme.buttonBorder}` }}>
-            <div className="flex justify-between items-center mb-4">
-              <div className="font-bold text-xl" style={{ color: theme.buttonText }}>All Important Messages</div>
-              <button
-                className="rounded-full p-2 ml-2 shadow"
-                style={{ background: theme.inputGlass, color: theme.buttonText, border: `1.5px solid ${theme.buttonBorder}` }}
-                onClick={() => setOpen(false)}
-                aria-label="Close"
-              >
-                <X size={22} />
-              </button>
-            </div>
-            <div className="max-h-[60vh] overflow-y-auto pr-2">
-              {loading && <div className="text-center py-8" style={{ color: theme.inputText }}>Loading...</div>}
-              {error && <div className="text-center py-4" style={{ color: '#e53935' }}>{error}</div>}
-              {!loading && !error && Object.keys(grouped).length === 0 && (
-                <div className="text-center py-8" style={{ color: theme.inputText }}>No important messages found.</div>
-              )}
-              {!loading && !error && Object.entries(grouped).map(([chatId, group]) => (
-                <div key={chatId} className="mb-6">
-                  <div className="font-semibold text-lg mb-2" style={{ color: theme.buttonText }}>{group.chatTitle}</div>
-                  <ul className="space-y-2">
-                    {group.items.map((item: any) => (
-                      allowedTypes.includes(item.type) && (
-                        <li
-                          key={item.id}
-                          data-message-id={item.message_id}
-                          className="flex items-start gap-2 group rounded-2xl p-3 cursor-pointer transition shadow"
-                          style={{ background: theme.inputGlass, color: theme.inputText, border: `1.5px solid ${theme.buttonBorder}` }}
-                          onClick={() => handleJump(item.chat_id, item.message_id)}
-                        >
-                          <span className="mt-1" style={{ color: theme.buttonText }}>{typeIcon[item.type]}</span>
-                          <div className="flex-1">
-                            <div className="text-sm font-medium" style={{ color: theme.inputText }}>{item.snippet}</div>
-                            <div className="text-xs opacity-70" style={{ color: theme.inputText }}>{new Date(item.created_at).toLocaleString()}</div>
-                          </div>
-                          <button
-                            className="ml-2 text-xs opacity-0 group-hover:opacity-100 underline"
-                            style={{ color: theme.buttonText }}
-                            onClick={e => { e.stopPropagation(); handleJump(item.chat_id, item.message_id); }}
-                          >Jump</button>
-                        </li>
-                      )
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </Card>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+      style={{ backdropFilter: 'blur(8px)' }}
+    >
+      <Card className="w-full max-h-[80vh] mx-auto p-0 md:p-6 rounded-2xl shadow-xl" style={{ background: theme.glass, border: `1.5px solid ${theme.buttonBorder}` }}>
+        <div className="flex justify-between items-center mb-4">
+          <div className="font-bold text-xl" style={{ color: theme.buttonText }}>All Important Messages</div>
+          <button
+            className="rounded-full p-2 ml-2 shadow"
+            style={{ background: theme.inputGlass, color: theme.buttonText, border: `1.5px solid ${theme.buttonBorder}` }}
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <X size={22} />
+          </button>
         </div>
-      )}
-    </>
+        <div className="max-h-[60vh] overflow-y-auto pr-2">
+          {loading && <div className="text-center py-8" style={{ color: theme.inputText }}>Loading...</div>}
+          {error && <div className="text-center py-4" style={{ color: '#e53935' }}>{error}</div>}
+          {!loading && !error && Object.keys(grouped).length === 0 && (
+            <div className="text-center py-8" style={{ color: theme.inputText }}>No important messages found.</div>
+          )}
+          {!loading && !error && Object.entries(grouped).map(([chatId, group]) => (
+            <div key={chatId} className="mb-6">
+              <div className="font-semibold text-lg mb-2" style={{ color: theme.buttonText }}>{group.chatTitle}</div>
+              <ul className="space-y-2">
+                {group.items.map((item: any) => (
+                  allowedTypes.includes(item.type) && (
+                    <li
+                      key={item.id}
+                      data-message-id={item.message_id}
+                      className="flex items-start gap-2 group rounded-2xl p-3 cursor-pointer transition shadow"
+                      style={{ background: theme.inputGlass, color: theme.inputText, border: `1.5px solid ${theme.buttonBorder}` }}
+                      onClick={() => handleJump(item.chat_id, item.message_id)}
+                    >
+                      <span className="mt-1" style={{ color: theme.buttonText }}>{typeIcon[item.type]}</span>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium" style={{ color: theme.inputText }}>{item.snippet}</div>
+                        <div className="text-xs opacity-70" style={{ color: theme.inputText }}>{new Date(item.created_at).toLocaleString()}</div>
+                      </div>
+                      <button
+                        className="ml-2 text-xs opacity-0 group-hover:opacity-100 underline"
+                        style={{ color: theme.buttonText }}
+                        onClick={e => { e.stopPropagation(); handleJump(item.chat_id, item.message_id); }}
+                      >Jump</button>
+                    </li>
+                  )
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
   );
 } 

@@ -9,6 +9,9 @@ import type { Tables } from '@/lib/supabase/types';
 import AllChatsIndex from './AllChatsIndex';
 import { useTheme } from '../../theme/ThemeProvider';
 import Card from '../UI/Card';
+import ModelSelectorModal from '../ModelSelector/ModelSelectorModal';
+import SettingsModal from '../Settings/SettingsModal';
+import { List } from 'lucide-react';
 
 const DEFAULT_MODEL = 'gemini-2.0-flash';
 
@@ -31,6 +34,10 @@ export default function ChatContainer({ chatId, initialMessages = [], sidebarCol
   const [userSettings, setUserSettings] = useState<Tables<'user_settings'> | null>(null);
   const session = useSession();
   const { theme } = useTheme();
+  const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [allChatsIndexOpen, setAllChatsIndexOpen] = useState(false);
 
   // Fetch user settings
   useEffect(() => {
@@ -134,22 +141,68 @@ export default function ChatContainer({ chatId, initialMessages = [], sidebarCol
 
   // Add logging for merged messages
   const mergedMessages = [...messages, ...optimisticMessages];
+  const handleSaveSettings = async (settings: any) => {
+    setSettingsLoading(true);
+    try {
+      const settingsToSave = {
+        user_id: session?.user?.id,
+        ...settings,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error, data } = await supabase
+        .from('user_settings')
+        .upsert(settingsToSave, {
+          onConflict: 'user_id',
+          ignoreDuplicates: false
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error saving settings:', error);
+      } else {
+        setUserSettings(data);
+      }
+    } catch (error) {
+      console.error('Unexpected error saving settings:', error);
+    } finally {
+      setSettingsLoading(false);
+      setSettingsOpen(false);
+    }
+  };
 
   return (
     <section
       className="flex flex-col flex-1 h-full w-full mx-auto transition-all duration-300"
       style={{ background: theme.background, color: theme.foreground }}
     >
+      {/* Modals at top level */}
+      <ModelSelectorModal
+        open={modelSelectorOpen}
+        onClose={() => setModelSelectorOpen(false)}
+        onSelect={setSelectedModel}
+        selectedModelId={selectedModel}
+      />
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        onSave={handleSaveSettings}
+        initial={userSettings}
+        loading={settingsLoading}
+      />
+      <AllChatsIndex open={allChatsIndexOpen} onClose={() => setAllChatsIndexOpen(false)} />
       <div className="w-full px-0 md:px-8 pt-4 pb-2">
         <Card className="w-full max-w-4xl mx-auto p-0 md:p-2 shadow-none bg-transparent">
-          <ChatBar selectedModelId={selectedModel} onModelChange={setSelectedModel} />
+          <ChatBar
+            selectedModelId={selectedModel}
+            onModelChange={setSelectedModel}
+            onOpenModelSelector={() => setModelSelectorOpen(true)}
+            onOpenSettings={() => setSettingsOpen(true)}
+          />
         </Card>
       </div>
-      <div className="w-full px-0 md:px-8">
-        <Card className="w-full max-w-4xl mx-auto p-0 md:p-2 shadow-none bg-transparent">
-          <AllChatsIndex />
-        </Card>
-      </div>
+
       {showWelcome ? (
         <div className="flex-1 flex flex-col justify-center items-center w-full px-2">
           <Card className="w-full max-w-3xl mx-auto p-0 md:p-8">
@@ -177,6 +230,15 @@ export default function ChatContainer({ chatId, initialMessages = [], sidebarCol
           />
         </Card>
       </div>
+      {/* Floating round button for AllChatsIndex */}
+      <button
+        className="fixed bottom-8 right-8 z-50 rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:scale-105 transition-all border-4"
+        style={{ background: theme.buttonBg, color: theme.buttonText, borderColor: theme.buttonBorder, boxShadow: '0 8px 32px 0 rgba(31,38,135,0.10)' }}
+        onClick={() => setAllChatsIndexOpen(true)}
+        aria-label="Open All Chats Index"
+      >
+        <List size={28} />
+      </button>
     </section>
   );
 } 

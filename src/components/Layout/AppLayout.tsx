@@ -23,7 +23,7 @@ export default function AppLayout({
 
   // Sidebar widths
   const sidebarWidth = sidebarCollapsed ? '4rem' : '18rem';
-
+  
   return (
     <div
       className="flex min-h-screen"

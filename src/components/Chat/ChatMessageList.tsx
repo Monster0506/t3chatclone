@@ -2,6 +2,7 @@ import { useTheme } from '../../theme/ThemeProvider';
 import ChatMessage from './ChatMessage';
 
 // Extend the Message type to include tool messages
+// Extend the Message type to include tool messages and invocations
 type ExtendedMessage = Omit<Message, 'role'> & {
   role: 'system' | 'user' | 'assistant' | 'data' | 'tool';
   content: string;
@@ -14,7 +15,25 @@ type ExtendedMessage = Omit<Message, 'role'> & {
       result: string | number;
     };
   }>;
+  toolInvocations?: Array<{
+    toolName: string;
+    toolCallId: string;
+    state: 'loading' | 'result' | 'error' | 'partial-call' | 'call';
+    result?: {
+      expression: string;
+      result: string | number;
+    } | {
+      error: string;
+    };
+    step?: number;
+    args?: {
+      expression: string;
+    };
+  }>;
 };
+
+
+
 
 export default function ChatMessageList({ messages }: { messages: ExtendedMessage[] }) {
   const { theme } = useTheme();
