@@ -1,5 +1,4 @@
-import { Message } from '@ai-sdk/react';
-import { User, Bot, Image as ImageIcon, Calculator } from 'lucide-react';
+import { User, Bot, Calculator } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import CodeBlock from './CodeBlock';
 import ToolResult from './ToolResults/ToolResult';

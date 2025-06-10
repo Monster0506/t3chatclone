@@ -36,6 +36,7 @@ async function generateTitleAndTags(messages: any[]): Promise<{ title?: string; 
 }
 
 export async function POST(req: Request) {
+    
     // Zod schema for index generation (move inside POST to avoid global scope issues)
     const indexSchema = z.object({
       important: z.boolean().describe('Whether this message is important for future reference.'),
@@ -47,7 +48,9 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log('Incoming request body:', JSON.stringify(body));
     const { messages, model: modelId, userSettings, chat_id, ...customFields } = body;
+    console.log('Model ID:', modelId);
     const model = modelMap[modelId] || google('gemini-2.0-flash');
+    console.log('Model:', model);
 
     // Build system prompt with user settings
     let systemPrompt = 'You are a helpful assistant.';
