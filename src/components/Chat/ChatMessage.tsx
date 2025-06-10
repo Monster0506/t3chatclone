@@ -4,53 +4,8 @@ import ReactMarkdown from 'react-markdown';
 import CodeBlock from './CodeBlock';
 import ToolResult from './ToolResult';
 import { useTheme } from '../../theme/ThemeProvider';
+import { ExtendedMessage, FileAttachment, DBAttachment } from '@/lib/types';
 
-// Extend the Message type to include tool messages and invocations
-type ExtendedMessage = Omit<Message, 'role'> & {
-  role: 'system' | 'user' | 'assistant' | 'data' | 'tool';
-  content: string;
-  parts?: Array<{
-    type: string;
-    text: string;
-    toolName?: string;
-    result?: {
-      expression: string;
-      result: string | number;
-    };
-  }>;
-  toolInvocations?: Array<{
-    toolName: string;
-    toolCallId: string;
-    state: 'loading' | 'result' | 'error' | 'partial-call' | 'call';
-    result?: {
-      expression: string;
-      result: string | number;
-    } | {
-      error: string;
-    };
-    step?: number;
-    args?: {
-      expression: string;
-    };
-  }>;
-};
-
-interface FileAttachment {
-  type: 'file';
-  mimeType?: string;
-  data?: string;
-  name?: string;
-  url?: string;
-}
-
-interface DBAttachment {
-  id: string;
-  file_name: string;
-  file_type: string;
-  file_size: number;
-  url: string;
-  metadata: any;
-}
 
 const markdownComponents = {
   code({ inline, className, children, ...props }: { inline?: boolean; className?: string; children?: React.ReactNode }) {
@@ -58,7 +13,7 @@ const markdownComponents = {
     if (!inline) {
       return (
         <CodeBlock
-          value={String(children ?? '').replace(/\n$/, '')}
+          code={String(children ?? '').replace(/\n$/, '') || ""}
           language={match ? match[1] : undefined}
         />
       );

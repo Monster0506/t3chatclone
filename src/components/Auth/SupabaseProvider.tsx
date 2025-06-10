@@ -2,7 +2,6 @@
 import { SessionContextProvider, useSession } from '@supabase/auth-helpers-react';
 import { supabase } from '@/lib/supabase/client';
 import { useEffect } from 'react';
-import type { TablesInsert } from '@/lib/supabase/types.ts';
 
 function EnsureProfile() {
   const session = useSession();

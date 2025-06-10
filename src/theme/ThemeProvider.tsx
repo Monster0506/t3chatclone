@@ -1,23 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-export type Theme = {
-  name: string;
-  buttonBg: string;
-  buttonText: string;
-  buttonHover: string;
-  buttonGlass: string;
-  buttonBorder: string;
-  inputBg: string;
-  inputText: string;
-  inputFocus: string;
-  inputGlass: string;
-  inputBorder: string;
-  background: string;
-  foreground: string;
-  glass: string;
-};
+import { Theme } from '@/lib/types';
 
 const themes: Theme[] = [
     {
@@ -375,13 +359,13 @@ const themes: Theme[] = [
   ];
 
 export const ThemeContext = createContext({
-  theme: themes[0],
+  theme: themes[1],
   setTheme: (name: string) => {},
   themes,
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [themeName, setThemeName] = useState<string>(themes[0].name);
+  const [themeName, setThemeName] = useState<string>(themes[1].name);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -394,7 +378,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (mounted) localStorage.setItem('theme', themeName);
   }, [themeName, mounted]);
 
-  const theme = themes.find(t => t.name === themeName) || themes[0];
+  const theme = themes.find(t => t.name === themeName) || themes[1];
 
   if (!mounted) {
     return null;

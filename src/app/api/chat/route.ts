@@ -1,17 +1,12 @@
 
-import { streamText, appendResponseMessages, generateObject } from 'ai';
+import { streamText, generateObject } from 'ai';
 import { z } from 'zod';
 import { supabaseServer } from '@/lib/supabase/server';
 import { calculatorTool } from '@/tools/calculator-tool';
 
 export const maxDuration = 30;
-import { openai } from '@ai-sdk/openai';
-import { xai } from '@ai-sdk/xai';
-import { anthropic } from '@ai-sdk/anthropic';
-import { mistral } from '@ai-sdk/mistral';
 import { google } from '@ai-sdk/google';
-import { deepseek } from '@ai-sdk/deepseek';
-import { cerebras } from '@ai-sdk/cerebras';
+
 import  {modelFamilies as modelMap } from '@/components/ModelSelector/modelData';
 
 

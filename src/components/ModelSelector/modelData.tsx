@@ -7,28 +7,8 @@ import { google } from '@ai-sdk/google';
 import { deepseek } from '@ai-sdk/deepseek';
 import { cerebras } from '@ai-sdk/cerebras';
 import { Landmark } from 'lucide-react';
+import { ModelFamily } from '@/lib/types';
 
-// Define a type for the model within the family that includes the AI function
-export type ModelDefinition = {
-  id: string;
-  name: string;
-  aiFn: ReturnType<
-    | typeof openai
-    | typeof xai
-    | typeof anthropic
-    | typeof mistral
-    | typeof google
-    | typeof deepseek
-    | typeof cerebras
-  >; // This captures the return type of the AI-SDK functions
-};
-
-export type ModelFamily = {
-  id: string;
-  name: string;
-  icon: React.ReactNode;
-  models: ModelDefinition[]; // Now models includes the aiFn
-};
 
 export const modelFamilies: ModelFamily[] = [
   {

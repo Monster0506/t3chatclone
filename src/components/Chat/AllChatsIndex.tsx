@@ -1,20 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { MessageSquare, X, HelpCircle, FileText, Code2, ListChecks, Info, List } from 'lucide-react';
+import {X, HelpCircle, FileText, Code2, ListChecks, Info} from 'lucide-react';
 import { useSession } from '@supabase/auth-helpers-react';
 import { useTheme } from '../../theme/ThemeProvider';
 import Card from '../UI/Card';
+import { IndexItem } from '@/lib/types';
 
-// Type for index items
-interface IndexItem {
-  id: string;
-  chat_id: string;
-  chatTitle: string;
-  message_id: string;
-  type: 'question' | 'answer' | 'code' | 'summary' | 'decision';
-  snippet: string;
-  created_at: string;
-}
 
 const typeIcon: Record<IndexItem['type'], React.ReactNode> = {
   question: <HelpCircle size={16} />,
