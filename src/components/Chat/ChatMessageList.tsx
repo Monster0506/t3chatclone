@@ -8,7 +8,6 @@ import { ExtendedMessage } from '@/lib/types';
 
 
 export default function ChatMessageList({ messages }: { messages: ExtendedMessage[] }) {
-  const { theme } = useTheme();
   return (
     <div
       className="flex flex-col gap-6 px-2 py-6 w-full max-w-2xl mx-auto"
