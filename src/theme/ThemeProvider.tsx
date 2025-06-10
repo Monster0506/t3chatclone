@@ -21,7 +21,7 @@ export type Theme = {
 
 const themes: Theme[] = [
     {
-      name: 'Lite',
+      name: 'Daybreak Dew',
       buttonBg: 'bg-gradient-to-r from-pink-400 to-purple-400',
       buttonText: 'text-black',
       buttonHover: 'hover:from-pink-500 hover:to-purple-500',
@@ -37,7 +37,7 @@ const themes: Theme[] = [
       glass: 'rgba(255,255,255,0.5)',
     },
     {
-      name: 'Midnite',
+      name: 'Twilight Abyss',
       buttonBg: 'bg-gradient-to-r from-gray-900 to-purple-900',
       buttonText: 'text-white',
       buttonHover: 'hover:from-gray-800 hover:to-purple-800',
@@ -53,7 +53,7 @@ const themes: Theme[] = [
       glass: 'rgba(30,20,60,0.5)',
     },
     {
-      name: 'Aurora',
+      name: 'Northern Lights',
       buttonBg: 'bg-gradient-to-r from-green-400 to-blue-400',
       buttonText: 'text-blue-900',
       buttonHover: 'hover:from-green-500 hover:to-blue-500',
@@ -69,7 +69,7 @@ const themes: Theme[] = [
       glass: 'rgba(200,255,255,0.5)',
     },
     {
-      name: 'Sakura',
+      name: 'Cherry Blossom',
       buttonBg: 'bg-gradient-to-r from-pink-300 to-red-300',
       buttonText: 'text-red-900',
       buttonHover: 'hover:from-pink-400 hover:to-red-400',
@@ -85,7 +85,7 @@ const themes: Theme[] = [
       glass: 'rgba(255,220,230,0.5)',
     },
     {
-      name: 'Neon',
+      name: 'Electric Dream',
       buttonBg: 'bg-gradient-to-r from-cyan-400 to-fuchsia-400',
       buttonText: 'text-black',
       buttonHover: 'hover:from-cyan-500 hover:to-fuchsia-500',
@@ -101,7 +101,7 @@ const themes: Theme[] = [
       glass: 'rgba(255,200,255,0.5)',
     },
     {
-      name: 'Solar',
+      name: 'Sunstone Spark',
       buttonBg: 'bg-gradient-to-r from-yellow-400 to-orange-400',
       buttonText: 'text-black',
       buttonHover: 'hover:from-yellow-500 hover:to-orange-500',
@@ -117,7 +117,7 @@ const themes: Theme[] = [
       glass: 'rgba(255,240,200,0.5)',
     },
     {
-      name: 'Forest',
+      name: 'Verdant Canopy',
       buttonBg: 'bg-gradient-to-r from-green-700 to-lime-500',
       buttonText: 'text-green-900',
       buttonHover: 'hover:from-green-800 hover:to-lime-600',
@@ -133,7 +133,7 @@ const themes: Theme[] = [
       glass: 'rgba(200,255,200,0.5)',
     },
     {
-      name: 'Oceanic',
+      name: 'Deep Blue Sea',
       buttonBg: 'bg-gradient-to-r from-blue-700 to-cyan-400',
       buttonText: 'text-black',
       buttonHover: 'hover:from-blue-800 hover:to-cyan-500',
@@ -149,7 +149,7 @@ const themes: Theme[] = [
       glass: 'rgba(200,240,255,0.5)',
     },
     {
-      name: 'Retro',
+      name: 'Vintage Sunset',
       buttonBg: 'bg-gradient-to-r from-orange-400 to-pink-400',
       buttonText: 'text-black',
       buttonHover: 'hover:from-orange-500 hover:to-pink-500',
@@ -165,7 +165,7 @@ const themes: Theme[] = [
       glass: 'rgba(255,220,180,0.5)',
     },
     {
-      name: 'Terminal',
+      name: 'Hacker Hues',
       buttonBg: 'bg-gradient-to-r from-black to-gray-800',
       buttonText: 'text-green-400',
       buttonHover: 'hover:from-gray-900 hover:to-black',
@@ -181,7 +181,7 @@ const themes: Theme[] = [
       glass: 'rgba(20,30,20,0.5)',
     },
     {
-      name: 'GrapeVine',
+      name: 'GrapeVine Galaxy',
       buttonBg: 'bg-gradient-to-r from-purple-700 to-indigo-500',
       buttonText: 'text-white',
       buttonHover: 'hover:from-purple-800 hover:to-indigo-600',
@@ -197,7 +197,7 @@ const themes: Theme[] = [
       glass: 'rgba(80,0,80,0.5)',
     },
     {
-      name: 'AzureDream',
+      name: 'Cerulean Sky',
       buttonBg: 'bg-gradient-to-r from-sky-400 to-blue-600',
       buttonText: 'text-white',
       buttonHover: 'hover:from-sky-500 hover:to-blue-700',
@@ -213,7 +213,7 @@ const themes: Theme[] = [
       glass: 'rgba(180,220,255,0.5)',
     },
     {
-      name: 'DesertBloom',
+      name: 'Canyon Sunset',
       buttonBg: 'bg-gradient-to-r from-yellow-600 to-red-500',
       buttonText: 'text-white',
       buttonHover: 'hover:from-yellow-700 hover:to-red-600',
@@ -229,7 +229,7 @@ const themes: Theme[] = [
       glass: 'rgba(255,200,150,0.5)',
     },
     {
-      name: 'MysticMisty',
+      name: 'Cloud Whisper',
       buttonBg: 'bg-gradient-to-r from-gray-500 to-blue-300',
       buttonText: 'text-gray-900',
       buttonHover: 'hover:from-gray-600 hover:to-blue-400',
@@ -245,7 +245,7 @@ const themes: Theme[] = [
       glass: 'rgba(220,230,240,0.5)',
     },
     {
-      name: 'RubyGlow',
+      name: 'Crimson Ember',
       buttonBg: 'bg-gradient-to-r from-red-700 to-pink-600',
       buttonText: 'text-white',
       buttonHover: 'hover:from-red-800 hover:to-pink-700',
@@ -261,7 +261,7 @@ const themes: Theme[] = [
       glass: 'rgba(255,180,180,0.5)',
     },
     {
-      name: 'JadeJungle',
+      name: 'Rainforest Canopy',
       buttonBg: 'bg-gradient-to-r from-emerald-600 to-teal-400',
       buttonText: 'text-white',
       buttonHover: 'hover:from-emerald-700 hover:to-teal-500',
@@ -277,7 +277,7 @@ const themes: Theme[] = [
       glass: 'rgba(150,255,200,0.5)',
     },
     {
-      name: 'MoonDust',
+      name: 'Cosmic Dust',
       buttonBg: 'bg-gradient-to-r from-gray-700 to-slate-500',
       buttonText: 'text-white',
       buttonHover: 'hover:from-gray-800 hover:to-slate-600',
@@ -293,7 +293,7 @@ const themes: Theme[] = [
       glass: 'rgba(80,80,90,0.5)',
     },
     {
-      name: 'CottonCandy',
+      name: 'Sugary Swirl',
       buttonBg: 'bg-gradient-to-r from-pink-300 to-blue-200',
       buttonText: 'text-purple-800',
       buttonHover: 'hover:from-pink-400 hover:to-blue-300',
@@ -309,7 +309,7 @@ const themes: Theme[] = [
       glass: 'rgba(255,230,240,0.5)',
     },
     {
-      name: 'MidnightOil',
+      name: 'Inkwell Night',
       buttonBg: 'bg-gradient-to-r from-black to-red-900',
       buttonText: 'text-red-300',
       buttonHover: 'hover:from-gray-900 hover:to-red-800',
@@ -325,7 +325,7 @@ const themes: Theme[] = [
       glass: 'rgba(10,0,0,0.5)',
     },
     {
-      name: 'GoldenHour',
+      name: 'Sunset Glimmer',
       buttonBg: 'bg-gradient-to-r from-amber-400 to-orange-500',
       buttonText: 'text-black',
       buttonHover: 'hover:from-amber-500 hover:to-orange-600',
@@ -341,7 +341,7 @@ const themes: Theme[] = [
       glass: 'rgba(255,230,190,0.5)',
     },
     {
-      name: 'AquaPulse',
+      name: 'Ocean Ripple',
       buttonBg: 'bg-gradient-to-r from-teal-400 to-blue-500',
       buttonText: 'text-white',
       buttonHover: 'hover:from-teal-500 hover:to-blue-600',
@@ -357,7 +357,7 @@ const themes: Theme[] = [
       glass: 'rgba(150,220,255,0.5)',
     },
     {
-      name: 'VioletHaze',
+      name: 'Amethyst Aura',
       buttonBg: 'bg-gradient-to-r from-purple-500 to-fuchsia-600',
       buttonText: 'text-white',
       buttonHover: 'hover:from-purple-600 hover:to-fuchsia-700',
