@@ -872,15 +872,15 @@ export const themes: Theme[] = [
     glass: "rgba(50,50,150,0.5)",
   },
 ];
-
+const defaultTheme = "Cherry Blossom";
 export const ThemeContext = createContext({
-  theme: themes[1],
+  theme: themes.find(t => t.name === defaultTheme) || themes[1],
   setTheme: (name: string) => {},
   themes,
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [themeName, setThemeName] = useState<string>(themes[1].name);
+  const [themeName, setThemeName] = useState<string>(defaultTheme);
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('theme') : null;
@@ -892,7 +892,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (mounted) localStorage.setItem('theme', themeName);
   }, [themeName, mounted]);
 
-  const theme = themes.find(t => t.name === themeName) || themes[1];
+  const theme = themes.find(t => t.name === themeName) || themes.find(t => t.name === defaultTheme) || themes[1];
 
   if (!mounted) {
     return null;

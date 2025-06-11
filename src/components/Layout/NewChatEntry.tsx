@@ -305,7 +305,7 @@ export default function NewChatEntry() {
                 <ChecklistItem
                   status="done"
                   title="Easy to Try"
-                  notes="One-click deploy on Vercel. I'm even footing the bill for a public Gemini Flash model, but there's a BYOK option for when you want to get serious."
+                  notes="One-click deploy on Vercel. I'm even footing the bill for a public Gemini Flash model, but there's a BYOK option for when you want to get serious. Just chuck it into the .env"
                   theme={theme}
                 />
               </div>
