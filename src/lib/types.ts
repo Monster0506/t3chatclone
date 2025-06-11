@@ -8,6 +8,7 @@ import { deepseek } from '@ai-sdk/deepseek';
 import { cerebras } from '@ai-sdk/cerebras';
 export type Theme = {
     name: string;
+    representativeBg: string;
     buttonBg: string;
     buttonText: string;
     buttonHover: string;
@@ -21,8 +22,8 @@ export type Theme = {
     background: string;
     foreground: string;
     glass: string;
-  };
-  
+};
+
 export interface IndexItem {
     id: string;
     chat_id: string;
@@ -84,25 +85,25 @@ export type ModelDefinition = {
     id: string;
     name: string;
     aiFn: ReturnType<
-      | typeof openai
-      | typeof xai
-      | typeof anthropic
-      | typeof mistral
-      | typeof google
-      | typeof deepseek
-      | typeof cerebras
-    >; 
-  };
-  
-  export type ModelFamily = {
+        | typeof openai
+        | typeof xai
+        | typeof anthropic
+        | typeof mistral
+        | typeof google
+        | typeof deepseek
+        | typeof cerebras
+    >;
+};
+
+export type ModelFamily = {
     id: string;
     name: string;
     icon: React.ReactNode;
-    models: ModelDefinition[]; 
-  };
+    models: ModelDefinition[];
+};
 
-  
 
-  export type FlatModelMap = {
+
+export type FlatModelMap = {
     [modelId: string]: ModelDefinition;
-  };
+};
