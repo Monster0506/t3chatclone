@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {X, HelpCircle, FileText, Code2, ListChecks, Info} from 'lucide-react';
 import { useSession } from '@supabase/auth-helpers-react';
@@ -22,6 +22,7 @@ export default function AllChatsIndex({ open, onClose }: { open: boolean; onClos
   const session = useSession();
   const router = useRouter();
   const { theme } = useTheme();
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -76,6 +77,15 @@ export default function AllChatsIndex({ open, onClose }: { open: boolean; onClos
       });
   }, [open, session]);
 
+  useEffect(() => {
+    if (!open) return;
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [open, onClose]);
+
   // Group by chat
   const grouped = indexData.reduce((acc, item) => {
     if (!acc[item.chat_id]) acc[item.chat_id] = { chatTitle: item.chatTitle, items: [] };
@@ -97,10 +107,11 @@ export default function AllChatsIndex({ open, onClose }: { open: boolean; onClos
   if (!open) return null;
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
       style={{ backdropFilter: 'blur(8px)' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <Card className="w-full max-h-[80vh] mx-auto p-0 md:p-6 rounded-2xl shadow-xl" style={{ background: theme.glass, border: `1.5px solid ${theme.buttonBorder}` }}>
+      <Card ref={modalRef} className="w-full max-h-[80vh] mx-auto p-0 md:p-6 rounded-2xl shadow-xl" style={{ background: theme.glass, border: `1.5px solid ${theme.buttonBorder}` }}>
         <div className="flex justify-between items-center mb-4">
           <div className="font-bold text-xl" style={{ color: theme.buttonText }}>All Important Messages</div>
           <button
@@ -122,7 +133,7 @@ export default function AllChatsIndex({ open, onClose }: { open: boolean; onClos
             <div key={chatId} className="mb-6">
               <div className="font-semibold text-lg mb-2" style={{ color: theme.buttonText }}>{group.chatTitle}</div>
               <ul className="space-y-2">
-                {group.items.map((item: any) => (
+                {group.items.map((item: IndexItem) => (
                   allowedTypes.includes(item.type) && (
                     <li
                       key={item.id}

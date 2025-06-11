@@ -1,5 +1,5 @@
 // components/Settings/SettingsModal.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Button from "@/components/UI/Button";
 import Spinner from "@/components/UI/Spinner";
 import Card from "@/components/UI/Card";
@@ -51,6 +51,7 @@ export default function SettingsModal({
     initial?.theme || theme.name
   );
   const [logoutLoading, setLogoutLoading] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (initial) {
@@ -65,6 +66,15 @@ export default function SettingsModal({
   useEffect(() => {
     setSelectedThemeName(theme.name);
   }, [theme.name]);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [open, onClose]);
 
   const addTrait = (trait: string) => {
     if (
@@ -101,8 +111,9 @@ export default function SettingsModal({
       <Spinner />
     </div>
   ) : (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <Card
+        ref={modalRef}
         className="w-full max-w-lg p-8 relative rounded-2xl shadow-xl"
         style={{ background: theme.glass, borderColor: theme.buttonBorder }}
       >

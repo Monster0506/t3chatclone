@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useTheme } from '@/theme/ThemeProvider';
 
 const SHORTCUTS = [
@@ -30,10 +30,27 @@ const SHORTCUTS = [
 
 export default function KeyboardShortcutsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { theme } = useTheme();
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [open, onClose]);
+
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      onClick={e => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div
+        ref={modalRef}
         className="relative rounded-2xl shadow-2xl p-8 max-w-lg w-full mx-4"
         style={{
           background: theme.glass,

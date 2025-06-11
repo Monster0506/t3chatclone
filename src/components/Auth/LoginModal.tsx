@@ -4,12 +4,25 @@ import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/lib/supabase/client';
 import { Sparkles } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 
 export default function LoginModal({ open, onClose }: { open: boolean; onClose?: () => void }) {
   const { theme } = useTheme();
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open || !onClose) return;
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [open, onClose]);
+
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" style={{ backdropFilter: 'blur(10px)' }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" style={{ backdropFilter: 'blur(10px)' }}
+      onClick={e => { if (onClose && e.target === e.currentTarget) onClose(); }}>
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         {/* Soft gradient/glow for depth */}
         <div
@@ -23,6 +36,7 @@ export default function LoginModal({ open, onClose }: { open: boolean; onClose?:
         />
       </div>
       <Card
+        ref={modalRef}
         className="w-full max-w-md p-0 relative rounded-3xl shadow-2xl flex flex-col items-center"
         style={{
           background: theme.glass,

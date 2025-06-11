@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { modelFamilies} from './modelData';
 import Button from '@/components/UI/Button';
 import Card from '@/components/UI/Card';
@@ -61,6 +61,16 @@ export default function ModelSelectorModal({ open, onClose, onSelect, selectedMo
   const [activeFamily, setActiveFamily] = useState<ModelFamily | null>(modelFamilies[0]);
   const [showAll, setShowAll] = useState(false);
   const { theme } = useTheme();
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [open, onClose]);
 
   // All models flat list
   const allModels = useMemo(() => modelFamilies.flatMap(fam => fam.models), []);
@@ -89,8 +99,9 @@ export default function ModelSelectorModal({ open, onClose, onSelect, selectedMo
     : (activeFamily?.models ?? []).filter(m => m.name.toLowerCase().includes(search.toLowerCase()) || m.id.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" style={{ backdropFilter: 'blur(8px)' }}>
-      <Card className="w-full max-w-5xl flex min-h-[520px] relative rounded-3xl shadow-2xl p-0 overflow-hidden" style={{ background: theme.glass, borderColor: theme.buttonBorder, maxHeight: '90vh' }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" style={{ backdropFilter: 'blur(8px)' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <Card ref={modalRef} className="w-full max-w-5xl flex min-h-[520px] relative rounded-3xl shadow-2xl p-0 overflow-hidden" style={{ background: theme.glass, borderColor: theme.buttonBorder, maxHeight: '90vh' }}>
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white z-10 text-2xl"><X /></button>
         <Sidebar
           filteredFamilies={filteredFamilies}
