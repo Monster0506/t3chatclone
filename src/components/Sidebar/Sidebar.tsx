@@ -10,9 +10,10 @@ import { supabase } from '@/lib/supabase/client';
 interface SidebarProps {
   collapsed?: boolean;
   onCollapse?: (collapsed: boolean) => void;
+  children?: React.ReactNode;
 }
 
-export default function Sidebar({ collapsed = false, onCollapse }: SidebarProps) {
+export default function Sidebar({ collapsed = false, onCollapse, children }: SidebarProps) {
   const [search, setSearch] = useState('');
   const { theme } = useTheme();
   const session = useSession();
@@ -42,6 +43,7 @@ export default function Sidebar({ collapsed = false, onCollapse }: SidebarProps)
       className={`h-screen flex flex-col justify-between transition-all duration-300 ${collapsed ? 'w-16 p-2' : 'w-72 p-6'}`}
       style={{ background: theme.glass, borderColor: theme.buttonBorder, boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)' }}
     >
+      {children}
       {collapsed ? (
         <div className="flex flex-col items-center justify-center mt-4 mb-6">
           <button

@@ -5,6 +5,9 @@ import LoginModal from '../Auth/LoginModal';
 import { ReactNode, useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useTheme } from '@/theme/ThemeProvider';
+import KeyboardShortcutsModal from '@/components/UI/KeyboardShortcutsModal';
+import KeyboardShortcutsButton from '@/components/UI/KeyboardShortcutsButton';
+import CopiedToast from '@/components/UI/CopiedToast';
 
 export default function AppLayout({
   children,
@@ -16,6 +19,8 @@ export default function AppLayout({
   const pathname = usePathname();
   const { theme } = useTheme();
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [showCopied, setShowCopied] = useState(false);
 
   // Reset sidebar state when pathname changes
   useEffect(() => {
@@ -48,6 +53,12 @@ export default function AppLayout({
         e.preventDefault();
         window.dispatchEvent(new CustomEvent('toggle-pin-current-conversation'));
       }
+      // Ctrl+?
+
+      if (e.ctrlKey && !e.altKey && e.key.toLowerCase() === '/') {
+        e.preventDefault();
+        setShortcutsOpen(!shortcutsOpen);
+      }
       // Ctrl+C: Copy last message
       if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'c') {
         // Only if not in input/textarea
@@ -61,6 +72,8 @@ export default function AppLayout({
           const text = bubble ? bubble.textContent : lastMsg.textContent;
           if (text) {
             navigator.clipboard.writeText(text.trim());
+            setShowCopied(true);
+            setTimeout(() => setShowCopied(false), 1500);
           }
         }
       }
@@ -81,7 +94,11 @@ export default function AppLayout({
         className="fixed inset-y-0 left-0 flex items-center z-30"
         style={{ width: sidebarWidth }}
       >
-        <Sidebar onCollapse={setSidebarCollapsed} collapsed={sidebarCollapsed} />
+        <Sidebar onCollapse={setSidebarCollapsed} collapsed={sidebarCollapsed} >
+          <div className="absolute top-4 right-4 z-50">
+            <KeyboardShortcutsButton onClick={() => setShortcutsOpen(true)} />
+          </div>
+        </Sidebar>
       </div>
       <main
         className="flex-1 flex flex-col"
@@ -89,6 +106,8 @@ export default function AppLayout({
       >
         {children}
       </main>
+      <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      <CopiedToast show={showCopied} />
       {!session && <LoginModal open={true} />}
     </div>
   );
