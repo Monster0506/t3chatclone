@@ -1,11 +1,11 @@
 import { useState, useContext } from 'react';
 import { SidebarHeader, SidebarSearch, SidebarThreadList, SidebarNewChatButton } from './index';
-import { PanelTopClose, PanelTopOpen } from 'lucide-react';
 import Card from '@/components/UI/Card';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useSession } from '@supabase/auth-helpers-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
+import { PanelLeftOpen } from 'lucide-react';
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -52,7 +52,7 @@ export default function Sidebar({ collapsed = false, onCollapse, children }: Sid
             onClick={() => onCollapse?.(false)}
             aria-label="Expand sidebar"
           >
-            <PanelTopOpen size={26} />
+            <PanelLeftOpen size={26} />
           </button>
         </div>
       ) : (
@@ -61,14 +61,6 @@ export default function Sidebar({ collapsed = false, onCollapse, children }: Sid
             <div className="flex-1">
               <SidebarHeader collapsed={collapsed} />
             </div>
-            <button
-              className="ml-2 p-1 rounded-full border-2 transition focus:outline-none"
-              style={{ borderColor: theme.buttonBorder, background: theme.buttonGlass, color: theme.foreground }}
-              onClick={() => onCollapse?.(true)}
-              aria-label="Collapse sidebar"
-            >
-              <PanelTopClose size={24} />
-            </button>
           </div>
           {!collapsed && (
             <div className="pt-2">

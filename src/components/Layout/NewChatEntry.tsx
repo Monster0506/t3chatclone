@@ -24,8 +24,36 @@ import {
   Calculator,
   GitBranch,
   Code,
+  Keyboard,
 } from 'lucide-react';
 import { Theme } from '@/lib/types';
+
+// --- Data for Shortcuts ---
+const SHORTCUTS = [
+  {
+    group: 'Navigation',
+    items: [
+      { label: 'Toggle sidebar', keys: ['Ctrl', 'B'] },
+      { label: 'Search conversations', keys: ['Ctrl', 'K'] },
+      { label: 'New conversation', keys: ['Ctrl', 'Shift', 'N'] },
+    ],
+  },
+  {
+    group: 'Conversation',
+    items: [
+      { label: 'Send message', keys: ['Enter'] },
+      { label: 'New line', keys: ['Shift', 'Enter'] },
+      { label: 'Clear input', keys: ['Ctrl', 'Backspace'] },
+    ],
+  },
+  {
+    group: 'Messages',
+    items: [
+      { label: 'Pin/unpin current conversation', keys: ['Ctrl', 'Shift', 'D'] },
+      { label: 'Copy last message', keys: ['Ctrl', 'C'] },
+    ],
+  },
+];
 
 // --- Helper: Checklist Item for Core/Bonus Features ---
 const ChecklistItem = ({
@@ -86,7 +114,7 @@ const PersonalizationDetail = ({ icon, title, description }) => (
 // --- Helper: Stat Card ---
 const StatCard = ({ value, label, icon, theme }) => (
   <div
-    className="p-6 rounded-xl text-center"
+    className="p-6 rounded-xl text-center flex flex-col justify-center"
     style={{
       background: theme.glass,
       border: `1px solid ${theme.buttonBorder}`,
@@ -98,8 +126,49 @@ const StatCard = ({ value, label, icon, theme }) => (
     >
       {icon}
     </div>
-    <p className="text-4xl font-extrabold">{value}</p>
+    <p className="text-4xl md:text-5xl font-extrabold">{value}</p>
     <p className="text-md mt-1 font-semibold opacity-80">{label}</p>
+  </div>
+);
+
+// --- Helper: Shortcut Display ---
+const ShortcutDisplay = ({ shortcuts, theme }) => (
+  <div
+    className="w-full text-left space-y-4 p-6 rounded-xl"
+    style={{
+      background: theme.glass,
+      border: `1px solid ${theme.buttonBorder}`,
+    }}
+  >
+    {shortcuts.map(group => (
+      <div key={group.group}>
+        <h4 className="font-semibold text-lg mb-2">{group.group}</h4>
+        <div className="space-y-2">
+          {group.items.map(item => (
+            <div
+              key={item.label}
+              className="flex justify-between items-center text-sm"
+            >
+              <p className="opacity-80">{item.label}</p>
+              <div className="flex items-center gap-1">
+                {item.keys.map(key => (
+                  <kbd
+                    key={key}
+                    className="px-2 py-1 text-xs font-mono rounded-md"
+                    style={{
+                      background: theme.inputBg,
+                      border: `1px solid ${theme.buttonBorder}`,
+                    }}
+                  >
+                    {key}
+                  </kbd>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
   </div>
 );
 
@@ -236,7 +305,7 @@ export default function NewChatEntry() {
                 <ChecklistItem
                   status="done"
                   title="Easy to Try"
-                  notes="One-click deploy on Vercel. I'm even footing the bill for a public Gemini Flash model, but there's a BYOK option for when you want to get serious. Just stick it in the .env"
+                  notes="One-click deploy on Vercel. I'm even footing the bill for a public Gemini Flash model, but there's a BYOK option for when you want to get serious."
                   theme={theme}
                 />
               </div>
@@ -255,13 +324,19 @@ export default function NewChatEntry() {
                 <ChecklistItem
                   status="done"
                   title="Web Search"
-                  notes="Integrated Wikipedia tool that shows a clean article preview before sending it to the model. I don't want to give those LLMS the unfiltered internet, so they just get a slice."
+                  notes="Integrated Wikipedia tool that shows a clean article preview before sending it to the model. Sanity-checking the AI, one summary at a time."
                   theme={theme}
                 />
                 <ChecklistItem
                   status="done"
                   title="Attachment Support"
                   notes="Upload PDFs and images directly to Supabase Storage. The AI can see them, read them, and summarize them. Yes, it's as cool as it sounds."
+                  theme={theme}
+                />
+                <ChecklistItem
+                  status="done"
+                  title="Full Chat Index"
+                  notes="AI-generated summaries of long conversations, so you can find that one brilliant idea you had three weeks ago."
                   theme={theme}
                 />
                 <ChecklistItem
@@ -277,6 +352,12 @@ export default function NewChatEntry() {
                   theme={theme}
                 />
                 <ChecklistItem
+                  status="done"
+                  title="Keyboard Shortcuts"
+                  notes="A full suite of hotkeys because real pros don't use the mouse. Press Ctrl+? to see them in-app."
+                  theme={theme}
+                />
+                <ChecklistItem
                   status="idea"
                   title="Chat Branching"
                   notes="The 'Clone Chat' feature, because who doesn't love a good git fork on their conversations?"
@@ -287,15 +368,16 @@ export default function NewChatEntry() {
           </div>
         </section>
 
-        {/* --- UNIQUE FEATURES SECTION --- */}
+        {/* --- UNIQUE FEATURES SECTION (REDESIGNED) --- */}
         <section>
           <h2 className="text-4xl font-bold text-center mb-12">
             Where We Went Off-Script
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {/* Changed to a more balanced grid. The main card spans 2 cols, and the two smaller cards sit neatly below it. */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
             {/* Main Personalization Card */}
             <div
-              className="p-8 rounded-xl lg:col-span-2"
+              className="p-8 rounded-xl md:col-span-2" // Spans 2 columns
               style={{
                 background: theme.glass,
                 border: `1px solid ${theme.buttonBorder}`,
@@ -308,7 +390,7 @@ export default function NewChatEntry() {
                 We built a settings panel so deep, you can make the AI your own
                 personal, slightly-less-annoying intern.
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <PersonalizationDetail
                   icon={<User style={{ color: theme.buttonBg }} />}
                   title="Custom Name"
@@ -331,76 +413,82 @@ export default function NewChatEntry() {
                 />
               </div>
             </div>
+
             {/* Other Unique Feature Cards */}
-            <div className="space-y-8">
-              <UniqueFeatureCard
-                icon={<LayoutGrid />}
-                title="Advanced Chat Organization"
-                description="For the user who color-codes their node_modules folder. Includes tags, archiving, and pinning chats, as well as being automatically filterd by date"
+            <UniqueFeatureCard
+              icon={<LayoutGrid />}
+              title="Advanced Chat Organization"
+              description="For the user who color-codes their node_modules folder. Includes tags, archiving, and pinning."
+              theme={theme}
+            />
+            <UniqueFeatureCard
+              icon={<BookText />}
+              title="Full Chat Index"
+              description="AI-generated summaries of long conversations, letting you jump to any key point instantly."
+              theme={theme}
+            />
+          </div>
+        </section>
+
+        {/* --- STATS SECTION (REDESIGNED) --- */}
+        <section>
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-4xl font-bold text-center mb-12">
+              By The Numbers
+            </h2>
+            {/* A clean, symmetrical grid for all stats. */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 items-stretch">
+              <StatCard
+                value="70+"
+                label="AI Models"
+                icon={<Cpu />}
+                theme={theme}
+              />
+              <StatCard
+                value="50+"
+                label="Stunning Themes"
+                icon={<Palette />}
+                theme={theme}
+              />
+              <StatCard
+                value="7"
+                label="Providers"
+                icon={<Server />}
+                theme={theme}
+              />
+              <StatCard
+                value="15+"
+                label="Powerful Features"
+                icon={<Sparkles />}
                 theme={theme}
               />
             </div>
           </div>
         </section>
 
-        {/* --- TECH STACK & STATS SECTION --- */}
+        {/* --- KEYBOARD SHORTCUTS SECTION (NEW) --- */}
+        {/* This section is now separate for better readability and focus. */}
         <section>
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-4xl font-bold text-center mb-12">
-              How the Sausage Gets Made
-            </h2>
-            <div className="grid lg:grid-cols-3 gap-8 items-stretch">
-              <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <StatCard
-                  value="70+"
-                  label="AI Models"
-                  icon={<Cpu />}
-                  theme={theme}
-                />
-                <StatCard
-                  value="50+"
-                  label="Stunning Themes"
-                  icon={<Palette />}
-                  theme={theme}
-                />
-                <StatCard
-                  value="7"
-                  label="Providers"
-                  icon={<Server />}
-                  theme={theme}
-                />
-              </div>
-              <div
-                className="p-8 rounded-xl h-full flex flex-col justify-between"
-                style={{
-                  background: theme.glass,
-                  border: `1px solid ${theme.buttonBorder}`,
-                }}
-              >
-                <div className="flex items-start gap-4 mb-4">
-                  <div
-                    className="text-3xl mt-1"
-                    style={{ color: theme.buttonBg }}
-                  >
-                    <BookText />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold">Full Chat Index</h3>
-                    <p className="opacity-80">
-                      AI-generated summaries of long conversations, letting you
-                      jump to any key point.
-                    </p>
-                  </div>
+          <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+              <div className="text-center lg:text-left">
+                <div
+                  className="text-4xl mb-4 inline-block"
+                  style={{ color: theme.buttonBg }}
+                >
+                  <Keyboard />
                 </div>
-                <StatCard
-                  value="15+"
-                  label="Powerful Features"
-                  icon={<Sparkles />}
-                  theme={theme}
-                />
+                <h2 className="text-4xl font-bold mb-4">
+                  For the Keyboard Warriors
+                </h2>
+                <p className="text-lg opacity-80">
+                  Because clicking is for mortals. A full suite of hotkeys to
+                  navigate and chat without ever touching your mouse.
+                </p>
               </div>
+              <ShortcutDisplay shortcuts={SHORTCUTS} theme={theme} />
             </div>
-            <div className="text-center mt-12">
+            <div className="text-center mt-16">
               <p className="text-lg font-semibold opacity-80">
                 Glued together with the usual suspects: Next.js, Supabase,
                 Vercel AI SDK, and Tailwind CSS.

@@ -8,6 +8,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import KeyboardShortcutsModal from '@/components/UI/KeyboardShortcutsModal';
 import KeyboardShortcutsButton from '@/components/UI/KeyboardShortcutsButton';
 import CopiedToast from '@/components/UI/CopiedToast';
+import { PanelLeftClose } from 'lucide-react';
 
 export default function AppLayout({
   children,
@@ -84,7 +85,7 @@ export default function AppLayout({
 
   // Sidebar widths
   const sidebarWidth = sidebarCollapsed ? '4rem' : '18rem';
-  
+
   return (
     <div
       className="flex min-h-screen"
@@ -94,11 +95,22 @@ export default function AppLayout({
         className="fixed inset-y-0 left-0 flex items-center z-30"
         style={{ width: sidebarWidth }}
       >
-        <Sidebar onCollapse={setSidebarCollapsed} collapsed={sidebarCollapsed} >
-          <div className="absolute top-4 right-4 z-50">
-            <KeyboardShortcutsButton onClick={() => setShortcutsOpen(true)} />
+        <Sidebar onCollapse={setSidebarCollapsed} collapsed={sidebarCollapsed} />
+
+        {!sidebarCollapsed && (
+          <div className="flex flex-row gap-2 items-center absolute top-4 right-4 z-50">
+            <KeyboardShortcutsButton onClick={() => setShortcutsOpen(true)} size={40} />
+
+            <button
+              className="w-10 h-10 flex items-center justify-center rounded-full border-2 transition focus:outline-none"
+              style={{ borderColor: theme.buttonBorder, background: theme.buttonGlass, color: theme.foreground }}
+              onClick={() => setSidebarCollapsed(true)}
+              aria-label="Collapse sidebar"
+            >
+              <PanelLeftClose size={24} />
+            </button>
           </div>
-        </Sidebar>
+        )}
       </div>
       <main
         className="flex-1 flex flex-col"
