@@ -26,34 +26,7 @@ import {
   Code,
   Keyboard,
 } from 'lucide-react';
-import { Theme } from '@/lib/types';
-
-// --- Data for Shortcuts ---
-const SHORTCUTS = [
-  {
-    group: 'Navigation',
-    items: [
-      { label: 'Toggle sidebar', keys: ['Ctrl', 'B'] },
-      { label: 'Search conversations', keys: ['Ctrl', 'K'] },
-      { label: 'New conversation', keys: ['Ctrl', 'Shift', 'N'] },
-    ],
-  },
-  {
-    group: 'Conversation',
-    items: [
-      { label: 'Send message', keys: ['Enter'] },
-      { label: 'New line', keys: ['Shift', 'Enter'] },
-      { label: 'Clear input', keys: ['Ctrl', 'Backspace'] },
-    ],
-  },
-  {
-    group: 'Messages',
-    items: [
-      { label: 'Pin/unpin current conversation', keys: ['Ctrl', 'Shift', 'D'] },
-      { label: 'Copy last message', keys: ['Ctrl', 'C'] },
-    ],
-  },
-];
+import { Theme, SHORTCUTS } from '@/lib/types';
 
 // --- Helper: Checklist Item for Core/Bonus Features ---
 const ChecklistItem = ({

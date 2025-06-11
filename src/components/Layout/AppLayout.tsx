@@ -78,6 +78,11 @@ export default function AppLayout({
           }
         }
       }
+      // Ctrl+Y: Focus chat input
+      if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('focus-chat-input'));
+      }
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);

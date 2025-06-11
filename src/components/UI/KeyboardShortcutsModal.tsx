@@ -1,32 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useTheme } from '@/theme/ThemeProvider';
+import { SHORTCUTS } from '@/lib/types';
 
-const SHORTCUTS = [
-  {
-    group: 'Navigation',
-    items: [
-      { label: 'Toggle sidebar', keys: ['Ctrl', 'B'] },
-      { label: 'Search conversations', keys: ['Ctrl', 'K'] },
-      { label: 'New conversation', keys: ['Ctrl', 'Shift', 'N'] },
-      { label: 'Show keyboard shortcuts', keys: ['Ctrl', '?'] },
-    ],
-  },
-  {
-    group: 'Conversation',
-    items: [
-      { label: 'Send message', keys: ['Enter'] },
-      { label: 'New line', keys: ['Shift', 'Enter'] },
-      { label: 'Clear input', keys: ['Ctrl', 'Backspace'] },
-    ],
-  },
-  {
-    group: 'Messages',
-    items: [
-      { label: 'Pin/unpin current conversation', keys: ['Ctrl', 'Shift', 'D'] },
-      { label: 'Copy last message', keys: ['Ctrl', 'C'] },
-    ],
-  },
-];
 
 export default function KeyboardShortcutsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { theme } = useTheme();

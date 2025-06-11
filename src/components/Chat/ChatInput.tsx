@@ -1,5 +1,5 @@
 import Button from '@/components/UI/Button';
-import { ChangeEvent, FormEvent, useRef, useState } from 'react';
+import { ChangeEvent, FormEvent, useRef, useState, useEffect } from 'react';
 import { useSession } from '@supabase/auth-helpers-react';
 import { Paperclip, Send, X, File as FileIcon, Image as ImageIcon } from 'lucide-react';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -50,6 +50,16 @@ export default function ChatInput({ input, onInputChange, onSubmit, disabled }: 
   const [files, setFiles] = useState<FileList | undefined>(undefined);
   const session = useSession();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    function handleFocusEvent() {
+      textareaRef.current?.focus();
+    }
+    window.addEventListener('focus-chat-input', handleFocusEvent);
+    console.log('focusing chat input');
+    console.log(textareaRef.current);
+    return () => window.removeEventListener('focus-chat-input', handleFocusEvent);
+  }, []);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFiles(e.target.files ?? undefined);
