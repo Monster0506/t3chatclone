@@ -882,7 +882,6 @@ export const ThemeContext = createContext({
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [themeName, setThemeName] = useState<string>(themes[1].name);
   const [mounted, setMounted] = useState(false);
-  console.log(themes.length);
   useEffect(() => {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('theme') : null;
     if (stored) setThemeName(stored);

@@ -2,136 +2,104 @@
 import { useRouter } from 'next/navigation';
 import { useSession } from '@supabase/auth-helpers-react';
 import { supabase } from '@/lib/supabase/client';
-import { useState, useRef } from 'react';
-import Card from '@/components/UI/Card';
+import { useState } from 'react';
 import Button from '@/components/UI/Button';
-import Select from '@/components/UI/Select';
+import ThemePicker from '@/components/Settings/ThemePicker';
 import { useTheme } from '@/theme/ThemeProvider';
 import {
-  Share2,
-  Copy,
-  Download,
-  FileUp,
-  Calculator,
-  BookOpen,
-  User,
-  Bot,
-  Pin,
-  Archive,
-  Tag,
-  Search,
-  BookText,
-  ChevronDown,
   Cpu,
   Server,
+  Palette,
+  Sparkles,
+  Github,
+  Rocket,
+  CheckCircle2,
+  Lightbulb,
+  BookText,
+  LayoutGrid,
+  User,
+  Briefcase,
+  Bot,
+  FileText,
+  Calculator,
+  GitBranch,
+  Code,
 } from 'lucide-react';
+import { Theme } from '@/lib/types';
 
-// --- Helper Component for Scrolling (Corrected) ---
-const ScrollIndicator = ({ onClick, theme, className = '' }) => (
-  <div className={`w-full text-center ${className}`}>
-    <button
-      onClick={onClick}
-      className="p-2 rounded-full transition-transform duration-300 hover:scale-110 focus:outline-none focus-visible:ring-2"
-      style={{
-        color: theme.buttonBg,
-        ringColor: theme.buttonHover,
-      }}
-      aria-label="Scroll to next section"
-    >
-      <ChevronDown className="w-10 h-10 animate-bounce" />
-    </button>
-  </div>
-);
-
-// --- Helper Component for Feature Cards ---
-const FeatureCard = ({ icon, title, children, theme }) => (
-  <div
-    className="flex flex-col items-center p-6 rounded-lg text-center"
-    style={{
-      background: theme.glass,
-      border: `1px solid ${theme.buttonBorder}`,
-    }}
-  >
-    <div className="text-4xl mb-3" style={{ color: theme.buttonBg }}>
-      {icon}
-    </div>
-    <h3
-      className="text-xl font-bold mb-2"
-      style={{ color: theme.foreground }}
-    >
-      {title}
-    </h3>
-    <p className="text-base opacity-80" style={{ color: theme.foreground }}>
-      {children}
-    </p>
-  </div>
-);
-
-// --- Helper Component for Tool Cards ---
-const ToolCard = ({
-  icon,
+// --- Helper: Checklist Item for Core/Bonus Features ---
+const ChecklistItem = ({
   title,
-  description,
-  exampleUser,
-  exampleAi,
+  notes,
+  status,
   theme,
+}: {
+  title: string;
+  notes: string;
+  status: string;
+  theme: Theme;
 }) => (
   <div
-    className="p-6 rounded-lg"
+    className="flex flex-col sm:flex-row items-start gap-4 p-4 rounded-lg"
+    style={{ border: `1px solid ${theme.buttonBorder}` }}
+  >
+    <div className="flex items-center gap-3 w-full sm:w-1/3 flex-shrink-0">
+      {status === 'done' ? (
+        <CheckCircle2 className="w-6 h-6 text-green-400" />
+      ) : (
+        <Lightbulb className="w-6 h-6 text-yellow-400" />
+      )}
+      <h3 className="font-bold text-lg">{title}</h3>
+    </div>
+    <p className="opacity-80 text-base w-full sm:w-2/3">{notes}</p>
+  </div>
+);
+
+// --- Helper: Card for Unique Features ---
+const UniqueFeatureCard = ({ icon, title, description, theme }) => (
+  <div
+    className="p-8 rounded-xl text-center flex flex-col items-center h-full"
     style={{
       background: theme.glass,
       border: `1px solid ${theme.buttonBorder}`,
     }}
   >
-    <div className="flex items-center gap-4 mb-4">
-      <div className="text-4xl" style={{ color: theme.buttonBg }}>
-        {icon}
-      </div>
-      <h3 className="text-xl font-bold" style={{ color: theme.foreground }}>
-        {title}
-      </h3>
+    <div className="mb-4 text-4xl" style={{ color: theme.buttonBg }}>
+      {icon}
     </div>
-    <p className="opacity-80 mb-4" style={{ color: theme.foreground }}>
-      {description}
-    </p>
-    <div className="p-3 rounded" style={{ background: theme.inputBg }}>
-      <div className="flex items-start gap-2 font-mono text-sm">
-        <User className="w-5 h-5 flex-shrink-0 mt-0.5" />
-        <p style={{ color: theme.inputText }}>User: "{exampleUser}"</p>
-      </div>
-      <div
-        className="mt-2 p-3 rounded"
-        style={{ color: theme.foreground, background: theme.buttonGlass }}
-      >
-        <div className="flex items-start gap-2 font-mono text-sm">
-          <Bot className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <p>AI: {exampleAi}</p>
-        </div>
-      </div>
+    <h3 className="text-2xl font-bold mb-2">{title}</h3>
+    <p className="opacity-80">{description}</p>
+  </div>
+);
+
+// --- Helper: Detail item for the Personalization Card ---
+const PersonalizationDetail = ({ icon, title, description }) => (
+  <div className="flex items-start gap-4">
+    <div className="flex-shrink-0 w-8 h-8 mt-1">{icon}</div>
+    <div>
+      <h4 className="font-bold">{title}</h4>
+      <p className="text-sm opacity-80">{description}</p>
     </div>
   </div>
 );
 
-// --- Helper Component for Stats ---
-const StatsCard = ({ icon, value, label, theme }) => (
+// --- Helper: Stat Card ---
+const StatCard = ({ value, label, icon, theme }) => (
   <div
-    className="flex items-center gap-4 p-4 rounded-lg"
+    className="p-6 rounded-xl text-center"
     style={{
       background: theme.glass,
       border: `1px solid ${theme.buttonBorder}`,
     }}
   >
-    <div className="text-4xl" style={{ color: theme.buttonBg }}>
+    <div
+      className="mx-auto w-fit mb-2 text-3xl"
+      style={{ color: theme.buttonBg }}
+    >
       {icon}
     </div>
-    <div>
-      <p className="text-2xl font-bold" style={{ color: theme.foreground }}>
-        {value}
-      </p>
-      <p className="text-sm opacity-80" style={{ color: theme.foreground }}>
-        {label}
-      </p>
-    </div>
+    <p className="text-4xl font-extrabold">{value}</p>
+    <p className="text-md mt-1 font-semibold opacity-80">{label}</p>
   </div>
 );
 
@@ -141,20 +109,6 @@ export default function NewChatEntry() {
   const [loading, setLoading] = useState(false);
   const { theme, setTheme, themes } = useTheme();
   const [selectedTheme, setSelectedTheme] = useState(theme.name);
-
-  // Refs for smooth scrolling
-  const featuresRef = useRef<HTMLDivElement>(null);
-  const toolsRef = useRef<HTMLDivElement>(null);
-  const modelRef = useRef<HTMLDivElement>(null);
-  const useCasesRef = useRef<HTMLDivElement>(null);
-  const faqRef = useRef<HTMLDivElement>(null);
-
-  const handleScrollTo = (ref: React.RefObject<HTMLElement>) => {
-    ref.current?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    });
-  };
 
   const handleNewChat = async () => {
     if (!session?.user) return;
@@ -174,9 +128,9 @@ export default function NewChatEntry() {
     }
   };
 
-  const handleThemeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedTheme(e.target.value);
-    setTheme(e.target.value);
+  const handleThemeSelect = (themeName: string) => {
+    setSelectedTheme(themeName);
+    setTheme(themeName);
   };
 
   return (
@@ -186,381 +140,318 @@ export default function NewChatEntry() {
     >
       {/* Decorative background blobs */}
       <div
-        className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full opacity-30 blur-3xl z-0"
+        className="absolute -top-48 -left-48 w-[600px] h-[600px] rounded-full opacity-30 blur-3xl z-0"
         style={{ background: theme.buttonBg }}
       />
       <div
-        className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full opacity-30 blur-3xl z-0"
+        className="absolute -bottom-48 -right-48 w-[600px] h-[600px] rounded-full opacity-30 blur-3xl z-0"
         style={{ background: theme.buttonHover }}
       />
 
-      <div className="relative z-10 flex flex-col items-center w-full px-4 pb-16">
-        {/* Welcome Section */}
-        <div className="w-full flex flex-col items-center justify-center text-center min-h-screen relative">
-          <Card
-            className="w-full max-w-2xl p-10 flex flex-col items-center gap-6"
-            style={{ background: theme.glass }}
+      <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 space-y-24 md:space-y-32">
+        {/* --- HERO SECTION --- */}
+        <section className="text-center">
+          <div
+            className="inline-block bg-opacity-10 text-sm font-semibold py-1 px-3 rounded-full mb-4"
+            style={{
+              background: theme.buttonGlass,
+              color: theme.buttonBg,
+            }}
           >
-            <h1
-              className="text-5xl md:text-6xl font-extrabold mb-2 drop-shadow-lg"
-              style={{ color: theme.foreground }}
+            Official Entry: T3 ChatCloneathon
+          </div>
+          <h1 className="text-5xl md:text-7xl font-extrabold mb-4 drop-shadow-lg">
+            Another AI Chat App. But This One's Good.
+          </h1>
+          <p className="text-lg md:text-xl max-w-3xl mx-auto opacity-80 mb-8">
+            The brief was "build a cool AI chat app." I may have taken that a
+            bit too seriously.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+            <Button
+              onClick={handleNewChat}
+              disabled={!session?.user || loading}
+              className="px-8 py-4 text-xl font-semibold shadow-lg w-full sm:w-auto"
             >
-              Welcome to T3 Clone
-            </h1>
-            <p
-              className="text-lg md:text-2xl mb-4 max-w-xl"
-              style={{ color: theme.foreground }}
+              {/* <Rocket className="w-5 h-5 mr-2" /> */}
+              {loading ? 'Starting...' : 'Fire It Up'}
+            </Button>
+            <a
+              href="https://github.com/monster0506/t3chatclone"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto"
             >
-              Your AI assistant powered by Gemini 2.0 Flash (current testing
-              model). Start a new conversation and explore its powerful new
-              tools.
-            </p>
-            <div className="w-full flex flex-col md:flex-row gap-4 items-center justify-center">
               <Button
-                className="px-8 py-4 text-xl font-semibold shadow-lg"
-                onClick={handleNewChat}
-                disabled={!session?.user || loading}
+                variant="secondary"
+                className="px-8 py-4 text-xl font-semibold shadow-lg w-full"
               >
-                {loading ? 'Starting...' : 'Start a New Chat'}
+                {/* <Github className="w-5 h-5 mr-2" /> */}
+                View Source
               </Button>
-              <div className="flex flex-col items-center gap-1">
-                <label
-                  className="text-sm font-medium mb-1"
-                  htmlFor="theme-picker"
-                >
-                  Theme
-                </label>
-                <Select
-                  id="theme-picker"
-                  value={selectedTheme}
-                  onChange={handleThemeChange}
-                  className="w-40"
-                >
-                  {themes.map((t) => (
-                    <option key={t.name} value={t.name}>
-                      {t.name}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-            </div>
-            {!session?.user && (
-              <p className="mt-6 text-base opacity-70">
-                Sign in to start chatting.
-              </p>
-            )}
-          </Card>
-          <ScrollIndicator
-            onClick={() => handleScrollTo(featuresRef)}
-            theme={theme}
-            className="absolute bottom-4"
-          />
-        </div>
-
-        {/* Features Section */}
-        <div ref={featuresRef} className="w-full max-w-6xl pt-16">
-          <h2
-            className="text-4xl font-bold text-center mb-8"
-            style={{ color: theme.foreground }}
-          >
-            Powerful Features
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <FeatureCard icon={<Pin />} title="Pin Chats" theme={theme}>
-              Keep important conversations at the top of your list for quick
-              access.
-            </FeatureCard>
-            <FeatureCard icon={<Archive />} title="Archive Chats" theme={theme}>
-              Declutter your main view by archiving chats you no longer need.
-            </FeatureCard>
-            <FeatureCard icon={<Tag />} title="Tag Chats" theme={theme}>
-              Organize your chats with custom tags for easy filtering and
-              retrieval.
-            </FeatureCard>
-            <FeatureCard icon={<Search />} title="Search Chats" theme={theme}>
-              Instantly find conversations by searching titles, content, or
-              tags.
-            </FeatureCard>
-            <FeatureCard icon={<Share2 />} title="Share Chats" theme={theme}>
-              Share a read-only version of your conversations with a unique
-              link.
-            </FeatureCard>
-            <FeatureCard icon={<Copy />} title="Clone Chats" theme={theme}>
-              Duplicate any chat to branch your conversation or try different
-              approaches.
-            </FeatureCard>
-            <FeatureCard
-              icon={<Download />}
-              title="Export to JSON"
-              theme={theme}
-            >
-              Download your chat history as a structured JSON file for your
-              records.
-            </FeatureCard>
-            <FeatureCard icon={<FileUp />} title="File Upload" theme={theme}>
-              Upload documents or images for analysis, summarization, or
-              discussion.
-            </FeatureCard>
+            </a>
           </div>
-          <ScrollIndicator
-            onClick={() => handleScrollTo(toolsRef)}
-            theme={theme}
-            className="my-8 md:my-12"
-          />
-        </div>
-
-        {/* Advanced Navigation & Tools Section */}
-        <div ref={toolsRef} className="w-full max-w-6xl pt-16">
-          <h2
-            className="text-4xl font-bold text-center mb-12"
-            style={{ color: theme.foreground }}
-          >
-            Advanced Navigation & Tools
-          </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div
-              className="lg:col-span-2 p-6 rounded-lg flex flex-col md:flex-row items-center gap-6"
-              style={{
-                background: theme.glass,
-                border: `1px solid ${theme.buttonBorder}`,
-              }}
-            >
-              <div className="text-6xl" style={{ color: theme.buttonBg }}>
-                <BookText />
-              </div>
-              <div className="flex-1 text-center md:text-left">
-                <h3
-                  className="text-2xl font-bold mb-2"
-                  style={{ color: theme.foreground }}
-                >
-                  Full Chat Index
-                </h3>
-                <p
-                  className="text-lg opacity-80"
-                  style={{ color: theme.foreground }}
-                >
-                  Navigate long conversations effortlessly. Get an AI-generated
-                  summary for key messages and jump directly to any point in
-                  the chat.
-                </p>
-              </div>
-            </div>
-            <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <StatsCard
-                icon={<Cpu />}
-                value="65+"
-                label="Models Supported"
-                theme={theme}
-              />
-              <StatsCard
-                icon={<Server />}
-                value="7"
-                label="Providers Integrated"
-                theme={theme}
-              />
-            </div>
-            <ToolCard
-              icon={<Calculator />}
-              title="Advanced Calculator"
-              description="Supports basic arithmetic, trig, logs, and matrix operations. Just ask!"
-              exampleUser="What is the product of 24*43?"
-              exampleAi="The product of 24*43 is 1032."
-              theme={theme}
-            />
-            <ToolCard
-              icon={<BookOpen />}
-              title="Wikipedia Search"
-              description="Fetch summaries or full articles from Wikipedia using natural language queries."
-              exampleUser="Give me a summary of the Gemini program"
-              exampleAi="Project Gemini was NASA's second human spaceflight program..."
-              theme={theme}
+          <div className="max-w-sm mx-auto">
+            <p className="text-sm font-semibold mb-2 opacity-80">
+              Don't Like the Vibe? Change It.
+            </p>
+            <ThemePicker
+              selectedThemeName={selectedTheme}
+              onThemeSelect={handleThemeSelect}
+              themes={themes}
+              currentTheme={theme}
             />
           </div>
-          <ScrollIndicator
-            onClick={() => handleScrollTo(modelRef)}
-            theme={theme}
-            className="my-8 md:my-12"
-          />
-        </div>
+        </section>
 
-        {/* Model Showcase Section */}
-        <div ref={modelRef} className="w-full max-w-6xl pt-16">
-          <h2
-            className="text-4xl font-bold text-center mb-12"
-            style={{ color: theme.foreground }}
-          >
-            Powered by Gemini 2.0 Flash
+        {/* --- FEATURE CHECKLIST SECTION --- */}
+        <section>
+          <h2 className="text-4xl font-bold text-center mb-12">
+            Passing the Vibe Check
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div
-              className="p-6 rounded-lg"
-              style={{
-                background: theme.glass,
-                border: `1px solid ${theme.buttonBorder}`,
-              }}
-            >
-              <h3 className="text-xl font-bold mb-3" style={{ color: theme.foreground }}>Lightning Fast</h3>
-              <p className="opacity-80" style={{ color: theme.foreground }}>
-                Experience near-instant responses with our optimized Gemini 2.0 Flash model.
-              </p>
+          <div className="max-w-5xl mx-auto space-y-8">
+            <div>
+              <h3 className="text-2xl font-bold mb-6 text-center sm:text-left">
+                Core Requirements
+              </h3>
+              <div className="space-y-4">
+                <ChecklistItem
+                  status="done"
+                  title="Chat with Various LLMs"
+                  notes="Plumbed into the Vercel AI SDK to support 70+ models from Google, OpenAI, Anthropic, and more. Go on, pick your poison."
+                  theme={theme}
+                />
+                <ChecklistItem
+                  status="done"
+                  title="Authentication & Sync"
+                  notes="Full Supabase Auth with RLS so your questionable prompts are synced and secured across devices. No peeking."
+                  theme={theme}
+                />
+                <ChecklistItem
+                  status="done"
+                  title="Browser Friendly"
+                  notes="Fully responsive with Tailwind CSS. Works on Chrome, Firefox, Safari. If you test this on Internet Explorer, we are no longer friends."
+                  theme={theme}
+                />
+                <ChecklistItem
+                  status="done"
+                  title="Easy to Try"
+                  notes="One-click deploy on Vercel. I'm even footing the bill for a public Gemini Flash model, but there's a BYOK option for when you want to get serious. Just stick it in the .env"
+                  theme={theme}
+                />
+              </div>
             </div>
-            <div
-              className="p-6 rounded-lg"
-              style={{
-                background: theme.glass,
-                border: `1px solid ${theme.buttonBorder}`,
-              }}
-            >
-              <h3 className="text-xl font-bold mb-3" style={{ color: theme.foreground }}>Advanced Reasoning</h3>
-              <p className="opacity-80" style={{ color: theme.foreground }}>
-                Complex problem-solving capabilities with step-by-step explanations.
-              </p>
+            <div>
+              <h3 className="text-2xl font-bold mb-6 text-center sm:text-left">
+                🔥 Bonus Features
+              </h3>
+              <div className="space-y-4">
+                <ChecklistItem
+                  status="done"
+                  title="Advanced Calculator"
+                  notes="Handles trig, logs, and even matrix operations, rendering the output in a beautifully formatted display. Your TI-84 is collecting dust anyway."
+                  theme={theme}
+                />
+                <ChecklistItem
+                  status="done"
+                  title="Web Search"
+                  notes="Integrated Wikipedia tool that shows a clean article preview before sending it to the model. I don't want to give those LLMS the unfiltered internet, so they just get a slice."
+                  theme={theme}
+                />
+                <ChecklistItem
+                  status="done"
+                  title="Attachment Support"
+                  notes="Upload PDFs and images directly to Supabase Storage. The AI can see them, read them, and summarize them. Yes, it's as cool as it sounds."
+                  theme={theme}
+                />
+                <ChecklistItem
+                  status="done"
+                  title="Chat Sharing"
+                  notes="Share your genius (or horrifying) conversations with a single link. No take-backsies (because I forgot to implement making them private again)."
+                  theme={theme}
+                />
+                <ChecklistItem
+                  status="done"
+                  title="Syntax Highlighting"
+                  notes="Because staring at unformatted code is a form of cruel and unusual punishment."
+                  theme={theme}
+                />
+                <ChecklistItem
+                  status="idea"
+                  title="Chat Branching"
+                  notes="The 'Clone Chat' feature, because who doesn't love a good git fork on their conversations?"
+                  theme={theme}
+                />
+              </div>
             </div>
+          </div>
+        </section>
+
+        {/* --- UNIQUE FEATURES SECTION --- */}
+        <section>
+          <h2 className="text-4xl font-bold text-center mb-12">
+            Where We Went Off-Script
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Main Personalization Card */}
             <div
-              className="p-6 rounded-lg"
+              className="p-8 rounded-xl lg:col-span-2"
               style={{
                 background: theme.glass,
                 border: `1px solid ${theme.buttonBorder}`,
               }}
             >
-              <h3 className="text-xl font-bold mb-3" style={{ color: theme.foreground }}>Multimodal Support</h3>
-              <p className="opacity-80" style={{ color: theme.foreground }}>
-                Process and understand both text and images in your conversations.
+              <h3 className="text-3xl font-bold mb-2">
+                Tired of Repeating Yourself?
+              </h3>
+              <p className="opacity-80 mb-8">
+                We built a settings panel so deep, you can make the AI your own
+                personal, slightly-less-annoying intern.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <PersonalizationDetail
+                  icon={<User style={{ color: theme.buttonBg }} />}
+                  title="Custom Name"
+                  description="Teach it your name, nickname, or secret superhero identity."
+                />
+                <PersonalizationDetail
+                  icon={<Briefcase style={{ color: theme.buttonBg }} />}
+                  title="Your Profession"
+                  description="Tell it you're an engineer (or a pirate) for context-aware advice."
+                />
+                <PersonalizationDetail
+                  icon={<Bot style={{ color: theme.buttonBg }} />}
+                  title="AI Personality Traits"
+                  description="Assign traits like 'Curious' or 'Sarcastic' to shape its responses."
+                />
+                <PersonalizationDetail
+                  icon={<FileText style={{ color: theme.buttonBg }} />}
+                  title="Persistent Instructions"
+                  description="Give it standing orders with a powerful, 3000-character system prompt."
+                />
+              </div>
+            </div>
+            {/* Other Unique Feature Cards */}
+            <div className="space-y-8">
+              <UniqueFeatureCard
+                icon={<LayoutGrid />}
+                title="Advanced Chat Organization"
+                description="For the user who color-codes their node_modules folder. Includes tags, archiving, and pinning chats, as well as being automatically filterd by date"
+                theme={theme}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* --- TECH STACK & STATS SECTION --- */}
+        <section>
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-4xl font-bold text-center mb-12">
+              How the Sausage Gets Made
+            </h2>
+            <div className="grid lg:grid-cols-3 gap-8 items-stretch">
+              <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <StatCard
+                  value="70+"
+                  label="AI Models"
+                  icon={<Cpu />}
+                  theme={theme}
+                />
+                <StatCard
+                  value="50+"
+                  label="Stunning Themes"
+                  icon={<Palette />}
+                  theme={theme}
+                />
+                <StatCard
+                  value="7"
+                  label="Providers"
+                  icon={<Server />}
+                  theme={theme}
+                />
+              </div>
+              <div
+                className="p-8 rounded-xl h-full flex flex-col justify-between"
+                style={{
+                  background: theme.glass,
+                  border: `1px solid ${theme.buttonBorder}`,
+                }}
+              >
+                <div className="flex items-start gap-4 mb-4">
+                  <div
+                    className="text-3xl mt-1"
+                    style={{ color: theme.buttonBg }}
+                  >
+                    <BookText />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">Full Chat Index</h3>
+                    <p className="opacity-80">
+                      AI-generated summaries of long conversations, letting you
+                      jump to any key point.
+                    </p>
+                  </div>
+                </div>
+                <StatCard
+                  value="15+"
+                  label="Powerful Features"
+                  icon={<Sparkles />}
+                  theme={theme}
+                />
+              </div>
+            </div>
+            <div className="text-center mt-12">
+              <p className="text-lg font-semibold opacity-80">
+                Glued together with the usual suspects: Next.js, Supabase,
+                Vercel AI SDK, and Tailwind CSS.
               </p>
             </div>
           </div>
-          <ScrollIndicator
-            onClick={() => handleScrollTo(useCasesRef)}
-            theme={theme}
-            className="my-8 md:my-12"
-          />
-        </div>
+        </section>
 
-        {/* Use Cases Section */}
-        <div ref={useCasesRef} className="w-full max-w-6xl pt-16">
-          <h2
-            className="text-4xl font-bold text-center mb-12"
-            style={{ color: theme.foreground }}
+        {/* --- FINAL CTA SECTION --- */}
+        <section className="text-center max-w-2xl mx-auto">
+          <h2 className="text-4xl font-bold mb-6">Alright, Enough Talk.</h2>
+          <p className="text-lg opacity-80 mb-8">
+            The app speaks for itself. Go on, try to break it. We dare you.
+          </p>
+          <Button
+            onClick={handleNewChat}
+            disabled={!session?.user || loading}
+            className="px-10 py-5 text-2xl font-semibold shadow-lg"
           >
-            Perfect For
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div
-              className="p-6 rounded-lg"
-              style={{
-                background: theme.glass,
-                border: `1px solid ${theme.buttonBorder}`,
-              }}
-            >
-              <h3 className="text-xl font-bold mb-3" style={{ color: theme.foreground }}>Students</h3>
-              <p className="opacity-80" style={{ color: theme.foreground }}>
-                Get help with homework, research, and study materials.
-              </p>
-            </div>
-            <div
-              className="p-6 rounded-lg"
-              style={{
-                background: theme.glass,
-                border: `1px solid ${theme.buttonBorder}`,
-              }}
-            >
-              <h3 className="text-xl font-bold mb-3" style={{ color: theme.foreground }}>Developers</h3>
-              <p className="opacity-80" style={{ color: theme.foreground }}>
-                Debug code, get programming help, and explore new technologies.
-              </p>
-            </div>
-            <div
-              className="p-6 rounded-lg"
-              style={{
-                background: theme.glass,
-                border: `1px solid ${theme.buttonBorder}`,
-              }}
-            >
-              <h3 className="text-xl font-bold mb-3" style={{ color: theme.foreground }}>Researchers</h3>
-              <p className="opacity-80" style={{ color: theme.foreground }}>
-                Analyze data, summarize papers, and explore complex topics.
-              </p>
-            </div>
-            <div
-              className="p-6 rounded-lg"
-              style={{
-                background: theme.glass,
-                border: `1px solid ${theme.buttonBorder}`,
-              }}
-            >
-              <h3 className="text-xl font-bold mb-3" style={{ color: theme.foreground }}>Professionals</h3>
-              <p className="opacity-80" style={{ color: theme.foreground }}>
-                Draft documents, analyze reports, and get business insights.
-              </p>
-            </div>
-          </div>
-          <ScrollIndicator
-            onClick={() => handleScrollTo(faqRef)}
-            theme={theme}
-            className="my-8 md:my-12"
-          />
-        </div>
+            {/* <Rocket className="w-6 h-6 mr-3" /> */}
+            {loading ? 'Starting...' : 'Launch It Already'}
+          </Button>
+          {!session?.user && (
+            <p className="mt-6 text-base opacity-70">
+              Sign in to start chatting.
+            </p>
+          )}
+        </section>
 
-        {/* FAQ Section */}
-        <div ref={faqRef} className="w-full max-w-6xl pt-16 pb-16">
-          <h2
-            className="text-4xl font-bold text-center mb-12"
-            style={{ color: theme.foreground }}
-          >
-            Frequently Asked Questions
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div
-              className="p-6 rounded-lg"
-              style={{
-                background: theme.glass,
-                border: `1px solid ${theme.buttonBorder}`,
-              }}
+        {/* --- FOOTER --- */}
+        <footer
+          className="text-center border-t pt-8 space-y-4"
+          style={{ borderColor: theme.buttonBorder }}
+        >
+          <p className="opacity-70">
+            Built with code and vibes for the T3 ChatCloneathon.
+          </p>
+          <p className="text-sm opacity-80">
+            A project by{' '}
+            <a
+              href="https://monster0506.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold underline"
+              style={{ color: theme.foreground }}
             >
-              <h3 className="text-xl font-bold mb-3" style={{ color: theme.foreground }}>Is it free to use?</h3>
-              <p className="opacity-80" style={{ color: theme.foreground }}>
-                Yes! Our basic features are completely free to use. We may introduce premium features in the future.
-              </p>
-            </div>
-            <div
-              className="p-6 rounded-lg"
-              style={{
-                background: theme.glass,
-                border: `1px solid ${theme.buttonBorder}`,
-              }}
-            >
-              <h3 className="text-xl font-bold mb-3" style={{ color: theme.foreground }}>How do I get started?</h3>
-              <p className="opacity-80" style={{ color: theme.foreground }}>
-                Simply sign in and click "Start a New Chat". You can immediately begin conversing with our AI.
-              </p>
-            </div>
-            <div
-              className="p-6 rounded-lg"
-              style={{
-                background: theme.glass,
-                border: `1px solid ${theme.buttonBorder}`,
-              }}
-            >
-              <h3 className="text-xl font-bold mb-3" style={{ color: theme.foreground }}>Can I share my chats?</h3>
-              <p className="opacity-80" style={{ color: theme.foreground }}>
-                Yes! You can share any chat with a unique link. The shared version is read-only.
-              </p>
-            </div>
-            <div
-              className="p-6 rounded-lg"
-              style={{
-                background: theme.glass,
-                border: `1px solid ${theme.buttonBorder}`,
-              }}
-            >
-              <h3 className="text-xl font-bold mb-3" style={{ color: theme.foreground }}>Is my data secure?</h3>
-              <p className="opacity-80" style={{ color: theme.foreground }}>
-                Absolutely. We use industry-standard encryption and never share your data with third parties.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+              monster0506
+            </a>
+          </p>
+        </footer>
+      </main>
     </div>
   );
 }

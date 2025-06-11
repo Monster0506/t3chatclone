@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
-import Button from '@/components/UI/Button';
-import Spinner from '@/components/UI/Spinner';
-import Card from '@/components/UI/Card';
-import Input from '@/components/UI/Input';
-import { useTheme } from '@/theme/ThemeProvider';
-import { supabase } from '@/lib/supabase/client';
-import { Theme } from '@/lib/types';
-import { ChevronDown } from 'lucide-react';
+// components/Settings/SettingsModal.tsx
+import { useState, useEffect } from "react";
+import Button from "@/components/UI/Button";
+import Spinner from "@/components/UI/Spinner";
+import Card from "@/components/UI/Card";
+import Input from "@/components/UI/Input";
+import ThemePicker from "./ThemePicker"; // Import the new component
+import { useTheme } from "@/theme/ThemeProvider";
+import { supabase } from "@/lib/supabase/client";
 // Make sure to import your themes array, e.g.:
 // import { themes } from '@/theme/themeData';
 
@@ -17,39 +17,14 @@ const OCCUPATION_LIMIT = 100;
 const EXTRA_LIMIT = 3000;
 
 const defaultTraits = [
-  'friendly',
-  'witty',
-  'concise',
-  'curious',
-  'empathetic',
-  'creative',
-  'patient',
+  "friendly",
+  "witty",
+  "concise",
+  "curious",
+  "empathetic",
+  "creative",
+  "patient",
 ];
-
-// Crescent Icon Component for reusability
-const CrescentIcon = ({ theme }: { theme: any }) => {
-  if (!theme) return null;
-  return (
-    <div
-      className="w-5 h-5 rounded-full relative overflow-hidden"
-      style={{
-        backgroundColor: theme.foreground, // This is the crescent color
-        borderColor: theme.buttonBorder,
-        borderWidth: '1px',
-        boxSizing: 'border-box',
-      }}
-    >
-      {/* This is the overlay circle that creates the crescent */}
-      <div
-        className="w-full h-full rounded-full absolute top-0"
-        style={{
-          backgroundColor: theme.representativeBg,
-          left: '3px', // Adjust this value to change crescent thickness
-        }}
-      ></div>
-    </div>
-  );
-};
 
 export default function SettingsModal({
   open,
@@ -64,28 +39,28 @@ export default function SettingsModal({
   initial?: any;
   loading?: boolean;
 }) {
-  const [name, setName] = useState(initial?.name || '');
-  const [occupation, setOccupation] = useState(initial?.occupation || '');
+  const [name, setName] = useState(initial?.name || "");
+  const [occupation, setOccupation] = useState(initial?.occupation || "");
   const [traits, setTraits] = useState<string[]>(
     initial?.traits || defaultTraits
   );
-  const [traitInput, setTraitInput] = useState('');
-  const [extra, setExtra] = useState(initial?.extra || '');
+  const [traitInput, setTraitInput] = useState("");
+  const [extra, setExtra] = useState(initial?.extra || "");
   const { theme, setTheme, themes } = useTheme();
   const [selectedThemeName, setSelectedThemeName] = useState(
     initial?.theme || theme.name
   );
   const [logoutLoading, setLogoutLoading] = useState(false);
-  const [isThemeDropdownOpen, setIsThemeDropdownOpen] = useState(false);
 
   useEffect(() => {
     if (initial) {
-      setName(initial.name || '');
-      setOccupation(initial.occupation || '');
+      setName(initial.name || "");
+      setOccupation(initial.occupation || "");
       setTraits(initial.traits || defaultTraits);
-      setExtra(initial.extra || '');
+      setExtra(initial.extra || "");
+      setSelectedThemeName(initial.theme || theme.name);
     }
-  }, [initial]);
+  }, [initial, theme.name]);
 
   useEffect(() => {
     setSelectedThemeName(theme.name);
@@ -108,8 +83,7 @@ export default function SettingsModal({
 
   const handleThemeSelection = (themeName: string) => {
     setSelectedThemeName(themeName);
-    setTheme(themeName);
-    setIsThemeDropdownOpen(false);
+    setTheme(themeName); // Update the global theme context
   };
 
   const handleLogout = async () => {
@@ -121,8 +95,6 @@ export default function SettingsModal({
   };
 
   if (!open) return null;
-
-  const currentThemeObject = themes.find((t: any) => t.name === selectedThemeName);
 
   return loading ? (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
@@ -140,72 +112,33 @@ export default function SettingsModal({
         >
           ×
         </button>
-        <h2 className="text-2xl font-bold mb-6" style={{ color: theme.buttonText }}>
+        <h2
+          className="text-2xl font-bold mb-6"
+          style={{ color: theme.buttonText }}
+        >
           Customize T3 Clone
         </h2>
+
         <div className="mb-4">
-          <label className="block mb-1 font-semibold" style={{ color: theme.buttonText }}>
+          <label
+            className="block mb-1 font-semibold"
+            style={{ color: theme.buttonText }}
+          >
             Theme
           </label>
-          <div className="relative">
-            <button
-              type="button"
-              className="w-full px-4 py-2 rounded-xl border flex items-center justify-between text-lg shadow focus:outline-none cursor-pointer"
-              style={{
-                background: theme.inputGlass,
-                color: theme.inputText,
-                borderColor: theme.buttonBorder,
-              }}
-              onClick={() => setIsThemeDropdownOpen(!isThemeDropdownOpen)}
-            >
-              <div className="flex items-center gap-3">
-                <span>{selectedThemeName}</span>
-                <CrescentIcon theme={currentThemeObject} />
-              </div>
-              <span className="text-xs"><ChevronDown className="w-4 h-4" /></span>
-            </button>
-
-            {isThemeDropdownOpen && (
-              <ul
-                className="absolute z-10 w-full mt-1 rounded-xl shadow-lg max-h-60 overflow-auto p-1"
-                style={{
-                  background: theme.inputGlass,
-                  borderColor: theme.buttonBorder,
-                  borderWidth: '1px',
-                  backdropFilter: 'blur(12px)',
-                }}
-              >
-                {themes.map((t: any) => {
-                  const isSelected = selectedThemeName === t.name;
-                  return (
-                    <li
-                      key={t.name}
-                      className="px-3 py-2 cursor-pointer rounded-lg transition-colors duration-200"
-                      style={{
-                        color: theme.inputText,
-                        backgroundColor: isSelected ? theme.buttonGlass : 'transparent',
-                      }}
-                      onClick={() => handleThemeSelection(t.name)}
-                      onMouseEnter={(e) => {
-                        if (!isSelected) e.currentTarget.style.backgroundColor = theme.buttonGlass;
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
-                      }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span>{t.name}</span>
-                        <CrescentIcon theme={t} />
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
+          <ThemePicker
+            selectedThemeName={selectedThemeName}
+            onThemeSelect={handleThemeSelection}
+            themes={themes}
+            currentTheme={theme}
+          />
         </div>
+
         <div className="mb-4">
-          <label className="block mb-1 font-semibold" style={{ color: theme.buttonText }}>
+          <label
+            className="block mb-1 font-semibold"
+            style={{ color: theme.buttonText }}
+          >
             What should T3 Clone call you?
           </label>
           <Input
@@ -224,8 +157,12 @@ export default function SettingsModal({
             {name.length}/{NAME_LIMIT}
           </div>
         </div>
+
         <div className="mb-4">
-          <label className="block mb-1 font-semibold" style={{ color: theme.buttonText }}>
+          <label
+            className="block mb-1 font-semibold"
+            style={{ color: theme.buttonText }}
+          >
             What do you do?
           </label>
           <Input
@@ -244,8 +181,12 @@ export default function SettingsModal({
             {occupation.length}/{OCCUPATION_LIMIT}
           </div>
         </div>
+
         <div className="mb-4">
-          <label className="block mb-1 font-semibold" style={{ color: theme.buttonText }}>
+          <label
+            className="block mb-1 font-semibold"
+            style={{ color: theme.buttonText }}
+          >
             T3 traits
           </label>
           <div className="flex flex-wrap gap-2 mb-2">
@@ -253,7 +194,10 @@ export default function SettingsModal({
               <span
                 key={trait}
                 className="px-2 py-1 rounded-full text-sm flex items-center gap-1 shadow"
-                style={{ background: theme.inputGlass, color: theme.inputText }}
+                style={{
+                  background: theme.inputGlass,
+                  color: theme.inputText,
+                }}
               >
                 {trait}
                 <button
@@ -283,7 +227,7 @@ export default function SettingsModal({
               type="button"
               onClick={() => {
                 addTrait(traitInput);
-                setTraitInput('');
+                setTraitInput("");
               }}
               style={{
                 background: theme.buttonGlass,
@@ -295,8 +239,12 @@ export default function SettingsModal({
             </Button>
           </div>
         </div>
+
         <div className="mb-6">
-          <label className="block mb-1 font-semibold" style={{ color: theme.buttonText }}>
+          <label
+            className="block mb-1 font-semibold"
+            style={{ color: theme.buttonText }}
+          >
             Anything else T3 Clone should know about you?
           </label>
           <textarea
@@ -315,6 +263,7 @@ export default function SettingsModal({
             {extra.length}/{EXTRA_LIMIT}
           </div>
         </div>
+
         <div className="flex justify-end gap-2 mb-4">
           <Button
             type="button"
@@ -330,7 +279,15 @@ export default function SettingsModal({
           </Button>
           <Button
             type="button"
-            onClick={() => onSave({ name, occupation, traits, extra, theme: selectedThemeName })}
+            onClick={() =>
+              onSave({
+                name,
+                occupation,
+                traits,
+                extra,
+                theme: selectedThemeName,
+              })
+            }
             style={{
               background: theme.buttonBg,
               color: theme.buttonText,
@@ -340,6 +297,7 @@ export default function SettingsModal({
             Save
           </Button>
         </div>
+
         <Button
           type="button"
           onClick={handleLogout}
@@ -352,7 +310,7 @@ export default function SettingsModal({
           }}
           disabled={logoutLoading}
         >
-          {logoutLoading ? 'Logging out...' : 'Log out'}
+          {logoutLoading ? "Logging out..." : "Log out"}
         </Button>
       </Card>
     </div>

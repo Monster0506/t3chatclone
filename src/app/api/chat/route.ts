@@ -57,9 +57,9 @@ export async function POST(req: Request) {
         });
         return accumulator;
     }, {} as FlatModelMap);
-    // console.log(flatModelMap)
+    console.log('modelId', modelId);
     // if the model id does not start with gemini for testing purposes, return an error as a message
-    if (!modelId.startsWith('gemini')) {
+    if (!modelId.startsWith('gemini-2.0-flash')) {
         // Create a stream response for unsupported model
         const encoder = new TextEncoder();
         const stream = new ReadableStream({
@@ -125,6 +125,7 @@ export async function POST(req: Request) {
         },
         maxSteps: 5,
         async onFinish({ response }) {
+            console.log('onFinish', response);
             if (!chat_id) {
                 console.log('No chat_id provided, skipping message persistence.');
                 return;
@@ -199,6 +200,7 @@ export async function POST(req: Request) {
                             schema: indexSchema,
                             prompt,
                         });
+                        console.log('indexResult', indexResult);
                         if (indexResult.important && indexResult.type && indexResult.snippet) {
                             await supabaseServer.from('chat_index' as any).insert({
                                 chat_id,
