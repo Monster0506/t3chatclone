@@ -19,7 +19,7 @@ function formatTime(ts: string) {
 }
 
 function getTagsFromMetadata(metadata: any): string[] {
-  if (metadata && typeof metadata === 'object' && Array.isArray(metadata.tags)) {
+  if (metadata && typeof metadata === 'object' && !Array.isArray(metadata) && Array.isArray(metadata.tags)) {
     return metadata.tags.filter((t: any) => typeof t === 'string');
   }
   return [];
@@ -203,7 +203,7 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
 
   const handleSaveTags = async (tags: string[]) => {
     if (currentThread) {
-      const meta = typeof currentThread.metadata === 'object' && currentThread.metadata ? { ...currentThread.metadata } : {};
+      const meta = typeof currentThread.metadata === 'object' && !Array.isArray(currentThread.metadata) && currentThread.metadata ? { ...currentThread.metadata } : {};
       meta.tags = tags;
       await supabase
         .from('chats')
@@ -213,7 +213,7 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
   };
 
   const handleUpdateTags = async (thread: Tables<'chats'>, tags: string[]) => {
-    const meta = typeof thread.metadata === 'object' && thread.metadata ? { ...thread.metadata } : {};
+    const meta = typeof thread.metadata === 'object' && !Array.isArray(thread.metadata) && thread.metadata ? { ...thread.metadata } : {};
     meta.tags = tags;
     await supabase
       .from('chats')
@@ -285,6 +285,43 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
     const group = groupByTime(thread);
     timeGroups[group].push(thread);
   });
+
+  useEffect(() => {
+    function handleTogglePin() {
+      const active = threads.find(t => isActive(t.id));
+      if (active) {
+        const meta = typeof active.metadata === 'object' && !Array.isArray(active.metadata) && active.metadata ? active.metadata : {};
+        handlePin(active, !meta.pinned);
+      }
+    }
+    window.addEventListener('toggle-pin-current-conversation', handleTogglePin);
+    return () => window.removeEventListener('toggle-pin-current-conversation', handleTogglePin);
+  }, [threads]);
+
+  useEffect(() => {
+    function handleNewConversation() {
+      // Duplicated from Sidebar's handleNewChat
+      if (!session?.user) return;
+      (async () => {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('chats')
+          .insert({
+            user_id: session.user.id,
+            title: 'New Chat',
+            model: 'gemini-2.0-flash',
+          })
+          .select('id')
+          .single();
+        setLoading(false);
+        if (data && data.id) {
+          router.replace(`/chat/${data.id}`);
+        }
+      })();
+    }
+    window.addEventListener('new-conversation', handleNewConversation);
+    return () => window.removeEventListener('new-conversation', handleNewConversation);
+  }, [session, router]);
 
   if (collapsed) {
     // Render a minimal list of all chat icons for each thread, clickable, with correct icon

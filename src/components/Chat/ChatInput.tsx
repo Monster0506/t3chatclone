@@ -1,4 +1,3 @@
-import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
 import { ChangeEvent, FormEvent, useRef, useState } from 'react';
 import { useSession } from '@supabase/auth-helpers-react';
@@ -7,7 +6,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 
 interface ChatInputProps {
   input: string;
-  onInputChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  onInputChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
   onSubmit: (e: FormEvent<HTMLFormElement>, files?: FileList) => void;
   disabled?: boolean;
 }
@@ -50,6 +49,7 @@ export default function ChatInput({ input, onInputChange, onSubmit, disabled }: 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<FileList | undefined>(undefined);
   const session = useSession();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFiles(e.target.files ?? undefined);
@@ -66,6 +66,29 @@ export default function ChatInput({ input, onInputChange, onSubmit, disabled }: 
       fileInputRef.current.files = dt.files;
     }
   };
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === 'Enter') {
+      if (e.shiftKey) {
+        // Allow new line (default behavior)
+        return;
+      } else {
+        // Send message
+        e.preventDefault();
+        const form = textareaRef.current?.form || (e.target as HTMLTextAreaElement)?.form;
+        if (form) {
+          form.requestSubmit();
+        }
+      }
+    } else if (e.ctrlKey && (e.key === 'Backspace' || e.key === 'Delete')) {
+      // Clear input
+      e.preventDefault();
+      onInputChange({
+        ...e,
+        target: { ...textareaRef.current, value: '' },
+      } as any);
+    }
+  }
 
   return (
     <form
@@ -88,12 +111,15 @@ export default function ChatInput({ input, onInputChange, onSubmit, disabled }: 
           boxShadow: '0 8px 32px 0 rgba(31,38,135,0.10)',
         }}
       >
-        <Input
+        <textarea
+          ref={textareaRef}
           value={input}
           onChange={onInputChange}
+          onKeyDown={handleKeyDown}
           placeholder="Type your message here..."
-          className="flex-1 min-w-0 max-w-full text-base px-4 py-3"
-          style={{ background: 'transparent', color: theme.inputText, border: 'none', boxShadow: 'none' }}
+          className="flex-1 min-w-0 max-w-full text-base px-4 py-3 rounded-xl resize-none border-none bg-transparent focus:outline-none"
+          style={{ color: theme.inputText, boxShadow: 'none', background: 'transparent' }}
+          rows={1}
           disabled={disabled || !session}
         />
         <input

@@ -2,7 +2,7 @@
 import { useChat } from '@ai-sdk/react';
 import { ChatMessageList, ChatInput, ChatStatus, ChatQuickActions } from './index';
 import ChatBar from './ChatBar';
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, ChangeEvent } from 'react';
 import { useSession } from '@supabase/auth-helpers-react';
 import { supabase } from '@/lib/supabase/client';
 import type { Tables } from '@/lib/supabase/types';
@@ -173,6 +173,11 @@ export default function ChatContainer({ chatId, initialMessages = [], sidebarCol
     }
   };
 
+  // Wrap handleInputChange to support textarea events
+  function handleTextareaChange(e: ChangeEvent<HTMLTextAreaElement>) {
+    setInput(e.target.value);
+  }
+
   return (
     <section
       className="flex flex-col flex-1 h-full w-full mx-auto transition-all duration-300"
@@ -225,7 +230,7 @@ export default function ChatContainer({ chatId, initialMessages = [], sidebarCol
         <Card className="w-full max-w-4xl mx-auto p-0 md:p-2 shadow-none bg-transparent">
           <ChatInput
             input={input}
-            onInputChange={handleInputChange}
+            onInputChange={handleTextareaChange}
             onSubmit={onSubmit}
             disabled={status !== 'ready' || disabled}
           />
