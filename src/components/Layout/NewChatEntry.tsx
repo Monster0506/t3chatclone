@@ -203,7 +203,7 @@ export default function NewChatEntry() {
             Official Entry: T3 ChatCloneathon
           </div>
           <h1 className="text-5xl md:text-7xl font-extrabold mb-4 drop-shadow-lg">
-            Another AI Chat App. But This One's Good.
+            A really good AI Chat App.
           </h1>
           <p className="text-lg md:text-xl max-w-3xl mx-auto opacity-80 mb-8">
             The brief was "build a cool AI chat app." I may have taken that a
