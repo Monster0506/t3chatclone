@@ -1,5 +1,5 @@
 import { useTheme } from '../../theme/ThemeProvider';
-import ChatMessage from './ChatMessage';
+import ChatMessage from './Messages/ChatMessage';
 import { ExtendedMessage } from '@/lib/types';
 // Extend the Message type to include tool messages and invocations
 

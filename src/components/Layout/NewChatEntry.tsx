@@ -346,11 +346,11 @@ export default function NewChatEntry() {
           <h2 className="text-4xl font-bold text-center mb-12">
             Where We Went Off-Script
           </h2>
-          {/* Changed to a more balanced grid. The main card spans 2 cols, and the two smaller cards sit neatly below it. */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+          {/* Changed to a more balanced grid. The main card spans 3 cols, and the three smaller cards sit neatly below it. */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Main Personalization Card */}
             <div
-              className="p-8 rounded-xl md:col-span-2" // Spans 2 columns
+              className="p-8 rounded-xl md:col-span-3" // Spans 3 columns
               style={{
                 background: theme.glass,
                 border: `1px solid ${theme.buttonBorder}`,
@@ -392,6 +392,12 @@ export default function NewChatEntry() {
               icon={<LayoutGrid />}
               title="Advanced Chat Organization"
               description="For the user who color-codes their node_modules folder. Includes tags, archiving, and pinning."
+              theme={theme}
+            />
+            <UniqueFeatureCard
+              icon={<Code />}
+              title="Polyglot Code Converter"
+              description="Translate code snippets between 297 languages. Perfect for learning a new syntax or porting a legacy COBOL function to Rust."
               theme={theme}
             />
             <UniqueFeatureCard

@@ -1,7 +1,7 @@
 import { User, Bot, Calculator } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import CodeBlock from "./CodeBlock";
-import ToolResult from "./ToolResults/ToolResult";
+import ToolResult from "../ToolResults/ToolResult";
 import { useTheme } from "@/theme/ThemeProvider";
 import { FileAttachment, DBAttachment } from "@/lib/types";
 import { useMemo } from "react";
@@ -65,6 +65,7 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
     targetLanguage: string,
     codeBlockIndex: number
   ) => {
+    console.log({message}, "message");
     console.log(
       `Requesting conversion for message ${message.id}, block ${codeBlockIndex} to ${targetLanguage}`
     );

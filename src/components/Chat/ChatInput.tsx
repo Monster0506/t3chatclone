@@ -56,8 +56,7 @@ export default function ChatInput({ input, onInputChange, onSubmit, disabled }: 
       textareaRef.current?.focus();
     }
     window.addEventListener('focus-chat-input', handleFocusEvent);
-    console.log('focusing chat input');
-    console.log(textareaRef.current);
+
     return () => window.removeEventListener('focus-chat-input', handleFocusEvent);
   }, []);
 

@@ -3,6 +3,7 @@ import CodeBlockActions from "./CodeBlockActions";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useState, useMemo, useEffect } from "react";
+import { languageMap } from "@/lib/languageMap";
 
 interface CodeConversion {
   code_block_index: number;
@@ -38,32 +39,14 @@ export default function CodeBlock({
 
   const isConverted = currentLanguage !== originalLanguage;
 
-  const availableLanguages = useMemo(() => {
-    const languages = new Set<string>();
-    if (originalLanguage) {
-      languages.add(originalLanguage);
-    }
-    conversions.forEach((conv) => languages.add(conv.target_language));
-    return Array.from(languages);
-  }, [originalLanguage, conversions]);
+  const mappedLanguage = useMemo(() => {
+    const langKey = currentLanguage?.toLowerCase() ?? "";
+    // Use the map to find the correct syntax highlighter key.
+    // Fallback to the language name itself, then to 'text' as a last resort.
+    return languageMap[langKey] || currentLanguage || "text";
+  }, [currentLanguage]);
 
   const handleLanguageChange = (selectedLanguage: string) => {
-    if (selectedLanguage === "--convert--") {
-      const newLang = prompt(
-        "Enter the language to convert to (e.g., python, go, rust):"
-      );
-      if (newLang && onConvertRequest) {
-        onConvertRequest(newLang.toLowerCase().trim(), codeBlockIndex);
-      }
-      setTimeout(() => {
-        const select = document.querySelector(
-          `select[aria-label="Select code language"]`
-        ) as HTMLSelectElement;
-        if (select) select.value = currentLanguage || "";
-      }, 0);
-      return;
-    }
-
     if (selectedLanguage === originalLanguage) {
       setCurrentCode(originalCode);
       setCurrentLanguage(originalLanguage);
@@ -74,6 +57,8 @@ export default function CodeBlock({
       if (conversion) {
         setCurrentCode(conversion.converted_content);
         setCurrentLanguage(conversion.target_language);
+      } else {
+        onConvertRequest?.(selectedLanguage, codeBlockIndex);
       }
     }
   };
@@ -92,7 +77,7 @@ export default function CodeBlock({
       }}
     >
       <SyntaxHighlighter
-        language={currentLanguage}
+        language={mappedLanguage}
         style={style}
         customStyle={{
           margin: 0,
@@ -116,9 +101,9 @@ export default function CodeBlock({
       <CodeBlockActions
         onCopy={handleCopy}
         small
-        availableLanguages={availableLanguages}
-        currentLanguage={currentLanguage}
+        currentLanguage={currentLanguage || ""}
         onLanguageChange={handleLanguageChange}
+        existingConversions={conversions.map((c) => c.target_language)}
       />
     </div>
   );

@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 
 // Zod schema validates the incoming request, ensuring it includes the index.
 const requestSchema = z.object({
-  messageId: z.string().uuid("Invalid message ID"),
+  messageId: z.string("Invalid message ID"),
   codeBlockIndex: z
     .number()
     .int()
@@ -27,9 +27,10 @@ export async function POST(req: Request) {
   try {
     // 1. Validate the incoming request body against the schema.
     const body = await req.json();
+    console.log({body}, "body");
     const { messageId, codeBlockIndex, targetLanguage } =
       requestSchema.parse(body);
-
+    
     const supabase = supabaseServer;
 
     // 2. Fetch the original message. RLS ensures the user has access.
