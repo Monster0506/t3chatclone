@@ -1,56 +1,146 @@
-import { User, Bot, Calculator } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import CodeBlock from './CodeBlock';
-import ToolResult from './ToolResults/ToolResult';
-import { useTheme } from '@/theme/ThemeProvider';
-import { ExtendedMessage, FileAttachment, DBAttachment } from '@/lib/types';
+import { User, Bot, Calculator } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import CodeBlock from "./CodeBlock";
+import ToolResult from "./ToolResults/ToolResult";
+import { useTheme } from "@/theme/ThemeProvider";
+import { FileAttachment, DBAttachment } from "@/lib/types";
+import { useMemo } from "react";
 
+// This interface matches the DB schema, including the index
+interface DBCodeConversion {
+  code_block_index: number;
+  target_language: string;
+  converted_content: string;
+}
 
-const markdownComponents = {
-  code({ inline, className, children, ...props }: { inline?: boolean; className?: string; children?: React.ReactNode }) {
-    const match = /language-(\w+)/.exec(className || '');
-    if (!inline) {
-      return (
-        <CodeBlock
-          code={String(children ?? '').replace(/\n$/, '') || ""}
-          language={match ? match[1] : undefined}
-        />
-      );
-    }
-    // Inline code: style it nicely
-    return (
-      <code
-        className="bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-mono text-sm"
-        {...props}
-      >
-        {children}
-      </code>
-    );
-  },
+// The updated message type
+export type ExtendedMessage = Omit<Message, "role"> & {
+  role: "system" | "user" | "assistant" | "data" | "tool";
+  content: string;
+  conversions?: DBCodeConversion[];
+  parts?: Array<{
+    type: string;
+    text: string;
+    toolName?: string;
+    result?: {
+      expression: string;
+      result: string | number;
+    };
+  }>;
+  toolInvocations?: Array<{
+    toolName: string;
+    toolCallId: string;
+    state: "loading" | "result" | "error" | "partial-call" | "call";
+    result?:
+      | {
+          expression: string;
+          result: string | number;
+        }
+      | {
+          error: string;
+        };
+    step?: number;
+    args?: {
+      expression: string;
+    };
+  }>;
 };
 
 export default function ChatMessage({ message }: { message: ExtendedMessage }) {
   const { theme } = useTheme();
-  const isUser = message.role === 'user';
-  const isTool = message.role === 'tool';
+  const isUser = message.role === "user";
+  const isTool = message.role === "tool";
 
-  // If message.parts is missing but message.content is an array, treat content as parts
+  const handleCopyToClipboard = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      console.log("Code copied to clipboard!");
+    } catch (err) {
+      console.error("Failed to copy code:", err);
+    }
+  };
+
+  // The handler now correctly accepts the codeBlockIndex
+  const handleConversionRequest = async (
+    targetLanguage: string,
+    codeBlockIndex: number
+  ) => {
+    console.log(
+      `Requesting conversion for message ${message.id}, block ${codeBlockIndex} to ${targetLanguage}`
+    );
+    try {
+      const response = await fetch("/api/convert-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messageId: message.id,
+          codeBlockIndex: codeBlockIndex, // Pass the correct index
+          targetLanguage: targetLanguage,
+        }),
+      });
+      if (!response.ok) throw new Error("Conversion API call failed");
+      // You would refresh your chat data here to see the new conversion
+      // e.g., await refreshChatMessages();
+    } catch (error) {
+      console.error("Failed to request code conversion:", error);
+    }
+  };
+
+  // **ROBUST PARSING LOGIC**
+  // This function splits the content into an array of text and code segments.
+  // This is the key fix to ensure indices are always correct.
+  const parsedContent = useMemo(() => {
+    const content = message.content || "";
+    const codeBlockRegex = /```(\w+)?\n([\s\S]*?)\n```/g;
+    const parts = [];
+    let lastIndex = 0;
+    let codeBlockIndex = 0;
+
+    for (const match of content.matchAll(codeBlockRegex)) {
+      // Add the text part before the code block
+      if (match.index > lastIndex) {
+        parts.push({
+          type: "text",
+          content: content.substring(lastIndex, match.index),
+        });
+      }
+      // Add the code block part with its determined index
+      parts.push({
+        type: "code",
+        language: match[1] || undefined,
+        content: match[2],
+        index: codeBlockIndex,
+      });
+      lastIndex = match.index + match[0].length;
+      codeBlockIndex++;
+    }
+
+    // Add any remaining text after the last code block
+    if (lastIndex < content.length) {
+      parts.push({ type: "text", content: content.substring(lastIndex) });
+    }
+
+    return parts;
+  }, [message.content]);
+
   const parts = Array.isArray(message.parts)
     ? message.parts
     : Array.isArray(message.content)
-      ? message.content
-      : [];
+    ? message.content
+    : [];
 
-
-  // Get attachments from message parts, experimental_attachments, or metadata
-  const partsAttachments = (parts.filter((part: any) => part.type === 'file') || []) as FileAttachment[];
+  const partsAttachments = (parts.filter((part: any) => part.type === "file") ||
+    []) as FileAttachment[];
   const expAttachments = (message as any).experimental_attachments || [];
-  // Map experimental_attachments to FileAttachment shape if present
   const expFileAttachments = Array.isArray(expAttachments)
     ? expAttachments.map((att: any) => ({
-        type: 'file',
+        type: "file",
         mimeType: att.mimeType || att.contentType,
-        data: att.data || (att.url && att.url.startsWith('data:') ? att.url.split(',')[1] : undefined),
+        data:
+          att.data ||
+          (att.url && att.url.startsWith("data:")
+            ? att.url.split(",")[1]
+            : undefined),
         name: att.name,
         url: att.url,
       }))
@@ -59,17 +149,26 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
   const allAttachments = [...partsAttachments, ...expFileAttachments];
   const hasAttachments = allAttachments.length > 0 || dbAttachments.length > 0;
 
-  // If it's a tool message, render it differently
   if (isTool && (message as any).toolName && (message as any).result) {
     return (
       <div id={`msg-${message.id}`} className="flex justify-start mb-8">
         <div className="flex-shrink-0 mr-3">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg" style={{ background: theme.inputGlass }}>
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg"
+            style={{ background: theme.inputGlass }}
+          >
             <Calculator style={{ color: theme.inputText }} size={22} />
           </div>
         </div>
-        <div className="max-w-[80%] rounded-2xl p-5 shadow-xl" style={{ background: theme.inputGlass, border: `1.5px solid ${theme.buttonBorder}`, color: theme.inputText }}>
-          <ToolResult 
+        <div
+          className="max-w-[80%] rounded-2xl p-5 shadow-xl"
+          style={{
+            background: theme.inputGlass,
+            border: `1.5px solid ${theme.buttonBorder}`,
+            color: theme.inputText,
+          }}
+        >
+          <ToolResult
             toolName={(message as any).toolName}
             result={(message as any).result}
             state="result"
@@ -79,25 +178,39 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
     );
   }
 
-  // If mergedParts exists, render them in order
   if ((message as any).mergedParts) {
     return (
       <div id={`msg-${message.id}`} className={`flex justify-start mb-8`}>
         <div className="flex-shrink-0 mr-3">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg" style={{ background: theme.inputGlass }}>
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg"
+            style={{ background: theme.inputGlass }}
+          >
             <Calculator style={{ color: theme.inputText }} size={22} />
           </div>
         </div>
-        <div className="max-w-[80%] rounded-2xl p-5 shadow-xl" style={{ background: theme.inputGlass, border: `1.5px solid ${theme.buttonBorder}`, color: theme.inputText }}>
+        <div
+          className="max-w-[80%] rounded-2xl p-5 shadow-xl"
+          style={{
+            background: theme.inputGlass,
+            border: `1.5px solid ${theme.buttonBorder}`,
+            color: theme.inputText,
+          }}
+        >
           {(message as any).mergedParts.map((part: any, idx: number) => {
-            if (part.type === 'text') {
+            if (part.type === "text") {
               return (
-                <ReactMarkdown key={idx} components={markdownComponents}>{part.text}</ReactMarkdown>
+                <ReactMarkdown key={idx}>{part.text}</ReactMarkdown>
               );
             }
-            if (part.type === 'tool') {
+            if (part.type === "tool") {
               return (
-                <ToolResult key={idx} toolName={part.toolName} result={part.result} state="result" />
+                <ToolResult
+                  key={idx}
+                  toolName={part.toolName}
+                  result={part.result}
+                  state="result"
+                />
               );
             }
             return null;
@@ -108,99 +221,90 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
   }
 
   return (
-    <div id={`msg-${message.id}`} className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-8`}>
+    <div
+      id={`msg-${message.id}`}
+      className={`flex ${isUser ? "justify-end" : "justify-start"} mb-8`}
+    >
       {!isUser && (
         <div className="flex-shrink-0 mr-3">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg" style={{ background: theme.inputGlass, border: `1.5px solid ${theme.buttonBorder}` }}>
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg"
+            style={{
+              background: theme.inputGlass,
+              border: `1.5px solid ${theme.buttonBorder}`,
+            }}
+          >
             <Bot style={{ color: theme.inputText }} size={22} />
           </div>
         </div>
       )}
       <div
-        className={`max-w-[80%] rounded-2xl p-5 shadow-xl whitespace-pre-wrap break-words ${isUser ? 'rounded-br-3xl' : 'rounded-bl-3xl'}`}
-        style={isUser
-          ? {
-              background: theme.buttonBg,
-              color: theme.buttonText,
-              border: `1.5px solid ${theme.buttonBorder}`,
-              boxShadow: '0 8px 32px 0 rgba(31,38,135,0.10)',
-              marginRight: 0,
-            }
-          : {
-              background: theme.inputGlass,
-              color: theme.inputText,
-              border: `1.5px solid ${theme.buttonBorder}`,
-              boxShadow: '0 8px 32px 0 rgba(31,38,135,0.10)',
-              marginLeft: 0,
-            }}
+        className={`max-w-[80%] rounded-2xl p-5 shadow-xl whitespace-pre-wrap break-words ${
+          isUser ? "rounded-br-3xl" : "rounded-bl-3xl"
+        }`}
+        style={
+          isUser
+            ? {
+                background: theme.buttonBg,
+                color: theme.buttonText,
+                border: `1.5px solid ${theme.buttonBorder}`,
+                boxShadow: "0 8px 32px 0 rgba(31,38,135,0.10)",
+                marginRight: 0,
+              }
+            : {
+                background: theme.inputGlass,
+                color: theme.inputText,
+                border: `1.5px solid ${theme.buttonBorder}`,
+                boxShadow: "0 8px 32px 0 rgba(31,38,135,0.10)",
+                marginLeft: 0,
+              }
+        }
       >
-        {/* Text content */}
-        {parts.map((part: any, idx: number) => {
-          if (part.type === 'text') {
+        {/* Render the parsed content array */}
+        {parsedContent.map((part, idx) => {
+          if (part.type === "text") {
             return (
               <ReactMarkdown
                 key={idx}
-                components={markdownComponents}
+                components={{
+                  code: ({ inline, children }) =>
+                    inline ? (
+                      <code className="bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-mono text-sm">
+                        {children}
+                      </code>
+                    ) : null,
+                }}
               >
-                {part.text}
+                {part.content}
               </ReactMarkdown>
             );
           }
-          if (part.type === 'tool-result' && part.toolName === 'calculator' && part.result) {
+          if (part.type === "code") {
+            const relevantConversions =
+              message.conversions?.filter(
+                (c) => c.code_block_index === part.index
+              ) || [];
             return (
-              <ToolResult
+              <CodeBlock
                 key={idx}
-                toolName="calculator"
-                result={part.result}
-                state="result"
+                originalCode={part.content}
+                originalLanguage={part.language}
+                codeBlockIndex={part.index}
+                conversions={relevantConversions}
+                onCopy={handleCopyToClipboard}
+                onConvertRequest={handleConversionRequest}
               />
             );
           }
-          if (part.type === 'reasoning') return <pre key={idx} className="text-xs" style={{ color: theme.inputText }}>{part.reasoning}</pre>;
-          if (part.type === 'source') return (
-            <a key={idx} href={part.source.url} target="_blank" rel="noopener noreferrer" className="text-xs underline" style={{ color: theme.buttonText }}>
-              {part.source.title ?? new URL(part.source.url).hostname}
-            </a>
-          );
           return null;
         })}
-
-        {/* Tool invocations */}
-        {message.toolInvocations?.map((invocation) => {
-          // Map the tool invocation state to our ToolResult state
-          const state = invocation.state === 'partial-call' || invocation.state === 'call' 
-            ? 'loading' 
-            : invocation.state === 'result' 
-              ? 'result' 
-              : 'error';
-
-          // Get the result based on the state
-          let result;
-          if (state === 'loading') {
-            result = { expression: invocation.args?.expression || 'Calculating...', result: '...' };
-          } else if (state === 'error') {
-            result = { error: 'An error occurred' };
-          } else {
-            result = (invocation as any).result || { expression: '', result: '' };
-          }
-
-          return (
-            <div key={invocation.toolCallId} className="mt-2">
-              <ToolResult
-                toolName={invocation.toolName}
-                result={result}
-                state={state}
-              />
-            </div>
-          );
-        })}
-
-        {/* Attachments grid */}
         {hasAttachments && (
           <div className="mt-4 grid grid-cols-2 gap-2">
-            {/* Render attachments from parts and experimental_attachments */}
             {allAttachments.map((attachment, idx) => {
-              if (attachment.type === 'file' && attachment.mimeType?.startsWith('image/')) {
+              if (
+                attachment.type === "file" &&
+                attachment.mimeType?.startsWith("image/")
+              ) {
                 const imageUrl = attachment.data
                   ? `data:${attachment.mimeType};base64,${attachment.data}`
                   : attachment.url;
@@ -208,7 +312,7 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
                   <div key={`part-${idx}`} className="relative group">
                     <img
                       src={imageUrl}
-                      alt={attachment.name || 'Attachment'}
+                      alt={attachment.name || "Attachment"}
                       className="rounded-lg w-full h-48 object-cover hover:opacity-90 transition-opacity"
                       style={{ border: `1.5px solid ${theme.buttonBorder}` }}
                     />
@@ -217,9 +321,8 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
               }
               return null;
             })}
-            {/* Render attachments from database */}
-            {dbAttachments.map((attachment: DBAttachment, idx: number) => {
-              if (attachment.file_type.startsWith('image/')) {
+            {dbAttachments.map((attachment: DBAttachment) => {
+              if (attachment.file_type.startsWith("image/")) {
                 return (
                   <div key={`db-${attachment.id}`} className="relative group">
                     <img
@@ -238,11 +341,17 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
       </div>
       {isUser && (
         <div className="flex-shrink-0 ml-3">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg" style={{ background: theme.buttonBg, border: `1.5px solid ${theme.buttonBorder}` }}>
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg"
+            style={{
+              background: theme.buttonBg,
+              border: `1.5px solid ${theme.buttonBorder}`,
+            }}
+          >
             <User style={{ color: theme.buttonText }} size={20} />
           </div>
         </div>
       )}
     </div>
   );
-} 
+}

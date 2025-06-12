@@ -246,3 +246,62 @@ create policy "Users can delete index items in their chats"
             and chats.user_id = auth.uid()
         )
     );
+
+create table if not exists public.code_conversions (
+    id uuid default uuid_generate_v4() primary key,
+    message_id uuid references public.messages(id) on delete cascade not null,
+    code_block_index integer not null, -- e.g., 0 for the first block, 1 for the second
+    target_language text not null,
+    converted_content text not null,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    metadata jsonb,
+    unique (message_id, code_block_index, target_language) -- Ensures uniqueness for each block, each language
+); 
+
+-- Enable RLS for code_conversions
+alter table public.code_conversions enable row level security;
+
+-- RLS policies for code_conversions
+create policy "Users can view code conversions in their chats"
+    on public.code_conversions for select
+    using (
+        exists (
+            select 1 from public.messages
+            join public.chats on chats.id = messages.chat_id
+            where messages.id = code_conversions.message_id
+            and chats.user_id = auth.uid()
+        )
+    );
+
+create policy "Users can create code conversions in their chats"
+    on public.code_conversions for insert
+    with check (
+        exists (
+            select 1 from public.messages
+            join public.chats on chats.id = messages.chat_id
+            where messages.id = code_conversions.message_id
+            and chats.user_id = auth.uid()
+        )
+    );
+
+create policy "Users can update code conversions in their chats"
+    on public.code_conversions for update
+    using (
+        exists (
+            select 1 from public.messages
+            join public.chats on chats.id = messages.chat_id
+            where messages.id = code_conversions.message_id
+            and chats.user_id = auth.uid()
+        )
+    );
+
+create policy "Users can delete code conversions in their chats"
+    on public.code_conversions for delete
+    using (
+        exists (
+            select 1 from public.messages
+            join public.chats on chats.id = messages.chat_id
+            where messages.id = code_conversions.message_id
+            and chats.user_id = auth.uid()
+        )
+    );

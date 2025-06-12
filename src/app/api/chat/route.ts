@@ -113,6 +113,7 @@ export async function POST(req: Request) {
             systemPrompt = promptParts.join('\n') + '\n\nPlease maintain this style throughout the conversation.';
         }
     }
+    systemPrompt += "\n\nYou can perform various tasks, such as writing code, answering questions, and creating text or stories. You can also use tools to perform tasks. You always write in markdown format, and when writing code, always indicate the language of the code you are writing."
 
     const result = streamText({
         model,
@@ -342,6 +343,11 @@ export async function GET(req: Request) {
                 file_size,
                 url,
                 metadata
+            ),
+            code_conversions (
+                code_block_index,
+                target_language,
+                converted_content
             )
         `)
         .eq('chat_id', chatId)

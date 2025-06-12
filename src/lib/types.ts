@@ -34,10 +34,14 @@ export interface IndexItem {
     created_at: string;
 }
 
-
+export interface CodeConversion {
+    target_language: string;
+    converted_content: string;
+}
 export type ExtendedMessage = Omit<Message, 'role'> & {
     role: 'system' | 'user' | 'assistant' | 'data' | 'tool';
     content: string;
+    conversions?: CodeConversion[];
     parts?: Array<{
         type: string;
         text: string;

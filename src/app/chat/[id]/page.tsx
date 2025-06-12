@@ -1,10 +1,10 @@
-'use client';
-import { useEffect, useState, useRef } from 'react';
-import { useParams } from 'next/navigation';
-import { useSession } from '@supabase/auth-helpers-react';
-import { supabase } from '@/lib/supabase/client';
-import ChatContainer from '@/components/Chat/ChatContainer';
-import LoginModal from '@/components/Auth/LoginModal';
+"use client";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { useSession } from "@supabase/auth-helpers-react";
+import { supabase } from "@/lib/supabase/client";
+import ChatContainer from "@/components/Chat/ChatContainer";
+import LoginModal from "@/components/Auth/LoginModal";
 
 export default function Page() {
   const { id: chatId } = useParams();
@@ -20,28 +20,38 @@ export default function Page() {
       if (!session?.user || !id) return;
       setLoading(true);
       const { data, error } = await supabase
-        .from('chats')
-        .select('*')
-        .eq('id', id)
-        .eq('user_id', session.user.id)
+        .from("chats")
+        .select("*")
+        .eq("id", id)
+        .eq("user_id", session.user.id)
         .single();
+
       if (error || !data) {
         setNotFound(true);
         setLoading(false);
         return;
       }
+
       // Fetch messages from the API
       try {
         const res = await fetch(`/api/chat?chatId=${id}`);
-        let messages = await res.json();
+        let messagesFromApi = await res.json();
+
+        // **THIS IS THE KEY CHANGE**
+        // Map the fetched messages to rename `code_conversions` to `conversions`
+        // to match the prop name expected by the ChatMessage component.
+        let messages = messagesFromApi.map((msg: any) => ({
+          ...msg,
+          conversions: msg.code_conversions, // Rename the property
+        }));
+
         // Hydrate tool messages
         messages = messages.map((msg: any) => {
-          console.log("msg", msg);
-          // If it's a tool message with content as an array (from DB)
-          if (msg.role === 'tool' && Array.isArray(msg.content)) {
-            const toolResultPart = msg.content.find((part: any) => part.type === 'tool-result');
+          if (msg.role === "tool" && Array.isArray(msg.content)) {
+            const toolResultPart = msg.content.find(
+              (part: any) => part.type === "tool-result"
+            );
             if (toolResultPart) {
-              console.log("toolResultPart", toolResultPart);
               return {
                 ...msg,
                 toolName: toolResultPart.toolName,
@@ -49,11 +59,12 @@ export default function Page() {
               };
             }
           }
-          // If it's a tool message with metadata.toolMessage (live or from API)
-          if (msg.role === 'tool' && msg.metadata?.toolMessage) {
+          if (msg.role === "tool" && msg.metadata?.toolMessage) {
             const toolMsg = msg.metadata.toolMessage;
             if (Array.isArray(toolMsg.content)) {
-              const toolResultPart = toolMsg.content.find((part: any) => part.type === 'tool-result');
+              const toolResultPart = toolMsg.content.find(
+                (part: any) => part.type === "tool-result"
+              );
               if (toolResultPart) {
                 return {
                   ...msg,
@@ -71,33 +82,40 @@ export default function Page() {
           }
           return msg;
         });
+
         // Merge assistant, tool, and assistant messages into one
         const mergedMessages = [];
         for (let i = 0; i < messages.length; i++) {
           const msg = messages[i];
           if (
-            msg.role === 'assistant' &&
-            messages[i + 1] && messages[i + 1].role === 'tool' &&
-            messages[i + 2] && messages[i + 2].role === 'assistant' &&
-            (messages[i + 1].toolName || (messages[i + 1].result && messages[i + 1].result.expression))
+            msg.role === "assistant" &&
+            messages[i + 1] &&
+            messages[i + 1].role === "tool" &&
+            messages[i + 2] &&
+            messages[i + 2].role === "assistant" &&
+            (messages[i + 1].toolName ||
+              (messages[i + 1].result && messages[i + 1].result.expression))
           ) {
             mergedMessages.push({
               ...msg,
               mergedParts: [
-                { type: 'text', text: msg.content },
-                { type: 'tool', toolName: messages[i + 1].toolName, result: messages[i + 1].result },
-                { type: 'text', text: messages[i + 2].content }
-              ]
+                { type: "text", text: msg.content },
+                {
+                  type: "tool",
+                  toolName: messages[i + 1].toolName,
+                  result: messages[i + 1].result,
+                },
+                { type: "text", text: messages[i + 2].content },
+              ],
             });
             i += 2;
           } else {
             mergedMessages.push(msg);
           }
         }
-        console.log("mergedMessages", mergedMessages);
         setInitialMessages(mergedMessages);
       } catch (err) {
-        console.error('Error fetching initial messages:', err);
+        console.error("Error fetching initial messages:", err);
       }
       setLoading(false);
     };
@@ -106,15 +124,15 @@ export default function Page() {
 
   // Scroll to message if hash is present
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
     const hash = window.location.hash;
-    if (hash && hash.startsWith('#')) {
+    if (hash && hash.startsWith("#")) {
       const el = document.getElementById(`msg-${hash.substring(1)}`);
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        el.classList.add('ring-2', 'ring-purple-400', 'transition');
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("ring-2", "ring-purple-400", "transition");
         setTimeout(() => {
-          el.classList.remove('ring-2', 'ring-purple-400', 'transition');
+          el.classList.remove("ring-2", "ring-purple-400", "transition");
         }, 2000);
       }
     }
@@ -124,9 +142,13 @@ export default function Page() {
     <>
       <main className="flex-1 flex flex-col">
         {loading ? (
-          <div className="flex flex-1 items-center justify-center text-lg text-gray-400">Loading...</div>
+          <div className="flex flex-1 items-center justify-center text-lg text-gray-400">
+            Loading...
+          </div>
         ) : notFound ? (
-          <div className="flex flex-1 items-center justify-center text-lg text-red-400">Chat not found.</div>
+          <div className="flex flex-1 items-center justify-center text-lg text-red-400">
+            Chat not found.
+          </div>
         ) : id ? (
           <ChatContainer chatId={id} initialMessages={initialMessages} />
         ) : null}
@@ -134,4 +156,4 @@ export default function Page() {
       {!session && <LoginModal open={true} />}
     </>
   );
-} 
+}

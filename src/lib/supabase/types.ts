@@ -50,36 +50,84 @@ export type Database = {
           },
         ]
       }
+      chat_index: {
+        Row: {
+          chat_id: string
+          created_at: string
+          id: string
+          message_id: string | null
+          metadata: Json | null
+          score: number | null
+          snippet: string
+          type: string
+        }
+        Insert: {
+          chat_id: string
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          score?: number | null
+          snippet: string
+          type: string
+        }
+        Update: {
+          chat_id?: string
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          score?: number | null
+          snippet?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_index_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_index_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chats: {
         Row: {
           created_at: string
           id: string
           metadata: Json | null
           model: string
+          public: boolean
           title: string
           updated_at: string
           user_id: string
-          public: boolean
         }
         Insert: {
           created_at?: string
           id?: string
           metadata?: Json | null
           model: string
+          public?: boolean
           title: string
           updated_at?: string
           user_id: string
-          public?: boolean
         }
         Update: {
           created_at?: string
           id?: string
           metadata?: Json | null
           model?: string
+          public?: boolean
           title?: string
           updated_at?: string
           user_id?: string
-          public?: boolean
         }
         Relationships: [
           {
@@ -91,6 +139,44 @@ export type Database = {
           },
         ]
       }
+      code_conversions: {
+        Row: {
+          code_block_index: number
+          converted_content: string
+          created_at: string
+          id: string
+          message_id: string
+          metadata: Json | null
+          target_language: string
+        }
+        Insert: {
+          code_block_index: number
+          converted_content: string
+          created_at?: string
+          id?: string
+          message_id: string
+          metadata?: Json | null
+          target_language: string
+        }
+        Update: {
+          code_block_index?: number
+          converted_content?: string
+          created_at?: string
+          id?: string
+          message_id?: string
+          metadata?: Json | null
+          target_language?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "code_conversions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           chat_id: string
@@ -98,6 +184,7 @@ export type Database = {
           created_at: string
           id: string
           metadata: Json | null
+          msg_id: string | null
           role: string
           type: string
         }
@@ -107,6 +194,7 @@ export type Database = {
           created_at?: string
           id?: string
           metadata?: Json | null
+          msg_id?: string | null
           role: string
           type: string
         }
@@ -116,6 +204,7 @@ export type Database = {
           created_at?: string
           id?: string
           metadata?: Json | null
+          msg_id?: string | null
           role?: string
           type?: string
         }
