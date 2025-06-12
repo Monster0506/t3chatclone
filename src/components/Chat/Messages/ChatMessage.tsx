@@ -5,48 +5,19 @@ import ToolResult from "../ToolResults/ToolResult";
 import { useTheme } from "@/theme/ThemeProvider";
 import { FileAttachment, DBAttachment } from "@/lib/types";
 import { useMemo } from "react";
+import { ExtendedMessage } from "@/lib/types";
 
-// This interface matches the DB schema, including the index
-interface DBCodeConversion {
-  code_block_index: number;
-  target_language: string;
-  converted_content: string;
-}
 
-// The updated message type
-export type ExtendedMessage = Omit<Message, "role"> & {
-  role: "system" | "user" | "assistant" | "data" | "tool";
-  content: string;
-  conversions?: DBCodeConversion[];
-  parts?: Array<{
-    type: string;
-    text: string;
-    toolName?: string;
-    result?: {
-      expression: string;
-      result: string | number;
-    };
-  }>;
-  toolInvocations?: Array<{
-    toolName: string;
-    toolCallId: string;
-    state: "loading" | "result" | "error" | "partial-call" | "call";
-    result?:
-      | {
-          expression: string;
-          result: string | number;
-        }
-      | {
-          error: string;
-        };
-    step?: number;
-    args?: {
-      expression: string;
-    };
-  }>;
-};
 
-export default function ChatMessage({ message }: { message: ExtendedMessage }) {
+
+
+export default function ChatMessage({
+  message,
+  onRefresh, // Accept the new prop
+}: {
+  message: ExtendedMessage;
+  onRefresh: () => Promise<void>; // Define the prop type
+}) {
   const { theme } = useTheme();
   const isUser = message.role === "user";
   const isTool = message.role === "tool";
@@ -60,12 +31,10 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
     }
   };
 
-  // The handler now correctly accepts the codeBlockIndex
   const handleConversionRequest = async (
     targetLanguage: string,
     codeBlockIndex: number
   ) => {
-    console.log({message}, "message");
     console.log(
       `Requesting conversion for message ${message.id}, block ${codeBlockIndex} to ${targetLanguage}`
     );
@@ -75,21 +44,19 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messageId: message.id,
-          codeBlockIndex: codeBlockIndex, // Pass the correct index
+          codeBlockIndex: codeBlockIndex,
           targetLanguage: targetLanguage,
         }),
       });
       if (!response.ok) throw new Error("Conversion API call failed");
-      // You would refresh your chat data here to see the new conversion
-      // e.g., await refreshChatMessages();
+
+      // **CALL THE REFRESH FUNCTION**
+      await onRefresh();
     } catch (error) {
       console.error("Failed to request code conversion:", error);
     }
   };
 
-  // **ROBUST PARSING LOGIC**
-  // This function splits the content into an array of text and code segments.
-  // This is the key fix to ensure indices are always correct.
   const parsedContent = useMemo(() => {
     const content = message.content || "";
     const codeBlockRegex = /```(\w+)?\n([\s\S]*?)\n```/g;
@@ -98,14 +65,12 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
     let codeBlockIndex = 0;
 
     for (const match of content.matchAll(codeBlockRegex)) {
-      // Add the text part before the code block
       if (match.index > lastIndex) {
         parts.push({
           type: "text",
           content: content.substring(lastIndex, match.index),
         });
       }
-      // Add the code block part with its determined index
       parts.push({
         type: "code",
         language: match[1] || undefined,
@@ -116,7 +81,6 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
       codeBlockIndex++;
     }
 
-    // Add any remaining text after the last code block
     if (lastIndex < content.length) {
       parts.push({ type: "text", content: content.substring(lastIndex) });
     }
@@ -261,7 +225,6 @@ export default function ChatMessage({ message }: { message: ExtendedMessage }) {
               }
         }
       >
-        {/* Render the parsed content array */}
         {parsedContent.map((part, idx) => {
           if (part.type === "text") {
             return (

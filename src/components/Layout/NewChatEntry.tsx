@@ -397,7 +397,7 @@ export default function NewChatEntry() {
             <UniqueFeatureCard
               icon={<Code />}
               title="Polyglot Code Converter"
-              description="Translate code snippets between 297 languages. Perfect for learning a new syntax or porting a legacy COBOL function to Rust."
+              description="Translate code snippets between 295+ languages. Perfect for learning a new syntax or porting a legacy COBOL function to Rust."
               theme={theme}
             />
             <UniqueFeatureCard
@@ -409,7 +409,6 @@ export default function NewChatEntry() {
           </div>
         </section>
 
-        {/* --- STATS SECTION (REDESIGNED) --- */}
         <section>
           <div className="max-w-6xl mx-auto">
             <h2 className="text-4xl font-bold text-center mb-12">
@@ -445,8 +444,6 @@ export default function NewChatEntry() {
           </div>
         </section>
 
-        {/* --- KEYBOARD SHORTCUTS SECTION (NEW) --- */}
-        {/* This section is now separate for better readability and focus. */}
         <section>
           <div className="max-w-5xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
