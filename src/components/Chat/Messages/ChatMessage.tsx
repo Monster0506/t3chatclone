@@ -4,7 +4,7 @@ import CodeBlock from "./CodeBlock";
 import ToolResult from "../ToolResults/ToolResult";
 import { useTheme } from "@/theme/ThemeProvider";
 import { FileAttachment, DBAttachment } from "@/lib/types";
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import { ExtendedMessage } from "@/lib/types";
 
 export default function ChatMessage({
@@ -17,6 +17,17 @@ export default function ChatMessage({
   const { theme } = useTheme();
   const isUser = message.role === "user";
   const isTool = message.role === "tool";
+  console.log(message.content);
+  // Define a theme-aware style for inline code snippets
+  const inlineCodeStyle = {
+    backgroundColor: theme.inputGlass,
+    padding: "0.2em 0.4em",
+    margin: "0 0.2em",
+    borderRadius: "5px",
+    border: `1px solid ${theme.buttonBorder}`,
+    fontFamily: "monospace",
+    fontSize: "0.9em",
+  };
 
   const handleCopyToClipboard = async (code: string) => {
     try {
@@ -46,8 +57,6 @@ export default function ChatMessage({
       });
       if (!response.ok) throw new Error("Conversion API call failed");
 
-      // **CALL THE REFRESH FUNCTION**
-      // This fetches the new data and triggers the re-render.
       await onRefresh();
     } catch (error) {
       console.error("Failed to request code conversion:", error);
@@ -56,26 +65,35 @@ export default function ChatMessage({
 
   const parsedContent = useMemo(() => {
     const content = message.content || "";
-    const codeBlockRegex = /```(\w+)?\n([\s\S]*?)\n```/g;
+    const combinedRegex = /```(\w+)?\n([\s\S]*?)\n```|`([^`\n]+)`/g;
     const parts = [];
     let lastIndex = 0;
     let codeBlockIndex = 0;
 
-    for (const match of content.matchAll(codeBlockRegex)) {
+    for (const match of content.matchAll(combinedRegex)) {
       if (match.index > lastIndex) {
         parts.push({
           type: "text",
           content: content.substring(lastIndex, match.index),
         });
       }
-      parts.push({
-        type: "code",
-        language: match[1] || undefined,
-        content: match[2],
-        index: codeBlockIndex,
-      });
+
+      if (match[2] !== undefined) {
+        parts.push({
+          type: "code_block",
+          language: match[1] || undefined,
+          content: match[2],
+          index: codeBlockIndex,
+        });
+        codeBlockIndex++;
+      } else if (match[3] !== undefined) {
+        parts.push({
+          type: "inline_code",
+          content: match[3],
+        });
+      }
+
       lastIndex = match.index + match[0].length;
-      codeBlockIndex++;
     }
 
     if (lastIndex < content.length) {
@@ -161,9 +179,7 @@ export default function ChatMessage({
         >
           {(message as any).mergedParts.map((part: any, idx: number) => {
             if (part.type === "text") {
-              return (
-                <ReactMarkdown key={idx}>{part.text}</ReactMarkdown>
-              );
+              return <ReactMarkdown key={idx}>{part.text}</ReactMarkdown>;
             }
             if (part.type === "tool") {
               return (
@@ -228,19 +244,23 @@ export default function ChatMessage({
               <ReactMarkdown
                 key={idx}
                 components={{
-                  code: ({ inline, children }) =>
-                    inline ? (
-                      <code className="bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-mono text-sm">
-                        {children}
-                      </code>
-                    ) : null,
+                  // This is the key fix: render paragraphs as fragments
+                  // to prevent block-level elements and unwanted line breaks.
+                  p: ({ children }) => <>{children}</>,
                 }}
               >
                 {part.content}
               </ReactMarkdown>
             );
           }
-          if (part.type === "code") {
+          if (part.type === "inline_code") {
+            return (
+              <code key={idx} style={inlineCodeStyle}>
+                {part.content}
+              </code>
+            );
+          }
+          if (part.type === "code_block") {
             const relevantConversions =
               message.conversions?.filter(
                 (c) => c.code_block_index === part.index
