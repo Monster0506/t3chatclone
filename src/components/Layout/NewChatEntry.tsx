@@ -203,7 +203,7 @@ export default function NewChatEntry() {
             Official Entry: T3 ChatCloneathon
           </div>
           <h1 className="text-5xl md:text-7xl font-extrabold mb-4 drop-shadow-lg">
-            A really good AI Chat App.
+            Yet Another AI Chat App.
           </h1>
           <p className="text-lg md:text-xl max-w-3xl mx-auto opacity-80 mb-8">
             The brief was "build a cool AI chat app." I may have taken that a
@@ -216,7 +216,7 @@ export default function NewChatEntry() {
               className="px-8 py-4 text-xl font-semibold shadow-lg w-full sm:w-auto"
             >
               {/* <Rocket className="w-5 h-5 mr-2" /> */}
-              {loading ? 'Starting...' : 'Fire It Up'}
+              {loading ? 'Spinning up...' : 'Fire It Up'}
             </Button>
             <a
               href="https://github.com/monster0506/t3chatclone"
@@ -229,7 +229,7 @@ export default function NewChatEntry() {
                 className="px-8 py-4 text-xl font-semibold shadow-lg w-full"
               >
                 {/* <Github className="w-5 h-5 mr-2" /> */}
-                View Source
+                Judge My Code
               </Button>
             </a>
           </div>
@@ -260,7 +260,7 @@ export default function NewChatEntry() {
                 <ChecklistItem
                   status="done"
                   title="Chat with Various LLMs"
-                  notes="Plumbed into the Vercel AI SDK to support 70+ models from Google, OpenAI, Anthropic, and more. Go on, pick your poison."
+                  notes="Plumbed into the Vercel AI SDK to support 70+ models. Go on, pick your poison. Or your price point."
                   theme={theme}
                 />
                 <ChecklistItem
@@ -285,19 +285,19 @@ export default function NewChatEntry() {
             </div>
             <div>
               <h3 className="text-2xl font-bold mb-6 text-center sm:text-left">
-                🔥 Bonus Features
+                🔥 Bonus Features (aka Scope Creep)
               </h3>
               <div className="space-y-4">
                 <ChecklistItem
                   status="done"
                   title="Advanced Calculator"
-                  notes="Handles trig, logs, and even matrix operations, rendering the output in a beautifully formatted display. Your TI-84 is collecting dust anyway."
+                  notes="Handles trig, logs, and even matrix operations, rendering the output (especially of matrices) beautifully. Your TI-84 is collecting dust anyway."
                   theme={theme}
                 />
                 <ChecklistItem
                   status="done"
                   title="Web Search"
-                  notes="Integrated Wikipedia tool that shows a clean article preview before sending it to the model. Sanity-checking the AI, one summary at a time."
+                  notes="Integrated Wikipedia tool that shows a clean article preview before polluting the context window. I refuse to allow LLMs to use the internet unfettered."
                   theme={theme}
                 />
                 <ChecklistItem
@@ -309,25 +309,25 @@ export default function NewChatEntry() {
                 <ChecklistItem
                   status="done"
                   title="Full Chat Index"
-                  notes="AI-generated summaries of long conversations, so you can find that one brilliant idea you had three weeks ago."
+                  notes="AI-generated summaries of long conversations, so you can find that one brilliant idea you had three weeks ago without endless scrolling."
                   theme={theme}
                 />
                 <ChecklistItem
                   status="done"
                   title="Chat Sharing"
-                  notes="Share your genius (or horrifying) conversations with a single link. No take-backsies (because I forgot to implement making them private again)."
+                  notes="Share your genius (or horrifying) conversations with a single link. No take-backsies, because I forgot to implement making them private again."
                   theme={theme}
                 />
                 <ChecklistItem
                   status="done"
                   title="Syntax Highlighting"
-                  notes="Because staring at unformatted code is a form of cruel and unusual punishment."
+                  notes="For 250+ languages. Because staring at uncolored code is a form of cruel and unusual punishment."
                   theme={theme}
                 />
                 <ChecklistItem
                   status="done"
                   title="Keyboard Shortcuts"
-                  notes="A full suite of hotkeys because real pros don't use the mouse. Press Ctrl+? to see them in-app."
+                  notes="A full suite of hotkeys because real pros don't use the mouse. Press Ctrl+? to see the cheat sheet."
                   theme={theme}
                 />
                 <ChecklistItem
@@ -346,28 +346,27 @@ export default function NewChatEntry() {
           <h2 className="text-4xl font-bold text-center mb-12">
             Where We Went Off-Script
           </h2>
-          {/* Changed to a more balanced grid. The main card spans 3 cols, and the three smaller cards sit neatly below it. */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Main Personalization Card */}
             <div
-              className="p-8 rounded-xl md:col-span-3" // Spans 3 columns
+              className="p-8 rounded-xl md:col-span-3"
               style={{
                 background: theme.glass,
                 border: `1px solid ${theme.buttonBorder}`,
               }}
             >
               <h3 className="text-3xl font-bold mb-2">
-                Tired of Repeating Yourself?
+                Stop Explaining Yourself to a Toaster.
               </h3>
               <p className="opacity-80 mb-8">
-                We built a settings panel so deep, you can make the AI your own
+                We built a settings panel so you can make the AI your own
                 personal, slightly-less-annoying intern.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <PersonalizationDetail
                   icon={<User style={{ color: theme.buttonBg }} />}
                   title="Custom Name"
-                  description="Teach it your name, nickname, or secret superhero identity."
+                  description="So it stops calling you 'User.' Unless your name is actually User."
                 />
                 <PersonalizationDetail
                   icon={<Briefcase style={{ color: theme.buttonBg }} />}
@@ -376,13 +375,13 @@ export default function NewChatEntry() {
                 />
                 <PersonalizationDetail
                   icon={<Bot style={{ color: theme.buttonBg }} />}
-                  title="AI Personality Traits"
-                  description="Assign traits like 'Curious' or 'Sarcastic' to shape its responses."
+                  title="AI Personality"
+                  description="Pick from 6 presets or Frankenstein your own with custom traits. Want a sarcastic greengrocer engineer? Go for it."
                 />
                 <PersonalizationDetail
                   icon={<FileText style={{ color: theme.buttonBg }} />}
                   title="Persistent Instructions"
-                  description="Give it standing orders with a powerful, 3000-character system prompt."
+                  description="A 3000-character system prompt to hard-code its core directives. It's like .bashrc for your AI."
                 />
               </div>
             </div>
@@ -397,13 +396,13 @@ export default function NewChatEntry() {
             <UniqueFeatureCard
               icon={<Code />}
               title="Polyglot Code Converter"
-              description="Translate code snippets between 295+ languages. Perfect for learning a new syntax or porting a legacy COBOL function to Rust."
+              description="Translate code snippets between 295+ languages. Perfect for porting a legacy COBOL function to Rust for... reasons."
               theme={theme}
             />
             <UniqueFeatureCard
               icon={<BookText />}
               title="Full Chat Index"
-              description="AI-generated summaries of long conversations, letting you jump to any key point instantly."
+              description="AI-generated summaries of long conversations, letting you jump to any key point instantly. Because Ctrl+F is for amateurs."
               theme={theme}
             />
           </div>
@@ -412,31 +411,30 @@ export default function NewChatEntry() {
         <section>
           <div className="max-w-6xl mx-auto">
             <h2 className="text-4xl font-bold text-center mb-12">
-              By The Numbers
+              The Spec Sheet
             </h2>
-            {/* A clean, symmetrical grid for all stats. */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 items-stretch">
               <StatCard
                 value="70+"
-                label="AI Models"
+                label="Available Brains"
                 icon={<Cpu />}
                 theme={theme}
               />
               <StatCard
                 value="50+"
-                label="Stunning Themes"
+                label="UI Themes"
                 icon={<Palette />}
                 theme={theme}
               />
               <StatCard
                 value="7"
-                label="Providers"
+                label="API Providers"
                 icon={<Server />}
                 theme={theme}
               />
               <StatCard
                 value="15+"
-                label="Powerful Features"
+                label="Over-Engineered Features"
                 icon={<Sparkles />}
                 theme={theme}
               />
@@ -477,7 +475,7 @@ export default function NewChatEntry() {
         <section className="text-center max-w-2xl mx-auto">
           <h2 className="text-4xl font-bold mb-6">Alright, Enough Talk.</h2>
           <p className="text-lg opacity-80 mb-8">
-            The app speaks for itself. Go on, try to break it. We dare you.
+            The app speaks for itself. Go on, find the edge cases. I dare you.
           </p>
           <Button
             onClick={handleNewChat}
@@ -489,7 +487,7 @@ export default function NewChatEntry() {
           </Button>
           {!session?.user && (
             <p className="mt-6 text-base opacity-70">
-              Sign in to start chatting.
+              You gotta sign in to play, chief.
             </p>
           )}
         </section>
