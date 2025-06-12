@@ -34,8 +34,8 @@ export default function ChatStatus({ status, error, onStop, onReload }: ChatStat
     );
   }
   if (status === 'error') {
-    // Get error message from error object or use default
-    let errorMessage = error?.message.startsWith("Failed to parse") ? "The selected model is not supported. Please choose a different model." : (error?.message || 'Something went wrong.');
+    // This is so horrible, but it's the best we can do for now.
+    let errorMessage = error?.message.startsWith("Failed to parse") ? "The selected model is not supported. Please choose a different model (gemini-2.0-flash is recommended)." : (error?.message || 'Something went wrong.');
 
     return (
       <div
