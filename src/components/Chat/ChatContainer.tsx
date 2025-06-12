@@ -94,7 +94,7 @@ export default function ChatContainer({
     try {
       const res = await fetch(`/api/chat?chatId=${chatId}`);
       if (!res.ok) throw new Error("Failed to fetch chat data");
-
+      window.dispatchEvent(new Event("refresh-chat-list"));
       let messagesFromApi = await res.json();
 
       // Map the fetched messages to rename `code_conversions` to `conversions`

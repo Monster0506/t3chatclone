@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from '@supabase/auth-helpers-react';
 import { supabase } from '@/lib/supabase/client';
@@ -41,6 +41,8 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
   const [archivedOpen, setArchivedOpen] = useState(false);
   const { theme } = useTheme();
 
+
+
   // Fetch threads function (extracted for polling)
   const fetchThreads = async () => {
     if (!session?.user) return;
@@ -54,6 +56,20 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
     setLoading(false);
   };
 
+
+  useEffect(() => {
+    console.log("refresh-chat-list");
+    const handleRefresh = () => {
+      fetchThreads();
+    };
+
+    window.addEventListener("refresh-chat-list", handleRefresh);
+
+    // Cleanup the listener when the component unmounts
+    return () => {
+      window.removeEventListener("refresh-chat-list", handleRefresh);
+    };
+  }, [fetchThreads]);
   useEffect(() => {
     if (renamingId && inputRef.current) {
       inputRef.current.focus();
@@ -333,7 +349,7 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
     ];
     return (
       <div className="flex flex-col items-center mt-4" style={{ height: 'calc(100vh - 7rem)' }}>
-        <div className="flex flex-col gap-3 items-center overflow-y-auto px-2" style={{ maxHeight: '100%', minWidth: 0}}>
+        <div className="flex flex-col gap-3 items-center overflow-y-auto px-2" style={{ maxHeight: '100%', minWidth: 0 }}>
           {allCollapsedThreads.map(thread => {
             let Icon = MessageSquare;
             let iconColor = theme.buttonText;

@@ -8,15 +8,12 @@ import { useMemo } from "react";
 import { ExtendedMessage } from "@/lib/types";
 
 
-
-
-
 export default function ChatMessage({
   message,
-  onRefresh, // Accept the new prop
+  onRefresh,
 }: {
   message: ExtendedMessage;
-  onRefresh: () => Promise<void>; // Define the prop type
+  onRefresh: () => Promise<void>;
 }) {
   const { theme } = useTheme();
   const isUser = message.role === "user";
