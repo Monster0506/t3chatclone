@@ -4,11 +4,9 @@ import Button from "@/components/UI/Button";
 import Spinner from "@/components/UI/Spinner";
 import Card from "@/components/UI/Card";
 import Input from "@/components/UI/Input";
-import ThemePicker from "./ThemePicker"; // Import the new component
+import ThemePicker from "./ThemePicker"; 
 import { useTheme } from "@/theme/ThemeProvider";
 import { supabase } from "@/lib/supabase/client";
-// Make sure to import your themes array, e.g.:
-// import { themes } from '@/theme/themeData';
 
 const TRAIT_LIMIT = 50;
 const TRAIT_MAX_LENGTH = 100;

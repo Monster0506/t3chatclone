@@ -7,7 +7,6 @@ import { FileAttachment, DBAttachment } from "@/lib/types";
 import { useMemo } from "react";
 import { ExtendedMessage } from "@/lib/types";
 
-
 export default function ChatMessage({
   message,
   onRefresh,
@@ -48,6 +47,7 @@ export default function ChatMessage({
       if (!response.ok) throw new Error("Conversion API call failed");
 
       // **CALL THE REFRESH FUNCTION**
+      // This fetches the new data and triggers the re-render.
       await onRefresh();
     } catch (error) {
       console.error("Failed to request code conversion:", error);

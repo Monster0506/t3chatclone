@@ -12,7 +12,6 @@ import { FlatModelMap } from '@/lib/types';
 
 
 
-// Gemini helper with Zod schema
 async function generateTitleAndTags(messages: any[]): Promise<{ title?: string; tags: string[] }> {
     const context = messages.slice(0, 2).map((m: any) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n');
     const prompt = `Given the following conversation, generate a concise chat title and 3-5 relevant tags.`;
@@ -38,7 +37,6 @@ async function generateTitleAndTags(messages: any[]): Promise<{ title?: string; 
 
 export async function POST(req: Request) {
 
-    // Zod schema for index generation (move inside POST to avoid global scope issues)
     const indexSchema = z.object({
         important: z.boolean().describe('Whether this message is important for future reference.'),
         type: z.enum(['question', 'answer', 'code', 'summary', 'decision'])
@@ -59,8 +57,9 @@ export async function POST(req: Request) {
     }, {} as FlatModelMap);
     console.log('modelId', modelId);
     // if the model id does not start with gemini for testing purposes, return an error as a message
+    // This doesn't work, but we handle the error grossly in the client
     if (!modelId.startsWith('gemini-2.0-flash')) {
-        // Create a stream response for unsupported model
+
         const encoder = new TextEncoder();
         const stream = new ReadableStream({
             start(controller) {
@@ -68,7 +67,7 @@ export async function POST(req: Request) {
                     role: 'assistant',
                     content: 'I\'m sorry, but the model you selected is not supported. Please select a different model.',
                 };
-                // Format as a proper stream chunk
+
                 const chunk = `data: ${JSON.stringify(message)}\n\n`;
                 controller.enqueue(encoder.encode(chunk));
                 controller.close();
@@ -90,25 +89,21 @@ export async function POST(req: Request) {
     if (userSettings) {
         const promptParts: string[] = [];
 
-        // Add user identification if we have a name
         if (userSettings.name?.trim()) {
             const name = userSettings.name.trim();
             const occupation = userSettings.occupation?.trim();
             promptParts.push(`You are a helpful assistant talking to ${name}${occupation ? ` who is a ${occupation}` : ''}.`);
         }
 
-        // Add communication style if we have traits
         const traits = Array.isArray(userSettings.traits) ? userSettings.traits.filter((t: string) => typeof t === 'string' && t.trim()) : [];
         if (traits.length > 0) {
             promptParts.push(`Your communication style should be: ${traits.join(', ')}.`);
         }
 
-        // Add additional context if provided
         if (userSettings.extra?.trim()) {
             promptParts.push(`Additional context: ${userSettings.extra.trim()}`);
         }
 
-        // Only use the custom prompt if we have meaningful parts
         if (promptParts.length > 0) {
             systemPrompt = promptParts.join('\n') + '\n\nPlease maintain this style throughout the conversation.';
         }
@@ -131,12 +126,11 @@ export async function POST(req: Request) {
                 console.log('No chat_id provided, skipping message persistence.');
                 return;
             }
-            // Only persist the new user message and new assistant message(s)
             const newUserMsg = messages[messages.length - 1];
             const newAssistantMsgs = response.messages;
             const toPersist: any[] = [];
             let lastSavedMessageId: string | null = null;
-            // Map user message
+
             if (newUserMsg) {
                 let content = newUserMsg.content;
                 if (!content && Array.isArray(newUserMsg.parts)) {
@@ -154,7 +148,6 @@ export async function POST(req: Request) {
                     createdAt = new Date().toISOString();
                 }
 
-                // Save the message first to get its ID
                 const { data: savedMessage, error: saveError } = await supabaseServer
                     .from('messages')
                     .insert({
@@ -172,7 +165,7 @@ export async function POST(req: Request) {
                     console.error('Error saving message:', saveError);
                 } else {
                     lastSavedMessageId = savedMessage.id;
-                    // Process attachments
+
                     if (savedMessage && newUserMsg.experimental_attachments) {
                         for (const attachment of newUserMsg.experimental_attachments) {
                             const { error: attachmentError } = await supabaseServer
@@ -193,7 +186,7 @@ export async function POST(req: Request) {
                             }
                         }
                     }
-                    // --- Index Generation for User Message ---
+                    
                     try {
                         const prompt = `Given the following message in a chat, determine if it is important for future reference (e.g., a key question, answer, code, decision, or summary). If so, return true for 'important' and provide a type, a short snippet, and any relevant metadata.\n\nMessage:\nrole: ${newUserMsg.role}\ncontent: ${content}`;
                         const { object: indexResult } = await generateObject({
