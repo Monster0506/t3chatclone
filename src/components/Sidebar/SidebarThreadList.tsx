@@ -58,7 +58,6 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
 
 
   useEffect(() => {
-    console.log("refresh-chat-list");
     const handleRefresh = () => {
       fetchThreads();
     };

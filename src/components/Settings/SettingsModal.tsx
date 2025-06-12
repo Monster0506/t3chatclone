@@ -1,4 +1,3 @@
-// components/Settings/SettingsModal.tsx
 import { useState, useEffect, useRef, ElementType } from "react";
 import Button from "@/components/UI/Button";
 import Spinner from "@/components/UI/Spinner";

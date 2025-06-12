@@ -27,10 +27,9 @@ export async function POST(req: Request) {
   try {
     // 1. Validate the incoming request body against the schema.
     const body = await req.json();
-    console.log({body}, "body");
     const { messageId, codeBlockIndex, targetLanguage } =
       requestSchema.parse(body);
-    
+
     const supabase = supabaseServer;
 
     // 2. Fetch the original message. RLS ensures the user has access.
@@ -53,15 +52,7 @@ export async function POST(req: Request) {
     const codeBlockRegex = /```(?:\w+)?\n([\s\S]*?)\n```/g;
     const matches = [...message.content.matchAll(codeBlockRegex)];
     const allCodeBlocks = matches.map((match) => match[1]); // Create an array of code strings
-    console.log("--------------------------------");
-    console.log({messageContent: message.content});
-    console.log("--------------------------------");
-
-    console.log({allCodeBlocks});
-    console.log({codeBlockIndex});
-    console.log("--------------------------------");
-
-    console.log({allCodeBlocks: allCodeBlocks[codeBlockIndex]});
+   
     // 4. **CRITICAL LOGIC**: Select the specific code block using the provided index.
     // This ensures we can target ANY code block in the message.
     if (codeBlockIndex >= allCodeBlocks.length) {

@@ -90,7 +90,6 @@ export default function ChatContainer({
 
   // **THIS IS THE NEW REFRESH FUNCTION**
   const refreshChatMessages = useCallback(async () => {
-    console.log("Refreshing chat messages");
     try {
       const res = await fetch(`/api/chat?chatId=${chatId}`);
       if (!res.ok) throw new Error("Failed to fetch chat data");
