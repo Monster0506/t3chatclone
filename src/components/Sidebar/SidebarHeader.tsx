@@ -1,9 +1,8 @@
 import Card from '@/components/UI/Card';
 import { useTheme } from '@/theme/ThemeProvider';
 
-const { theme } = useTheme();
 export default function SidebarHeader() {
-
+  const { theme } = useTheme();
 
   return (
     <div>
