@@ -4,12 +4,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useState, useMemo, useEffect } from "react";
 import { languageMap } from "@/lib/languageMap";
-
-interface CodeConversion {
-  code_block_index: number;
-  target_language: string;
-  converted_content: string;
-}
+import { CodeConversion } from "@/lib/types";
 
 export default function CodeBlock({
   originalCode,
@@ -24,60 +19,85 @@ export default function CodeBlock({
   codeBlockIndex: number | undefined;
   conversions?: CodeConversion[];
   onCopy?: (code: string) => void;
-  onConvertRequest?: (targetLanguage: string, codeBlockIndex: number | undefined) => void;
+  onConvertRequest?: (
+    targetLanguage: string,
+    codeBlockIndex: number | undefined,
+  ) => void;
 }) {
   const { theme } = useTheme();
   const style = oneDark;
 
-  const [currentCode, setCurrentCode] = useState(originalCode);
-  const [currentLanguage, setCurrentLanguage] = useState(originalLanguage);
-  const [requestedLanguage, setRequestedLanguage] = useState<string | null>(
-    null
+  const [selectedLanguage, setSelectedLanguage] = useState(
+    originalLanguage || "text",
   );
+  const [loadingLanguage, setLoadingLanguage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (requestedLanguage) {
-      const newConversion = conversions.find(
-        (c) => c.target_language === requestedLanguage
-      );
-      if (newConversion) {
-        setCurrentCode(newConversion.converted_content);
-        setCurrentLanguage(newConversion.target_language);
-        setRequestedLanguage(null);
-      }
+    if (
+      loadingLanguage &&
+      conversions.some((c) => c.target_language === loadingLanguage)
+    ) {
+      setLoadingLanguage(null);
     }
-  }, [conversions, requestedLanguage]); 
+  }, [conversions, loadingLanguage]);
 
-  const isConverted = currentLanguage !== originalLanguage;
+  const { currentCode, currentLanguage } = useMemo(() => {
+    if (selectedLanguage === originalLanguage) {
+      return {
+        currentCode: originalCode,
+        currentLanguage: originalLanguage,
+      };
+    }
+    const conversion = conversions.find(
+      (c) => c.target_language === selectedLanguage,
+    );
+    if (conversion) {
+      return {
+        currentCode: conversion.converted_content,
+        currentLanguage: conversion.target_language,
+      };
+    }
+    if (loadingLanguage === selectedLanguage) {
+      return {
+        currentCode: `Converting to ${selectedLanguage}...`,
+        currentLanguage: selectedLanguage,
+      };
+    }
+    return {
+      currentCode: originalCode,
+      currentLanguage: originalLanguage,
+    };
+  }, [
+    selectedLanguage,
+    originalCode,
+    originalLanguage,
+    conversions,
+    loadingLanguage,
+  ]);
 
   const mappedLanguage = useMemo(() => {
     const langKey = currentLanguage?.toLowerCase() ?? "";
     return languageMap[langKey] || currentLanguage || "text";
   }, [currentLanguage]);
 
-  const handleLanguageChange = (selectedLanguage: string) => {
-    if (selectedLanguage === originalLanguage) {
-      setCurrentCode(originalCode);
-      setCurrentLanguage(originalLanguage);
-    } else {
-      const conversion = conversions.find(
-        (c) => c.target_language === selectedLanguage
-      );
-      if (conversion) {
-        setCurrentCode(conversion.converted_content);
-        setCurrentLanguage(conversion.target_language);
-      } else {
-        setRequestedLanguage(selectedLanguage);
-        onConvertRequest?.(selectedLanguage, codeBlockIndex);
-      }
+  const handleLanguageChange = (newLanguage: string) => {
+    setSelectedLanguage(newLanguage);
+    const isOriginal = newLanguage === originalLanguage;
+    const hasConversion = conversions.some(
+      (c) => c.target_language === newLanguage,
+    );
+    if (!isOriginal && !hasConversion) {
+      setLoadingLanguage(newLanguage);
+      onConvertRequest?.(newLanguage, codeBlockIndex);
     }
   };
 
   const handleCopy = () => onCopy?.(currentCode);
+  const isConverted = currentLanguage !== originalLanguage;
 
   return (
     <div
-      className="relative my-6 rounded-2xl shadow-xl overflow-x-auto border-l-4"
+      className="relative my-6 rounded-2xl shadow-xl overflow-x-auto"
       style={{
         borderLeft: `6px solid ${theme.buttonBorder}`,
         border: `1.5px solid ${theme.buttonBorder}`,
@@ -89,20 +109,14 @@ export default function CodeBlock({
       <SyntaxHighlighter
         language={mappedLanguage}
         style={style}
-        customStyle={{
-          margin: 0,
-          fontSize: "1rem",
-          paddingBottom: "2.5rem",
-        }}
+        customStyle={{ margin: 0, fontSize: "1rem", paddingBottom: "2.5rem" }}
         showLineNumbers={false}
       >
         {currentCode}
       </SyntaxHighlighter>
 
       <div className="absolute top-3 right-4 text-xs font-semibold opacity-60">
-        <span
-          style={{ color: theme.inputText, letterSpacing: "0.05em" }}
-        >
+        <span style={{ color: theme.inputText, letterSpacing: "0.05em" }}>
           {currentLanguage}
           {isConverted && originalLanguage && ` (from: ${originalLanguage})`}
         </span>
@@ -111,7 +125,8 @@ export default function CodeBlock({
       <CodeBlockActions
         onCopy={handleCopy}
         small
-        currentLanguage={currentLanguage || ""}
+        currentLanguage={selectedLanguage}
+        isLoading={loadingLanguage != null}
         onLanguageChange={handleLanguageChange}
         existingConversions={conversions.map((c) => c.target_language)}
       />

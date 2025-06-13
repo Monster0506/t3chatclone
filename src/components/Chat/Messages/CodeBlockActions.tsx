@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy, Languages } from "lucide-react";
+import { Copy, Languages, LoaderCircle } from "lucide-react";
 import Button from "@/components/UI/Button";
 import { useTheme } from "@/theme/ThemeProvider";
 import LanguageSelectionModal from "./LanguageSelectionModal";
@@ -10,13 +10,15 @@ export default function CodeBlockActions({
   small,
   currentLanguage,
   onLanguageChange,
-  existingConversions = [], 
+  existingConversions = [],
+  isLoading = false, 
 }: {
   onCopy?: () => void;
   small?: boolean;
   currentLanguage: string;
   onLanguageChange: (language: string) => void;
   existingConversions?: string[];
+  isLoading?: boolean; 
 }) {
   const { theme } = useTheme();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,7 +32,8 @@ export default function CodeBlockActions({
           <Button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 pl-2 pr-3 py-1 text-xs rounded-md shadow transition hover:scale-105"
+            disabled={isLoading}
+            className="flex items-center gap-2 pl-2 pr-3 py-1 text-xs rounded-md shadow transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-70"
             style={{
               backgroundColor: theme.buttonBg,
               borderColor: theme.buttonBorder,
@@ -38,7 +41,11 @@ export default function CodeBlockActions({
             }}
             aria-label="Convert code to another language"
           >
-            <Languages size={16} className="opacity-80" />
+            {isLoading ? (
+              <LoaderCircle size={16} className="animate-spin" />
+            ) : (
+              <Languages size={16} className="opacity-80" />
+            )}
             <span>{currentLanguage}</span>
           </Button>
         )}
@@ -46,7 +53,8 @@ export default function CodeBlockActions({
         <Button
           type="button"
           onClick={onCopy}
-          className={`rounded-full ${padding} shadow transition hover:scale-110 focus:ring-2`}
+          disabled={isLoading} 
+          className={`rounded-full ${padding} shadow transition hover:scale-110 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-70`}
           aria-label="Copy code"
           style={{
             backgroundColor: theme.buttonBg,

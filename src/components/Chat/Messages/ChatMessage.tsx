@@ -3,7 +3,12 @@ import ReactMarkdown from "react-markdown";
 import CodeBlock from "./CodeBlock";
 import ToolResult from "../ToolResults/ToolResult";
 import { useTheme } from "@/theme/ThemeProvider";
-import { FileAttachment, DBAttachment, ExtendedMessage, CodeConversion } from "@/lib/types";
+import {
+  FileAttachment,
+  DBAttachment,
+  ExtendedMessage,
+  CodeConversion,
+} from "@/lib/types";
 import React, { useMemo } from "react";
 import Image from "next/image";
 
@@ -17,8 +22,6 @@ export default function ChatMessage({
   const { theme } = useTheme();
   const isUser = message.role === "user";
   const isTool = message.role === "tool";
-  console.log(message.content);
-
 
   const inlineCodeStyle = {
     backgroundColor: theme.inputGlass,
@@ -41,10 +44,10 @@ export default function ChatMessage({
 
   const handleConversionRequest = async (
     targetLanguage: string,
-    codeBlockIndex: number | undefined
+    codeBlockIndex: number | undefined,
   ) => {
     console.log(
-      `Requesting conversion for message ${message.id}, block ${codeBlockIndex} to ${targetLanguage}`
+      `Requesting conversion for message ${message.id}, block ${codeBlockIndex} to ${targetLanguage}`,
     );
     try {
       const response = await fetch("/api/convert-code", {
@@ -107,8 +110,8 @@ export default function ChatMessage({
   const parts = Array.isArray(message.parts)
     ? message.parts
     : Array.isArray(message.content)
-    ? message.content
-    : [];
+      ? message.content
+      : [];
 
   const partsAttachments = (parts.filter((part: any) => part.type === "file") ||
     []) as FileAttachment[];
@@ -260,9 +263,12 @@ export default function ChatMessage({
             );
           }
           if (part.type === "code_block") {
+            // THIS IS THE FIX: Added 'c.code_block_index !== undefined'
             const relevantConversions =
               message.conversions?.filter(
-                (c: CodeConversion) => c.code_block_index === part.index
+                (c: CodeConversion) =>
+                  c.code_block_index !== undefined &&
+                  c.code_block_index === part.index,
               ) || [];
             return (
               <CodeBlock
@@ -291,7 +297,7 @@ export default function ChatMessage({
                 return (
                   <div key={`part-${idx}`} className="relative group">
                     <Image
-                      src={imageUrl}
+                      src={imageUrl!}
                       width={500}
                       height={500}
                       alt={attachment.name || "Attachment"}
