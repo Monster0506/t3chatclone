@@ -2,8 +2,9 @@
 import Sidebar from '../Sidebar/Sidebar';
 import { useSession } from '@supabase/auth-helpers-react';
 import LoginModal from '../Auth/LoginModal';
-import { ReactNode, useState, useEffect, useRef } from 'react';
+import { ReactNode, useState, useRef, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { useTheme } from '@/theme/ThemeProvider';
 import KeyboardShortcutsModal from '@/components/UI/KeyboardShortcutsModal';
 import KeyboardShortcutsButton from '@/components/UI/KeyboardShortcutsButton';
@@ -27,60 +28,28 @@ export default function AppLayout({
     setSidebarCollapsed(false);
   }, [pathname]);
 
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return;
-      // Ctrl+B: Toggle sidebar
-      if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'b') {
-        e.preventDefault();
-        setSidebarCollapsed((c) => !c);
-      }
-      // Ctrl+K: Focus search
-      if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        window.dispatchEvent(new CustomEvent('focus-sidebar-search'));
-      }
-      // Ctrl+Shift+N: New conversation
-      if (e.ctrlKey && e.shiftKey && !e.altKey && e.key.toLowerCase() === 'n') {
-        e.preventDefault();
-        window.dispatchEvent(new CustomEvent('new-conversation'));
-      }
-      // Ctrl+Shift+D: Pin/unpin current conversation
-      if (e.ctrlKey && e.shiftKey && !e.altKey && e.key.toLowerCase() === 'd') {
-        e.preventDefault();
-        window.dispatchEvent(new CustomEvent('toggle-pin-current-conversation'));
-      }
-      // Ctrl+/ or Ctrl+? : Open shortcuts modal
-      if (e.ctrlKey && !e.altKey && e.key.toLowerCase() === '/') {
-        e.preventDefault();
-        setShortcutsOpen(!shortcutsOpen);
-      }
-      // Ctrl+C: Copy last message
-      if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'c') {
-        // Only if not in input/textarea
-        e.preventDefault();
-        const chatMessages = document.querySelectorAll('[id^="msg-"]');
-        if (chatMessages.length > 0) {
-          const lastMsg = chatMessages[chatMessages.length - 1] as HTMLElement;
-          const bubble = lastMsg.querySelector('[class*="rounded-2xl"]');
-          const text = bubble ? bubble.textContent : lastMsg.textContent;
-          if (text) {
-            navigator.clipboard.writeText(text.trim());
-            setShowCopied(true);
-            setTimeout(() => setShowCopied(false), 1500);
-          }
+  // Set up keyboard shortcuts
+  useKeyboardShortcuts({
+    'ctrl+b': () => setSidebarCollapsed(c => !c),
+    'ctrl+k': () => window.dispatchEvent(new CustomEvent('focus-sidebar-search')),
+    'ctrl+shift+n': () => window.dispatchEvent(new CustomEvent('new-conversation')),
+    'ctrl+shift+d': () => window.dispatchEvent(new CustomEvent('toggle-pin-current-conversation')),
+    'ctrl+/': () => setShortcutsOpen(s => !s),
+    'ctrl+c': () => {
+      const chatMessages = document.querySelectorAll('[id^="msg-"]');
+      if (chatMessages.length > 0) {
+        const lastMsg = chatMessages[chatMessages.length - 1] as HTMLElement;
+        const bubble = lastMsg.querySelector('[class*="rounded-2xl"]');
+        const text = bubble ? bubble.textContent : lastMsg.textContent;
+        if (text) {
+          navigator.clipboard.writeText(text.trim());
+          setShowCopied(true);
+          setTimeout(() => setShowCopied(false), 1500);
         }
       }
-      // Ctrl+Y: Focus chat input
-      if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'y') {
-        e.preventDefault();
-        window.dispatchEvent(new CustomEvent('focus-chat-input'));
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+    },
+    'ctrl+y': () => window.dispatchEvent(new CustomEvent('focus-chat-input')),
+  });
 
   const sidebarWidth = sidebarCollapsed ? '4rem' : '18rem';
 
