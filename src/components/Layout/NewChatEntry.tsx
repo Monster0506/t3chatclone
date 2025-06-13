@@ -11,8 +11,6 @@ import {
   Server,
   Palette,
   Sparkles,
-  Github,
-  Rocket,
   CheckCircle2,
   Lightbulb,
   BookText,
@@ -21,12 +19,10 @@ import {
   Briefcase,
   Bot,
   FileText,
-  Calculator,
-  GitBranch,
   Code,
   Keyboard,
 } from 'lucide-react';
-import { Theme, SHORTCUTS } from '@/lib/types';
+import { Theme, SHORTCUTS, ShortcutGroup } from '@/lib/types';
 
 // --- Helper: Checklist Item for Core/Bonus Features ---
 const ChecklistItem = ({
@@ -57,7 +53,7 @@ const ChecklistItem = ({
 );
 
 // --- Helper: Card for Unique Features ---
-const UniqueFeatureCard = ({ icon, title, description, theme }) => (
+const UniqueFeatureCard = ({ icon, title, description, theme }: { icon: React.ReactNode, title: string, description: string, theme: Theme }) => (
   <div
     className="p-8 rounded-xl text-center flex flex-col items-center h-full"
     style={{
@@ -74,7 +70,7 @@ const UniqueFeatureCard = ({ icon, title, description, theme }) => (
 );
 
 // --- Helper: Detail item for the Personalization Card ---
-const PersonalizationDetail = ({ icon, title, description }) => (
+const PersonalizationDetail = ({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) => (
   <div className="flex items-start gap-4">
     <div className="flex-shrink-0 w-8 h-8 mt-1">{icon}</div>
     <div>
@@ -85,7 +81,7 @@ const PersonalizationDetail = ({ icon, title, description }) => (
 );
 
 // --- Helper: Stat Card ---
-const StatCard = ({ value, label, icon, theme }) => (
+const StatCard = ({ value, label, icon, theme }: { value: string, label: string, icon: React.ReactNode, theme: Theme }) => (
   <div
     className="p-6 rounded-xl text-center flex flex-col justify-center"
     style={{
@@ -105,7 +101,7 @@ const StatCard = ({ value, label, icon, theme }) => (
 );
 
 // --- Helper: Shortcut Display ---
-const ShortcutDisplay = ({ shortcuts, theme }) => (
+const ShortcutDisplay = ({ shortcuts, theme }: { shortcuts: ShortcutGroup[], theme: Theme }) => (
   <div
     className="w-full text-left space-y-4 p-6 rounded-xl"
     style={{
@@ -180,7 +176,6 @@ export default function NewChatEntry() {
       className="flex-1 w-full overflow-y-auto relative"
       style={{ background: theme.background, color: theme.foreground }}
     >
-      {/* Decorative background blobs */}
       <div
         className="absolute -top-48 -left-48 w-[600px] h-[600px] rounded-full opacity-30 blur-3xl z-0"
         style={{ background: theme.buttonBg }}
@@ -191,7 +186,6 @@ export default function NewChatEntry() {
       />
 
       <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 space-y-24 md:space-y-32">
-        {/* --- HERO SECTION --- */}
         <section className="text-center">
           <div
             className="inline-block bg-opacity-10 text-sm font-semibold py-1 px-3 rounded-full mb-4"
@@ -215,7 +209,6 @@ export default function NewChatEntry() {
               disabled={!session?.user || loading}
               className="px-8 py-4 text-xl font-semibold shadow-lg w-full sm:w-auto"
             >
-              {/* <Rocket className="w-5 h-5 mr-2" /> */}
               {loading ? 'Spinning up...' : 'Fire It Up'}
             </Button>
             <a
@@ -225,10 +218,8 @@ export default function NewChatEntry() {
               className="w-full sm:w-auto"
             >
               <Button
-                variant="secondary"
                 className="px-8 py-4 text-xl font-semibold shadow-lg w-full"
               >
-                {/* <Github className="w-5 h-5 mr-2" /> */}
                 Judge My Code
               </Button>
             </a>
@@ -246,7 +237,6 @@ export default function NewChatEntry() {
           </div>
         </section>
 
-        {/* --- FEATURE CHECKLIST SECTION --- */}
         <section>
           <h2 className="text-4xl font-bold text-center mb-12">
             Passing the Vibe Check
@@ -341,13 +331,11 @@ export default function NewChatEntry() {
           </div>
         </section>
 
-        {/* --- UNIQUE FEATURES SECTION (REDESIGNED) --- */}
         <section>
           <h2 className="text-4xl font-bold text-center mb-12">
             Where We Went Off-Script
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Main Personalization Card */}
             <div
               className="p-8 rounded-xl md:col-span-3"
               style={{
@@ -386,7 +374,6 @@ export default function NewChatEntry() {
               </div>
             </div>
 
-            {/* Other Unique Feature Cards */}
             <UniqueFeatureCard
               icon={<LayoutGrid />}
               title="Advanced Chat Organization"
@@ -471,7 +458,6 @@ export default function NewChatEntry() {
           </div>
         </section>
 
-        {/* --- FINAL CTA SECTION --- */}
         <section className="text-center max-w-2xl mx-auto">
           <h2 className="text-4xl font-bold mb-6">Alright, Enough Talk.</h2>
           <p className="text-lg opacity-80 mb-8">
@@ -482,7 +468,6 @@ export default function NewChatEntry() {
             disabled={!session?.user || loading}
             className="px-10 py-5 text-2xl font-semibold shadow-lg"
           >
-            {/* <Rocket className="w-6 h-6 mr-3" /> */}
             {loading ? 'Starting...' : 'Launch It Already'}
           </Button>
           {!session?.user && (
@@ -492,7 +477,6 @@ export default function NewChatEntry() {
           )}
         </section>
 
-        {/* --- FOOTER --- */}
         <footer
           className="text-center border-t pt-8 space-y-4"
           style={{ borderColor: theme.buttonBorder }}

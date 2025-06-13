@@ -2,25 +2,23 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Theme } from "@/lib/types";
 
-// Crescent Icon Component - co-located as it's only used here.
 const CrescentIcon = ({ theme }: { theme: Theme | undefined }) => {
   if (!theme) return null;
   return (
     <div
       className="w-5 h-5 rounded-full relative overflow-hidden"
       style={{
-        backgroundColor: theme.foreground, // Crescent color
+        backgroundColor: theme.foreground,
         borderColor: theme.buttonBorder,
         borderWidth: "1px",
         boxSizing: "border-box",
       }}
     >
-      {/* Overlay circle to create the crescent shape */}
       <div
         className="w-full h-full rounded-full absolute top-0"
         style={{
           backgroundColor: theme.representativeBg,
-          left: "3px", // Adjust for crescent thickness
+          left: "3px", 
         }}
       ></div>
     </div>
@@ -31,7 +29,7 @@ interface ThemePickerProps {
   selectedThemeName: string;
   onThemeSelect: (themeName: string) => void;
   themes: Theme[];
-  currentTheme: Theme; // For styling the component itself
+  currentTheme: Theme; 
 }
 
 export default function ThemePicker({

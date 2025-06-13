@@ -8,7 +8,7 @@ export const maxDuration = 30;
 import { google } from '@ai-sdk/google';
 
 import { modelFamilies as modelMap } from '@/components/ModelSelector/modelData';
-import { FlatModelMap } from '@/lib/types';
+import { FlatModelMap, ModelDefinition } from '@/lib/types';
 
 
 
@@ -50,14 +50,12 @@ export async function POST(req: Request) {
 
 
     const flatModelMap: FlatModelMap = modelMap.reduce((accumulator, family) => {
-        family.models.forEach((model) => {
-            accumulator[model.id] = model.aiFn;
+        family.models.forEach((model: ModelDefinition) => {
+            (accumulator)[model.id] = model;
         });
         return accumulator;
     }, {} as FlatModelMap);
-    console.log('modelId', modelId);
-    // if the model id does not start with gemini for testing purposes, return an error as a message
-    // This doesn't work, but we handle the error grossly in the client
+
     if (!modelId.startsWith('gemini-2.0-flash')) {
 
         const encoder = new TextEncoder();
@@ -81,10 +79,9 @@ export async function POST(req: Request) {
             },
         });
     }
-    const model = flatModelMap[modelId] || google('gemini-2.0-flash');
+    const model = flatModelMap[modelId]?.aiFn || google('gemini-2.0-flash');
 
 
-    // Build system prompt with user settings
     let systemPrompt = 'You are a helpful assistant.';
     if (userSettings) {
         const promptParts: string[] = [];
@@ -210,12 +207,10 @@ export async function POST(req: Request) {
                     }
                 }
             }
-            // Map assistant messages (response.messages)
             for (const msg of newAssistantMsgs) {
                 let content: string = '';
                 let metadata: any = null;
                 if (msg.role === 'tool') {
-                    // For tool messages, store a summary in content and the full message as metadata
                     if (typeof msg.content === 'string') {
                         content = msg.content;
                     } else if (Array.isArray(msg.content)) {
@@ -237,7 +232,6 @@ export async function POST(req: Request) {
                         content = msg.content ?? '';
                     }
                 }
-                // Save assistant/tool message
                 const { data: savedMsg, error: saveError } = await supabaseServer
                     .from('messages')
                     .insert({
@@ -253,7 +247,6 @@ export async function POST(req: Request) {
                 if (saveError) {
                     console.error('Error saving assistant/tool message:', saveError);
                 } else {
-                    // --- Index Generation for Assistant/Tool Message ---
                     try {
                         const prompt = `Given the following message in a chat, determine if it is important for future reference (e.g., a key question, answer, code, decision, or summary). If so, return true for 'important' and provide a type, a short snippet, and any relevant metadata.\n\nMessage:\nrole: ${msg.role}\ncontent: ${content}`;
                         const { object: indexResult } = await generateObject({
@@ -284,15 +277,12 @@ export async function POST(req: Request) {
                 }
             }
 
-            // --- Gemini title/tags generation logic ---
-            // Fetch all messages for this chat
             const { data: allMsgs, error: fetchErr } = await supabaseServer
                 .from('messages')
                 .select('role,content')
                 .eq('chat_id', chat_id)
                 .order('created_at', { ascending: true });
             if (!fetchErr && allMsgs && allMsgs.length === 2) {
-                // Fetch chat row
                 const { data: chatRow, error: chatErr } = await supabaseServer
                     .from('chats')
                     .select('id,title,metadata')
@@ -302,8 +292,9 @@ export async function POST(req: Request) {
                     const { title, tags } = await generateTitleAndTags(allMsgs);
                     let newTitle = chatRow.title;
                     if (newTitle === 'New Chat' && title) newTitle = title;
-                    // Merge tags with existing tags
-                    let meta = typeof chatRow.metadata === 'object' && chatRow.metadata ? { ...chatRow.metadata } : {};
+
+
+                    const meta = typeof chatRow.metadata === 'object' && chatRow.metadata ? { ...chatRow.metadata } : {};
                     const existingTags = Array.isArray((meta as any).tags) ? ((meta as any).tags as any[]).filter((t: any) => typeof t === 'string') : [];
                     const allTags = Array.from(new Set([...(existingTags as string[]), ...(tags as string[])]));
                     (meta as any).tags = allTags;

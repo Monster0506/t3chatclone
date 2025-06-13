@@ -59,7 +59,7 @@ export default function Sidebar({ collapsed = false, onCollapse, children }: Sid
         <div className="mb-6 px-2">
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <SidebarHeader collapsed={collapsed} />
+              <SidebarHeader />
             </div>
           </div>
           {!collapsed && (

@@ -7,7 +7,6 @@ export async function GET(req: Request) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
 
-  // Fetch all chat IDs the user owns
   const { data: chats, error: chatError } = await supabaseServer
     .from('chats')
     .select('id, title')
@@ -25,7 +24,6 @@ export async function GET(req: Request) {
     return new Response(JSON.stringify([]), { status: 200 });
   }
 
-  // Fetch all index items for those chats
   const { data: indexItems, error: indexError } = await supabaseServer
     .from('chat_index' as any)
     .select('id, chat_id, message_id, type, snippet, created_at')
@@ -36,7 +34,6 @@ export async function GET(req: Request) {
     return new Response(JSON.stringify({ error: indexError.message }), { status: 500 });
   }
 
-  // Attach chatTitle to each item
   const items = (indexItems || []).map((item: any) => ({
     ...item,
     chatTitle: chatIdToTitle[item.chat_id] || 'Untitled Chat',

@@ -21,39 +21,32 @@ export default function CodeBlock({
 }: {
   originalCode: string;
   originalLanguage?: string;
-  codeBlockIndex: number;
+  codeBlockIndex: number | undefined;
   conversions?: CodeConversion[];
   onCopy?: (code: string) => void;
-  onConvertRequest?: (targetLanguage: string, codeBlockIndex: number) => void;
+  onConvertRequest?: (targetLanguage: string, codeBlockIndex: number | undefined) => void;
 }) {
   const { theme } = useTheme();
   const style = oneDark;
 
   const [currentCode, setCurrentCode] = useState(originalCode);
   const [currentLanguage, setCurrentLanguage] = useState(originalLanguage);
-  // **NEW STATE**: Remember which language we are waiting for.
   const [requestedLanguage, setRequestedLanguage] = useState<string | null>(
     null
   );
 
-  // This effect now handles automatically switching to the new language
-  // after a successful conversion and data refresh.
   useEffect(() => {
-    // If we have a pending language request...
     if (requestedLanguage) {
-      // ...and the new conversion for that language has arrived in the props...
       const newConversion = conversions.find(
         (c) => c.target_language === requestedLanguage
       );
       if (newConversion) {
-        // ...then update the view to show the new code.
         setCurrentCode(newConversion.converted_content);
         setCurrentLanguage(newConversion.target_language);
-        // Reset the pending request state.
         setRequestedLanguage(null);
       }
     }
-  }, [conversions, requestedLanguage]); // This runs whenever the conversions prop changes.
+  }, [conversions, requestedLanguage]); 
 
   const isConverted = currentLanguage !== originalLanguage;
 
@@ -71,11 +64,9 @@ export default function CodeBlock({
         (c) => c.target_language === selectedLanguage
       );
       if (conversion) {
-        // If the conversion already exists, just switch to it.
         setCurrentCode(conversion.converted_content);
         setCurrentLanguage(conversion.target_language);
       } else {
-        // If it doesn't exist, request it and set it as the pending language.
         setRequestedLanguage(selectedLanguage);
         onConvertRequest?.(selectedLanguage, codeBlockIndex);
       }

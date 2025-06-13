@@ -32,17 +32,14 @@ export default function Page() {
         return;
       }
 
-      // Fetch messages from the API
       try {
         const res = await fetch(`/api/chat?chatId=${id}`);
-        let messagesFromApi = await res.json();
+        const messagesFromApi = await res.json();
 
-        // **THIS IS THE KEY CHANGE**
-        // Map the fetched messages to rename `code_conversions` to `conversions`
-        // to match the prop name expected by the ChatMessage component.
+
         let messages = messagesFromApi.map((msg: any) => ({
           ...msg,
-          conversions: msg.code_conversions, // Rename the property
+          conversions: msg.code_conversions,
         }));
 
         // Hydrate tool messages
@@ -122,7 +119,6 @@ export default function Page() {
     fetchChat();
   }, [session, id]);
 
-  // Scroll to message if hash is present
   useEffect(() => {
     if (typeof window === "undefined") return;
     const hash = window.location.hash;

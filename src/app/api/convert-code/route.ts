@@ -4,9 +4,8 @@ import { z } from "zod";
 import { supabaseServer } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
-// Zod schema validates the incoming request, ensuring it includes the index.
 const requestSchema = z.object({
-  messageId: z.string("Invalid message ID"),
+  messageId: z.string().describe("The ID of the message to convert."),
   codeBlockIndex: z
     .number()
     .int()
@@ -14,7 +13,6 @@ const requestSchema = z.object({
   targetLanguage: z.string().min(1, "Target language cannot be empty"),
 });
 
-// Zod schema for the expected AI model output.
 const conversionSchema = z.object({
   convertedCode: z
     .string()
@@ -25,14 +23,13 @@ export const maxDuration = 30;
 
 export async function POST(req: Request) {
   try {
-    // 1. Validate the incoming request body against the schema.
+
     const body = await req.json();
     const { messageId, codeBlockIndex, targetLanguage } =
       requestSchema.parse(body);
 
     const supabase = supabaseServer;
 
-    // 2. Fetch the original message. RLS ensures the user has access.
     const { data: message, error: messageError } = await supabase
       .from("messages")
       .select("content")
@@ -47,14 +44,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. **CRITICAL LOGIC**: Extract ALL code blocks from the message content.
-    // The global flag 'g' on the regex is essential for finding all matches.
+   
     const codeBlockRegex = /```(?:\w+)?\n([\s\S]*?)\n```/g;
     const matches = [...message.content.matchAll(codeBlockRegex)];
-    const allCodeBlocks = matches.map((match) => match[1]); // Create an array of code strings
-   
-    // 4. **CRITICAL LOGIC**: Select the specific code block using the provided index.
-    // This ensures we can target ANY code block in the message.
+    const allCodeBlocks = matches.map((match) => match[1]); 
+
     if (codeBlockIndex >= allCodeBlocks.length) {
       return NextResponse.json(
         {
@@ -65,7 +59,6 @@ export async function POST(req: Request) {
     }
     const originalCode = allCodeBlocks[codeBlockIndex];
 
-    // 5. Construct the prompt for the AI model using the selected code block.
     const prompt = `
       You are an expert code transpiler. Your task is to convert a given code snippet to a specified target language.
 
@@ -82,19 +75,17 @@ export async function POST(req: Request) {
       \`\`\`
     `;
 
-    // 6. Call the AI model to get the structured conversion object.
     const { object: conversionResult } = await generateObject({
       model: google("gemini-2.0-flash"),
       schema: conversionSchema,
       prompt,
     });
 
-    // 7. **CRITICAL LOGIC**: Save the conversion with the correct `code_block_index`.
     const { data: savedConversion, error: saveError } = await supabase
       .from("code_conversions")
       .insert({
         message_id: messageId,
-        code_block_index: codeBlockIndex, // The index is saved here.
+        code_block_index: codeBlockIndex,
         target_language: targetLanguage,
         converted_content: conversionResult.convertedCode,
       })
@@ -109,7 +100,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // 8. Return the newly created conversion object to the client.
     return NextResponse.json(savedConversion, { status: 200 });
   } catch (e: any) {
     if (e instanceof z.ZodError) {

@@ -43,7 +43,6 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
 
 
 
-  // Fetch threads function (extracted for polling)
   const fetchThreads = async () => {
     if (!session?.user) return;
     setLoading(true);
@@ -64,7 +63,6 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
 
     window.addEventListener("refresh-chat-list", handleRefresh);
 
-    // Cleanup the listener when the component unmounts
     return () => {
       window.removeEventListener("refresh-chat-list", handleRefresh);
     };
@@ -77,18 +75,13 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
 
   useEffect(() => {
     fetchThreads();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
-  // --- Poll for Gemini title/tags update after first exchange ---
   useEffect(() => {
-    // Find any chat with title 'New Chat' and exactly 2 messages
     const pollForGeminiUpdate = async () => {
       if (!session?.user) return;
-      // Find candidate chats
       const newChats = threads.filter(t => t.title === 'New Chat');
       for (const chat of newChats) {
-        // Count messages for this chat
         const { data: msgs } = await supabase
           .from('messages')
           .select('id')
@@ -117,10 +110,8 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
       }
     };
     pollForGeminiUpdate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [threads, session]);
 
-  // Actions
   const handlePin = async (thread: Tables<'chats'>, pinned: boolean) => {
     const meta = typeof thread.metadata === 'object' && thread.metadata ? thread.metadata : {};
     await supabase
@@ -159,7 +150,6 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
   };
   const handleClone = async (thread: Tables<'chats'>) => {
     const meta = typeof thread.metadata === 'object' && thread.metadata ? { ...thread.metadata, archived: false } : {};
-    // Create new chat
     const { data: newChat, error } = await supabase
       .from('chats')
       .insert({
@@ -171,7 +161,6 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
       .select('id')
       .single();
     if (newChat && newChat.id) {
-      // Copy messages
       const { data: messages } = await supabase
         .from('messages')
         .select('*')
@@ -179,11 +168,10 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
       if (messages && messages.length > 0) {
         const newMessages = messages.map(m => ({
           ...m,
-          id: undefined, // Let DB generate new UUID
+          id: undefined, 
           chat_id: newChat.id,
           created_at: new Date().toISOString(),
         }));
-        // Insert all messages (in batches if needed)
         for (const msg of newMessages) {
           await supabase.from('messages').insert(msg);
         }
@@ -244,7 +232,6 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
     setThreads(ts => ts.map(t => t.id === thread.id ? { ...t, public: !thread.public } : t));
   };
 
-  // Filter and organize
   const filtered = threads.filter(t => {
     const titleMatch = t.title.toLowerCase().includes(search.toLowerCase());
     const tags = getTagsFromMetadata(t.metadata);
@@ -256,16 +243,10 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
   const recent = notArchived.filter(t => !t.metadata || typeof t.metadata !== 'object' || !(t.metadata as any).pinned);
   const archived = filtered.filter(t => typeof t.metadata === 'object' && t.metadata && (t.metadata as any).archived === true);
 
-  // Helper: get last message preview (stub for now)
-  const getLastMessage = (thread: Tables<'chats'>) => {
-    // You could fetch last message from messages table if needed
-    return '';
-  };
 
-  // Helper: is active
+
   const isActive = (id: string) => pathname?.includes(id);
 
-  // Close menu on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (menuOpen && menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -278,7 +259,6 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
     return () => document.removeEventListener('mousedown', handleClick);
   }, [menuOpen]);
 
-  // Group threads by time
   const now = new Date();
   const groupByTime = (thread: Tables<'chats'>) => {
     const updated = new Date(thread.updated_at);
@@ -315,7 +295,6 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
 
   useEffect(() => {
     function handleNewConversation() {
-      // Duplicated from Sidebar's handleNewChat
       if (!session?.user) return;
       (async () => {
         setLoading(true);
@@ -339,8 +318,6 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
   }, [session, router]);
 
   if (collapsed) {
-    // Render a minimal list of all chat icons for each thread, clickable, with correct icon
-    // Order: pinned, recent, archived
     const allCollapsedThreads = [
       ...pinned.map(t => ({ ...t, _type: 'pinned' as const })),
       ...recent.map(t => ({ ...t, _type: 'recent' as const })),
@@ -419,7 +396,6 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
               </ul>
             </div>
           )}
-          {/* Time-based groups */}
           {Object.entries(timeGroups).map(([label, threads]) => (
             threads.length > 0 && (
               <div key={label} className="mb-2">
@@ -456,7 +432,6 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
               </div>
             )
           ))}
-          {/* Archived dropdown */}
           {archived.length > 0 && (
             <div className="mt-4">
               <button

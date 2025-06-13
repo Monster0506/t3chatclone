@@ -23,15 +23,12 @@ export default function AppLayout({
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
 
-  // Reset sidebar state when pathname changes
   useEffect(() => {
     setSidebarCollapsed(false);
   }, [pathname]);
 
-  // Keyboard shortcuts
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      // Only trigger if not in an input or textarea
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return;
       // Ctrl+B: Toggle sidebar
@@ -54,8 +51,7 @@ export default function AppLayout({
         e.preventDefault();
         window.dispatchEvent(new CustomEvent('toggle-pin-current-conversation'));
       }
-      // Ctrl+?
-
+      // Ctrl+/ or Ctrl+? : Open shortcuts modal
       if (e.ctrlKey && !e.altKey && e.key.toLowerCase() === '/') {
         e.preventDefault();
         setShortcutsOpen(!shortcutsOpen);
@@ -64,11 +60,9 @@ export default function AppLayout({
       if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'c') {
         // Only if not in input/textarea
         e.preventDefault();
-        // Try to find the last message in the chat
         const chatMessages = document.querySelectorAll('[id^="msg-"]');
         if (chatMessages.length > 0) {
           const lastMsg = chatMessages[chatMessages.length - 1] as HTMLElement;
-          // Try to get the text content of the message bubble
           const bubble = lastMsg.querySelector('[class*="rounded-2xl"]');
           const text = bubble ? bubble.textContent : lastMsg.textContent;
           if (text) {
@@ -88,7 +82,6 @@ export default function AppLayout({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Sidebar widths
   const sidebarWidth = sidebarCollapsed ? '4rem' : '18rem';
 
   return (

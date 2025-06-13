@@ -19,7 +19,7 @@ interface SidebarChatContextMenuProps {
   onTagInputKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onRemoveTag: (tag: string) => void;
   isPublic: boolean;
-  onTogglePublic: () => Promise<void>;
+  onTogglePublic: () => void;
   chatId: string;
 }
 
@@ -35,7 +35,6 @@ export default function SidebarChatContextMenu({
   tags,
   tagInput,
   setTagInput,
-  onAddTag,
   onTagInputKeyDown,
   onRemoveTag,
   isPublic,

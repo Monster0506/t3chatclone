@@ -29,13 +29,11 @@ export default function SharePage() {
         return;
       }
       setChat(data);
-      // Fetch messages from the API
       try {
         const res = await fetch(`/api/chat?chatId=${id}`);
         let messages = await res.json();
         // Hydrate tool messages
         messages = messages.map((msg: any) => {
-          // If it's a tool message with content as an array (from DB)
           if (msg.role === 'tool' && Array.isArray(msg.content)) {
             const toolResultPart = msg.content.find((part: any) => part.type === 'tool-result');
             if (toolResultPart) {
@@ -46,7 +44,6 @@ export default function SharePage() {
               };
             }
           }
-          // If it's a tool message with metadata.toolMessage (live or from API)
           if (msg.role === 'tool' && msg.metadata?.toolMessage) {
             const toolMsg = msg.metadata.toolMessage;
             if (Array.isArray(toolMsg.content)) {

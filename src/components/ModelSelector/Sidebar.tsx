@@ -1,6 +1,7 @@
+import { ModelFamily, Theme } from '@/lib/types';
 import { Grid } from 'lucide-react';
 
-export default function Sidebar({ filteredFamilies, activeFamily, setActiveFamily, showAll, setShowAll, theme }) {
+export default function Sidebar({ filteredFamilies, activeFamily, setActiveFamily, showAll, setShowAll, theme }: { filteredFamilies: ModelFamily[], activeFamily: ModelFamily | null, setActiveFamily: (fam: ModelFamily) => void, showAll: boolean, setShowAll: (show: boolean) => void, theme: Theme }) {
   return (
     <aside
       className="flex flex-col py-8 px-2 gap-2 border-r overflow-y-auto"
@@ -15,7 +16,7 @@ export default function Sidebar({ filteredFamilies, activeFamily, setActiveFamil
         <Grid size={24} />
         <span>All Models</span>
       </button>
-      {filteredFamilies.map((fam) => (
+      {filteredFamilies.map((fam: ModelFamily) => (
         <button
           key={fam.id}
           className={`flex items-center gap-3 rounded-2xl p-3 transition-all font-semibold text-base group relative ${!showAll && activeFamily?.id === fam.id ? 'ring-2 ring-offset-2' : ''}`}

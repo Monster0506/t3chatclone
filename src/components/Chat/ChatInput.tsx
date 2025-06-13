@@ -79,10 +79,8 @@ export default function ChatInput({ input, onInputChange, onSubmit, disabled }: 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter') {
       if (e.shiftKey) {
-        // Allow new line (default behavior)
         return;
       } else {
-        // Send message
         e.preventDefault();
         const form = textareaRef.current?.form || (e.target as HTMLTextAreaElement)?.form;
         if (form) {
@@ -90,7 +88,6 @@ export default function ChatInput({ input, onInputChange, onSubmit, disabled }: 
         }
       }
     } else if (e.ctrlKey && (e.key === 'Backspace' || e.key === 'Delete')) {
-      // Clear input
       e.preventDefault();
       onInputChange({
         ...e,
@@ -108,7 +105,6 @@ export default function ChatInput({ input, onInputChange, onSubmit, disabled }: 
         if (fileInputRef.current) fileInputRef.current.value = '';
       }}
     >
-      {/* Selected files preview */}
       {files && files.length > 0 && (
         <FilePreview files={files} onRemove={removeFile} />
       )}

@@ -21,7 +21,6 @@ interface CalculatorResultProps {
 
 function formatMatrix(matrixStr: string): React.ReactElement {
   try {
-    // Parse the matrix string into a 2D array
     const matrix = JSON.parse(matrixStr.replace(/\s+/g, ''));
     return (
       <div className="inline-block p-2 rounded bg-transparent border border-white/20">
@@ -41,7 +40,6 @@ function formatMatrix(matrixStr: string): React.ReactElement {
       </div>
     );
   } catch (e) {
-    // If parsing fails, return the original string
     return <span>{matrixStr}</span>;
   }
 }

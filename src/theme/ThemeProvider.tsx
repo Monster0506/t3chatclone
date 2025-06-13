@@ -875,7 +875,7 @@ export const themes: Theme[] = [
 const defaultTheme = "Cherry Blossom";
 export const ThemeContext = createContext({
   theme: themes.find(t => t.name === defaultTheme) || themes[1],
-  setTheme: (name: string) => {},
+  setTheme: (_name: string) => {},
   themes,
 });
 

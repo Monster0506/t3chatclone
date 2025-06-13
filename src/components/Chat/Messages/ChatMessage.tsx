@@ -3,9 +3,8 @@ import ReactMarkdown from "react-markdown";
 import CodeBlock from "./CodeBlock";
 import ToolResult from "../ToolResults/ToolResult";
 import { useTheme } from "@/theme/ThemeProvider";
-import { FileAttachment, DBAttachment } from "@/lib/types";
+import { FileAttachment, DBAttachment, ExtendedMessage, CodeConversion } from "@/lib/types";
 import React, { useMemo } from "react";
-import { ExtendedMessage } from "@/lib/types";
 
 export default function ChatMessage({
   message,
@@ -18,7 +17,8 @@ export default function ChatMessage({
   const isUser = message.role === "user";
   const isTool = message.role === "tool";
   console.log(message.content);
-  // Define a theme-aware style for inline code snippets
+
+
   const inlineCodeStyle = {
     backgroundColor: theme.inputGlass,
     padding: "0.2em 0.4em",
@@ -40,7 +40,7 @@ export default function ChatMessage({
 
   const handleConversionRequest = async (
     targetLanguage: string,
-    codeBlockIndex: number
+    codeBlockIndex: number | undefined
   ) => {
     console.log(
       `Requesting conversion for message ${message.id}, block ${codeBlockIndex} to ${targetLanguage}`
@@ -244,8 +244,6 @@ export default function ChatMessage({
               <ReactMarkdown
                 key={idx}
                 components={{
-                  // This is the key fix: render paragraphs as fragments
-                  // to prevent block-level elements and unwanted line breaks.
                   p: ({ children }) => <>{children}</>,
                 }}
               >
@@ -263,7 +261,7 @@ export default function ChatMessage({
           if (part.type === "code_block") {
             const relevantConversions =
               message.conversions?.filter(
-                (c) => c.code_block_index === part.index
+                (c: CodeConversion) => c.code_block_index === part.index
               ) || [];
             return (
               <CodeBlock

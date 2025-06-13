@@ -8,7 +8,6 @@ export const wikipediaTool = tool({
   }),
   execute: async ({ topic }) => {
     try {
-      // First, search Wikipedia for the best matching article
       const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(topic)}&format=json&origin=*`;
       const searchRes = await fetch(searchUrl);
       if (!searchRes.ok) {
@@ -21,7 +20,6 @@ export const wikipediaTool = tool({
       }
       const bestTitle = searchResults[0].title;
 
-      // Fetch the summary for the best matching article
       const apiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(bestTitle)}`;
       const res = await fetch(apiUrl);
       if (!res.ok) {
@@ -29,7 +27,6 @@ export const wikipediaTool = tool({
       }
       const data = await res.json();
 
-      // Fetch the full page content (plaintext, limited to 5000 chars)
       const contentUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=1&titles=${encodeURIComponent(bestTitle)}&format=json&origin=*`;
       const contentRes = await fetch(contentUrl);
       let fullContent = '';
@@ -39,7 +36,7 @@ export const wikipediaTool = tool({
         if (pages) {
           const page = Object.values(pages)[0];
           if (page && typeof page === 'object' && 'extract' in page && typeof page.extract === 'string') {
-            fullContent = page.extract.slice(0, 5000);
+            fullContent = page.extract.slice(0, 50000);
           }
         }
       }
@@ -52,8 +49,8 @@ export const wikipediaTool = tool({
         matchedTitle: bestTitle,
         fullContent,
       };
-    } catch (e) {
-      return { error: 'Failed to fetch Wikipedia summary.' };
+    } catch (error) {
+      return { error: 'Failed to fetch Wikipedia summary, please try again.' + (error as Error).message };
     }
   },
 }); 

@@ -16,8 +16,7 @@ import {
   Check,
   ChevronDown,
 } from "lucide-react";
-// Make sure to import your themes array, e.g.:
-// import { themes } from '@/theme/themeData';
+
 
 const TRAIT_LIMIT = 50;
 const TRAIT_MAX_LENGTH = 100;
@@ -390,7 +389,6 @@ export default function SettingsModal({
             </div>
           </div>
 
-          {/* Expandable Persona Selector */}
           <div className="text-center my-4">
             <div
               className="opacity-60 text-sm mb-2"

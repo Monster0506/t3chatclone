@@ -22,14 +22,12 @@ export default function LanguageSelectionModal({
   const { theme } = useTheme();
   const modalRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  // Reset search on close
   useEffect(() => {
     if (!open) {
       setSearchTerm("");
     }
   }, [open]);
 
-  // Close modal on Escape key press
   useEffect(() => {
     if (!open) return;
     const handleKey = (e: KeyboardEvent) => {
@@ -39,7 +37,6 @@ export default function LanguageSelectionModal({
     return () => window.removeEventListener("keydown", handleKey);
   }, [open, onClose]);
 
-  // Close modal on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -50,7 +47,6 @@ export default function LanguageSelectionModal({
       }
     };
     if (open) {
-      // Use timeout to prevent immediate close on button click
       setTimeout(() => {
         document.addEventListener("mousedown", handleClickOutside);
       }, 0);

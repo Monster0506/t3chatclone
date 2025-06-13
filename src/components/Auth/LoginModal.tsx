@@ -13,7 +13,7 @@ export default function LoginModal({ open, onClose }: { open: boolean; onClose?:
   useEffect(() => {
     if (!open || !onClose) return;
     function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onClose?.();
     }
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
@@ -24,7 +24,6 @@ export default function LoginModal({ open, onClose }: { open: boolean; onClose?:
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" style={{ backdropFilter: 'blur(10px)' }}
       onClick={e => { if (onClose && e.target === e.currentTarget) onClose(); }}>
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        {/* Soft gradient/glow for depth */}
         <div
           style={{
             width: 480,
@@ -80,12 +79,12 @@ export default function LoginModal({ open, onClose }: { open: boolean; onClose?:
                       dividerBackground: theme.buttonBorder,
                     },
                     radii: {
-                      input: '1rem',
-                      button: '1.5rem',
+                      inputBorderRadius: '1rem',
+                      buttonBorderRadius: '1.5rem',
                     },
                     fontSizes: {
                       baseBodySize: '1.1rem',
-                      inputLabelText: '1rem',
+                      baseLabelSize: '1rem',
                     },
                   },
                 },

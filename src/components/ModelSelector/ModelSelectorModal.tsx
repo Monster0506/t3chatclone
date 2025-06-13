@@ -8,7 +8,6 @@ import Sidebar from './Sidebar';
 import { ModelFamily } from '@/lib/types';
 
 function ModelGrid({ models, selectedModelId, onSelect, onClose, theme }: any) {
-  // Helper for model description (could be extended)
   const getModelDescription = (model: any) => {
     if (model.description) return model.description;
     if (model.id.toLowerCase().includes('flash')) return 'Fast, lightweight model';
@@ -51,6 +50,7 @@ function ModelGrid({ models, selectedModelId, onSelect, onClose, theme }: any) {
   );
 }
 
+
 export default function ModelSelectorModal({ open, onClose, onSelect, selectedModelId }: {
   open: boolean;
   onClose: () => void;
@@ -72,10 +72,8 @@ export default function ModelSelectorModal({ open, onClose, onSelect, selectedMo
     return () => window.removeEventListener('keydown', handleKey);
   }, [open, onClose]);
 
-  // All models flat list
   const allModels = useMemo(() => modelFamilies.flatMap(fam => fam.models), []);
 
-  // Filtered families for sidebar
   const filteredFamilies = useMemo(() => {
     if (!search.trim()) return modelFamilies;
     return modelFamilies
@@ -86,7 +84,6 @@ export default function ModelSelectorModal({ open, onClose, onSelect, selectedMo
       .filter(fam => fam.models.length > 0);
   }, [search]);
 
-  // Filtered all models for grid
   const filteredAllModels = useMemo(() => {
     if (!search.trim()) return allModels;
     return allModels.filter(m => m.name.toLowerCase().includes(search.toLowerCase()) || m.id.toLowerCase().includes(search.toLowerCase()));

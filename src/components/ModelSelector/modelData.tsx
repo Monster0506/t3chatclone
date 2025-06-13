@@ -122,9 +122,6 @@ export const modelFamilies: ModelFamily[] = [
         name: 'Claude 3.5 Haiku (2024-10-22)',
         aiFn: anthropic('claude-3-5-haiku-20241022'),
       },
-      // Note: These Claude 3 models were in modelFamilies but not modelMap,
-      // adding them here as per the original combined table request.
-      // Assuming they are also from anthropic if not specified.
       {
         id: 'claude-3-opus-20240229',
         name: 'Claude 3 Opus',
@@ -150,8 +147,6 @@ export const modelFamilies: ModelFamily[] = [
       { id: 'llama3.1-8b', name: 'Llama 3.1 8B', aiFn: cerebras('llama3.1-8b') },
       { id: 'llama3.1-70b', name: 'Llama 3.1 70B', aiFn: cerebras('llama3.1-70b') },
       { id: 'llama3.3-70b', name: 'Llama 3.3 70B', aiFn: cerebras('llama3.3-70b') },
-      // Note: These Llama models were in modelFamilies but not modelMap,
-      // adding them here. Assuming they are also from cerebras if not specified.
       {
         id: 'llama-3.3-70b-versatile',
         name: 'Llama 3.3 70B Versatile',
@@ -222,8 +217,6 @@ export const modelFamilies: ModelFamily[] = [
         aiFn: mistral('mistral-small-latest'),
       },
       { id: 'pixtral-12b-2409', name: 'Pixtral 12B 2409', aiFn: mistral('pixtral-12b-2409') },
-      // Note: These Mistral models were in modelFamilies but not modelMap,
-        // adding them here. Assuming they are also from mistral if not specified.
       {
         id: 'devstral-small-2505',
         name: 'Devstral Small',

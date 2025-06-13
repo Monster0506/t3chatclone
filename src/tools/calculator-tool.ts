@@ -2,7 +2,7 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import * as math from 'mathjs';
 
-function analyzeValueType(value: any) {
+function analyzeValueType(value: number | string | boolean | object | null | undefined) {
   return {
     isComplex: math.isComplex(value),
     isMatrix: math.isMatrix(value),
@@ -18,7 +18,6 @@ export const calculatorTool = tool({
   }),
   execute: async ({ expression }) => {
     try {
-      // Create a scope with common mathematical constants
       const scope = {
         pi: math.pi,
         e: math.e,
@@ -27,7 +26,6 @@ export const calculatorTool = tool({
         NaN: NaN
       };
 
-      // Try to parse the input to analyze its type
       let inputValue;
       try {
         inputValue = math.evaluate(expression, scope);
@@ -36,11 +34,9 @@ export const calculatorTool = tool({
       }
       const inputDetails = analyzeValueType(inputValue);
 
-      // Evaluate the expression using math.js
       const result = math.evaluate(expression, scope);
       const resultDetails = analyzeValueType(result);
 
-      // Format the result to be more readable
       let formattedResult;
       if (typeof result === 'number') {
         formattedResult = Number(result.toFixed(10));
@@ -56,7 +52,7 @@ export const calculatorTool = tool({
         details: resultDetails,
         inputDetails,
       };
-    } catch (e) {
+    } catch (e: unknown) {
       return {
         error: e instanceof Error ? e.message : 'Invalid expression',
         details: 'The expression could not be evaluated. Please check the syntax and try again.'

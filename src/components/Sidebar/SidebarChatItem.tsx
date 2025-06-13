@@ -2,17 +2,8 @@ import { useRef, useState, useEffect, RefObject } from 'react';
 import { MoreVertical, Pin, Trash2, Edit2, Globe } from 'lucide-react';
 import type { Tables } from '@/lib/supabase/types';
 import SidebarChatContextMenu from './SidebarChatContextMenu';
-import Badge from '@/components/UI/Badge';
 import { useTheme } from '@/theme/ThemeProvider';
 
-function formatTime(ts: string) {
-  const date = new Date(ts);
-  const now = new Date();
-  if (date.toDateString() === now.toDateString()) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }
-  return date.toLocaleDateString();
-}
 
 function getTags(metadata: any): string[] {
   if (metadata && typeof metadata === 'object' && Array.isArray(metadata.tags)) {
@@ -31,7 +22,6 @@ export default function SidebarChatItem({
   onArchive,
   onClone,
   onDownload,
-  onTags,
   onUpdateTags,
   renamingId,
   renameValue,
@@ -75,7 +65,6 @@ export default function SidebarChatItem({
   const [tags, setTags] = useState<string[]>(initialTags);
   useEffect(() => {
     setTags(initialTags);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(initialTags)]);
   const [tagInput, setTagInput] = useState('');
   const menuRef = useRef<HTMLDivElement>(null);
@@ -101,7 +90,7 @@ export default function SidebarChatItem({
           >
             {thread.title || 'Untitled Chat'}
             {pinned && <Pin size={14} className="text-purple-400" />}
-            {archived && <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-archive text-purple-400" viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="2"/><path d="M4 8v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/></svg>}
+            {archived && <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-archive text-purple-400" viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="2" /><path d="M4 8v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4" /></svg>}
             {thread.public && (
               <span title="Public chat" className="ml-1 text-blue-500"><Globe size={14} /></span>
             )}

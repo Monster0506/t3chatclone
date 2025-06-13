@@ -5,7 +5,7 @@ export default function ChatMessageList({
   onRefresh,
 }: {
   messages: ExtendedMessage[];
-  onRefresh: () => Promise<void>; // Define the prop type
+  onRefresh: () => Promise<void>;  
 }) {
   return (
     <div className="flex flex-col gap-6 px-2 py-6 w-full max-w-4xl mx-auto">
@@ -13,7 +13,7 @@ export default function ChatMessageList({
         <ChatMessage
           message={msg}
           key={msg.id || i}
-          onRefresh={onRefresh} // Pass the function down
+          onRefresh={onRefresh}
         />
       ))}
     </div>

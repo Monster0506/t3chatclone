@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import {X, HelpCircle, FileText, Code2, ListChecks, Info} from 'lucide-react';
+import { X, HelpCircle, FileText, Code2, ListChecks, Info } from 'lucide-react';
 import { useSession } from '@supabase/auth-helpers-react';
 import { useTheme } from '@/theme/ThemeProvider';
 import Card from '@/components/UI/Card';
@@ -34,7 +34,7 @@ export default function AllChatsIndex({ open, onClose }: { open: boolean; onClos
       setLoading(false);
       return;
     }
-    // Pass user_id as query param
+
     fetch(`/api/chat-index?user_id=${encodeURIComponent(userId)}`)
       .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
       .then((data: IndexItem[]) => {
@@ -44,36 +44,7 @@ export default function AllChatsIndex({ open, onClose }: { open: boolean; onClos
       .catch(err => {
         setError('Failed to load index.');
         setLoading(false);
-        // Fallback to mock data for now
-        setIndexData([
-          {
-            id: '1',
-            chat_id: 'chat-1',
-            chatTitle: 'Project Launch',
-            message_id: 'msg-1',
-            type: 'question',
-            snippet: 'What is the timeline for the project launch?',
-            created_at: '2024-06-10T10:00:00Z',
-          },
-          {
-            id: '2',
-            chat_id: 'chat-1',
-            chatTitle: 'Project Launch',
-            message_id: 'msg-2',
-            type: 'decision',
-            snippet: 'We decided to launch on July 1st.',
-            created_at: '2024-06-10T10:05:00Z',
-          },
-          {
-            id: '3',
-            chat_id: 'chat-2',
-            chatTitle: 'AI Research',
-            message_id: 'msg-3',
-            type: 'summary',
-            snippet: 'Summary: Discussed the latest Gemini model capabilities.',
-            created_at: '2024-06-09T15:00:00Z',
-          },
-        ]);
+        setIndexData([]);
       });
   }, [open, session]);
 
@@ -86,22 +57,18 @@ export default function AllChatsIndex({ open, onClose }: { open: boolean; onClos
     return () => window.removeEventListener('keydown', handleKey);
   }, [open, onClose]);
 
-  // Group by chat
+
   const grouped = indexData.reduce((acc, item) => {
     if (!acc[item.chat_id]) acc[item.chat_id] = { chatTitle: item.chatTitle, items: [] };
     acc[item.chat_id].items.push(item);
     return acc;
   }, {} as Record<string, { chatTitle: string; items: IndexItem[] }>);
 
-  // Only support enum types for icons
   const allowedTypes: IndexItem['type'][] = ['question', 'answer', 'code', 'summary', 'decision'];
 
-  // Jump handler
   const handleJump = (chatId: string, messageId: string) => {
-    // Navigate to the chat page with a hash for the message
     router.push(`/chat/${chatId}#${messageId}`);
     onClose();
-    // Optionally, you can implement scroll-to-message logic in the chat page using the hash
   };
 
   if (!open) return null;

@@ -77,7 +77,7 @@ export default function ChatContainer({
     stop,
     reload,
     setInput,
-    setMessages, // We need this to update the chat state
+    setMessages, 
     error,
   } = useChat({
     body: {
@@ -88,21 +88,18 @@ export default function ChatContainer({
     initialMessages,
   });
 
-  // **THIS IS THE NEW REFRESH FUNCTION**
   const refreshChatMessages = useCallback(async () => {
     try {
       const res = await fetch(`/api/chat?chatId=${chatId}`);
       if (!res.ok) throw new Error("Failed to fetch chat data");
       window.dispatchEvent(new Event("refresh-chat-list"));
-      let messagesFromApi = await res.json();
+      const messagesFromApi = await res.json();
 
-      // Map the fetched messages to rename `code_conversions` to `conversions`
-      let processedMessages = messagesFromApi.map((msg: any) => ({
+      const processedMessages = messagesFromApi.map((msg: any) => ({
         ...msg,
         conversions: msg.code_conversions,
       }));
 
-      // Update the chat state with the newly fetched and processed messages
       setMessages(processedMessages);
     } catch (err) {
       console.error("Error refreshing messages:", err);
@@ -251,7 +248,6 @@ export default function ChatContainer({
       ) : (
         <div className="flex-1 min-h-0 overflow-y-auto w-full px-0 md:px-8">
           <Card className="w-full max-w-4xl mx-auto p-0 md:p-4 shadow-none bg-transparent">
-            {/* Pass the refresh function down to the list */}
             <ChatMessageList
               messages={mergedMessages}
               onRefresh={refreshChatMessages}

@@ -23,7 +23,6 @@ function EnsureProfile() {
           updated_at: new Date().toISOString(),
         };
 
-        // Log profile data for debugging
 
         const { data, error: upsertError } = await supabase
           .from('profiles')
