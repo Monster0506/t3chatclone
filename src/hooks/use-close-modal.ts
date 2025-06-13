@@ -1,10 +1,10 @@
 import { RefObject, useEffect } from 'react';
 
 interface UseCloseModalProps<T extends HTMLElement = HTMLElement> {
-  ref: RefObject<T>;
+  ref: RefObject<T | null>;
   isOpen: boolean;
   onClose: () => void;
-  excludeRefs?: RefObject<HTMLElement>[];
+  excludeRefs?: Array<RefObject<HTMLElement | null>>;
   disableEscape?: boolean;
 }
 

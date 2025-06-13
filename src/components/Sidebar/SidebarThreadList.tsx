@@ -1,22 +1,14 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from '@supabase/auth-helpers-react';
 import { supabase } from '@/lib/supabase/client';
 import type { Tables } from '@/lib/supabase/types';
-import { MoreVertical, Pin, Trash2, Edit2, MessageSquare, ChevronDown, ChevronRight, Archive, Globe } from 'lucide-react';
+import { Pin, MessageSquare, Archive, ChevronDown, ChevronRight, Globe } from 'lucide-react';
 import SidebarChatItem from './SidebarChatItem';
-import Badge from '@/components/UI/Badge';
 import { useTheme } from '@/theme/ThemeProvider';
-import { differenceInCalendarDays, parseISO } from 'date-fns';
+import { differenceInCalendarDays } from 'date-fns';
+import { useCloseModal } from '@/hooks/use-close-modal';
 
-function formatTime(ts: string) {
-  const date = new Date(ts);
-  const now = new Date();
-  if (date.toDateString() === now.toDateString()) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }
-  return date.toLocaleDateString();
-}
 
 function getTagsFromMetadata(metadata: any): string[] {
   if (metadata && typeof metadata === 'object' && !Array.isArray(metadata) && Array.isArray(metadata.tags)) {
@@ -35,9 +27,9 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
   const router = useRouter();
   const pathname = usePathname();
   const inputRef = useRef<HTMLInputElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLElement>(null as unknown as HTMLElement);
   const [currentThread, setCurrentThread] = useState<Tables<'chats'> | null>(null);
-  const [tagAnchorRef, setTagAnchorRef] = useState<React.RefObject<HTMLDivElement> | null>(null);
+  const [, setTagAnchorRef] = useState<React.RefObject<HTMLDivElement> | null>(null);
   const [archivedOpen, setArchivedOpen] = useState(false);
   const { theme } = useTheme();
 
@@ -247,17 +239,11 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
 
   const isActive = (id: string) => pathname?.includes(id);
 
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (menuOpen && menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(null);
-      }
-    }
-    if (menuOpen) {
-      document.addEventListener('mousedown', handleClick);
-    }
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [menuOpen]);
+  useCloseModal({
+    ref: menuRef,
+    isOpen: menuOpen !== null,
+    onClose: () => setMenuOpen(null),
+  });
 
   const now = new Date();
   const groupByTime = (thread: Tables<'chats'>) => {
