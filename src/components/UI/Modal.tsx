@@ -1,31 +1,57 @@
-import { ReactNode, useContext, useEffect, useRef } from 'react';
+import { ReactNode, useContext, useRef } from 'react';
 import { ThemeContext } from '@/theme/ThemeProvider';
+import { useCloseModal } from '@/hooks/use-close-modal';
 
-export default function Modal({ open, onClose, children, className = '' }: { open: boolean; onClose: () => void; children: ReactNode; className?: string }) {
+interface ModalProps {
+  open: boolean;
+  onClose: () => void;
+  children: ReactNode;
+  className?: string;
+  disableEscape?: boolean;
+}
+
+export default function Modal({ 
+  open, 
+  onClose, 
+  children, 
+  className = '',
+  disableEscape = false 
+}: ModalProps) {
   const { theme } = useContext(ThemeContext);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [open, onClose]);
+  useCloseModal({
+    ref: modalRef,
+    isOpen: open,
+    onClose,
+    disableEscape,
+  });
 
   if (!open) return null;
+  
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" 
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div
         ref={modalRef}
         className={`glass shadow-2xl p-8 rounded-2xl relative ${className}`}
         style={{ background: theme.glass, borderColor: theme.buttonBorder }}
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-xl opacity-60 hover:opacity-100">×</button>
+        <button 
+          type="button"
+          onClick={onClose} 
+          className="absolute top-4 right-4 text-xl opacity-60 hover:opacity-100"
+          aria-label="Close modal"
+        >
+          ×
+        </button>
         {children}
       </div>
     </div>
   );
-} 
+}

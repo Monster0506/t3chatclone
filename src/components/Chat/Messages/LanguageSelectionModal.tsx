@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useRef, useMemo } from "react";
 import Card from "@/components/UI/Card";
 import Input from "@/components/UI/Input";
 import { useTheme } from "@/theme/ThemeProvider";
 import { Search, X } from "lucide-react";
 import { availableLanguages } from "@/lib/availableLanguages";
+import { useCloseModal } from "@/hooks/use-close-modal";
+
 interface LanguageSelectionModalProps {
   open: boolean;
   onClose: () => void;
@@ -22,48 +24,24 @@ export default function LanguageSelectionModal({
   const { theme } = useTheme();
   const modalRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  useEffect(() => {
-    if (!open) {
+
+  useCloseModal({
+    ref: modalRef,
+    isOpen: open,
+    onClose: () => {
       setSearchTerm("");
-    }
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [open, onClose]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        modalRef.current &&
-        !modalRef.current.contains(event.target as Node)
-      ) {
-        onClose();
-      }
-    };
-    if (open) {
-      setTimeout(() => {
-        document.addEventListener("mousedown", handleClickOutside);
-      }, 0);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [open, onClose]);
+      onClose();
+    },
+  });
 
   const filteredLanguages = useMemo(() => {
     return availableLanguages.filter(
       (lang) =>
         lang.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        lang !== currentLanguage &&
-        !existingConversions.includes(lang)
+        lang.toLowerCase() !== currentLanguage.toLowerCase() &&
+        !existingConversions.includes(lang.toLowerCase())
     );
-  }, [searchTerm, availableLanguages, currentLanguage, existingConversions]);
+  }, [searchTerm, currentLanguage, existingConversions]);
 
   const handleSelect = (lang: string) => {
     onSelect(lang.toLowerCase());
@@ -80,6 +58,7 @@ export default function LanguageSelectionModal({
         style={{ background: theme.glass, borderColor: theme.buttonBorder }}
       >
         <button
+          type="button"
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl z-10"
           aria-label="Close modal"
@@ -152,7 +131,7 @@ export default function LanguageSelectionModal({
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
               {filteredLanguages.map((lang) => (
                 <button
-                  key={lang.toLowerCase()}
+                  key={lang}
                   onClick={() => handleSelect(lang)}
                   className="p-3 rounded-lg text-left transition-colors duration-200 hover:opacity-80"
                   style={{
@@ -160,7 +139,7 @@ export default function LanguageSelectionModal({
                     color: theme.inputText,
                   }}
                 >
-                  {lang.toLowerCase()}
+                  {lang}
                 </button>
               ))}
             </div>

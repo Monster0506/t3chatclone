@@ -6,6 +6,7 @@ import Input from "@/components/UI/Input";
 import ThemePicker from "./ThemePicker";
 import { useTheme } from "@/theme/ThemeProvider";
 import { supabase } from "@/lib/supabase/client";
+import { useCloseModal } from "@/hooks/use-close-modal";
 import {
   GraduationCap,
   Lightbulb,
@@ -16,7 +17,6 @@ import {
   Check,
   ChevronDown,
 } from "lucide-react";
-
 
 const TRAIT_LIMIT = 50;
 const TRAIT_MAX_LENGTH = 100;
@@ -134,7 +134,14 @@ export default function SettingsModal({
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [activePersona, setActivePersona] = useState<string | null>(null);
   const [isPersonaSelectorOpen, setIsPersonaSelectorOpen] = useState(false);
+
   const modalRef = useRef<HTMLDivElement>(null);
+
+  useCloseModal({
+    ref: modalRef,
+    isOpen: open,
+    onClose,
+  });
 
   useEffect(() => {
     if (initial) {
@@ -149,15 +156,6 @@ export default function SettingsModal({
   useEffect(() => {
     setSelectedThemeName(theme.name);
   }, [theme.name]);
-
-  useEffect(() => {
-    if (!open) return;
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [open, onClose]);
 
   useEffect(() => {
     if (!activePersona) return;

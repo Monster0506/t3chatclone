@@ -1,20 +1,17 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { useTheme } from '@/theme/ThemeProvider';
 import { SHORTCUTS } from '@/lib/types';
-
+import { useCloseModal } from '@/hooks/use-close-modal';
 
 export default function KeyboardShortcutsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { theme } = useTheme();
   const modalRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [open, onClose]);
+  useCloseModal({
+    ref: modalRef,
+    isOpen: open,
+    onClose,
+  });
 
   if (!open) return null;
   return (
@@ -34,9 +31,10 @@ export default function KeyboardShortcutsModal({ open, onClose }: { open: boolea
         }}
       >
         <button
+          type="button"
           className="absolute top-4 right-4 text-2xl opacity-60 hover:opacity-100"
           onClick={onClose}
-          aria-label="Close"
+          aria-label="Close keyboard shortcuts"
           style={{ color: theme.buttonText }}
         >
           ×

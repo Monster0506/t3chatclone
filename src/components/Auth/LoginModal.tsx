@@ -4,25 +4,27 @@ import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/lib/supabase/client';
 import { Sparkles } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
+import { useCloseModal } from '@/hooks/use-close-modal';
 
 export default function LoginModal({ open, onClose }: { open: boolean; onClose?: () => void }) {
   const { theme } = useTheme();
   const modalRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!open || !onClose) return;
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose?.();
-    }
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [open, onClose]);
+  useCloseModal({
+    ref: modalRef,
+    isOpen: open,
+    onClose: onClose ?? (() => {}),
+    disableEscape: !onClose,
+  });
 
-  if (!open) return null;
+  if (!open || !onClose) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" style={{ backdropFilter: 'blur(10px)' }}
-      onClick={e => { if (onClose && e.target === e.currentTarget) onClose(); }}>
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" 
+      style={{ backdropFilter: 'blur(10px)' }}
+      onClick={e => { if (onClose && e.target === e.currentTarget) onClose(); }}
+    >
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div
           style={{
@@ -44,7 +46,14 @@ export default function LoginModal({ open, onClose }: { open: boolean; onClose?:
         }}
       >
         {onClose && (
-          <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl z-10">×</button>
+          <button 
+            type="button"
+            onClick={onClose} 
+            className="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl z-10"
+            aria-label="Close modal"
+          >
+            ×
+          </button>
         )}
         <div className="flex flex-col items-center w-full px-8 py-10">
           <div className="mb-3">
