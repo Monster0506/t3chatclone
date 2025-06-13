@@ -61,7 +61,13 @@ export default function ChatInput({ input, onInputChange, onSubmit, disabled }: 
   }, []);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setFiles(e.target.files ?? undefined);
+    const selectedFiles = e.target.files;
+    if (selectedFiles && selectedFiles.length > 0 && !input.trim()) {
+      onInputChange({
+        target: { value: 'analyze this file:' },
+      } as React.ChangeEvent<HTMLTextAreaElement>);
+    }
+    setFiles(selectedFiles ?? undefined);
   };
 
   const removeFile = (index: number) => {
