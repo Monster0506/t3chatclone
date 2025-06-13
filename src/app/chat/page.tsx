@@ -11,7 +11,7 @@ export default function Page() {
   useEffect(() => {
     const createChat = async () => {
       if (!session?.user) return;
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('chats')
         .insert({
           user_id: session.user.id,

@@ -9,6 +9,7 @@
 </p>
 
 <p align="center">
+  <!-- Placeholder: Replace with a real screenshot of your app -->
   <img src="https://i.imgur.com/3g2aZqL.png" alt="T3 Clone Application Screenshot" width="800"/>
 </p>
 

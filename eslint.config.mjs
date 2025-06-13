@@ -10,9 +10,6 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  {
-    ignores: [".next/**"], // Ignore all files and subdirectories within .next
-  },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     files: ["**/*.ts", "**/*.tsx"],
@@ -20,8 +17,8 @@ const eslintConfig = [
       "@typescript-eslint/no-unused-vars": [
         "warn",
         {
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
+          argsIgnorePattern: "^_", 
+          varsIgnorePattern: "^_", 
           caughtErrorsIgnorePattern: "^_",
 
           ignoreRestSiblings: true,

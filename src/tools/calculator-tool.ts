@@ -52,9 +52,9 @@ export const calculatorTool = tool({
         details: resultDetails,
         inputDetails,
       };
-    } catch (_e: unknown) {
+    } catch (e: unknown) {
       return {
-        error: _e instanceof Error ? _e.message : 'Invalid expression',
+        error: e instanceof Error ? e.message : 'Invalid expression',
         details: 'The expression could not be evaluated. Please check the syntax and try again.'
       };
     }

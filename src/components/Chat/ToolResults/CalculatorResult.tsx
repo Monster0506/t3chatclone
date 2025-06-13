@@ -39,7 +39,7 @@ function formatMatrix(matrixStr: string): React.ReactElement {
         ))}
       </div>
     );
-  } catch (_e) {
+  } catch (e) {
     return <span>{matrixStr}</span>;
   }
 }

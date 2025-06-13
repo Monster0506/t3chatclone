@@ -1,4 +1,4 @@
-import { Gemini, Mistral, OpenAI, Claude, DeepSeek, Grok, } from './svgs';
+import { Gemini, Mistral, Qwen, OpenAI, Claude, DeepSeek, Grok, } from './svgs';
 import { openai } from '@ai-sdk/openai';
 import { xai } from '@ai-sdk/xai';
 import { anthropic } from '@ai-sdk/anthropic';

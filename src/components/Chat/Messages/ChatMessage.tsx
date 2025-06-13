@@ -5,7 +5,7 @@ import ToolResult from "../ToolResults/ToolResult";
 import { useTheme } from "@/theme/ThemeProvider";
 import { FileAttachment, DBAttachment, ExtendedMessage, CodeConversion } from "@/lib/types";
 import React, { useMemo } from "react";
-import Image from "next/image";
+
 export default function ChatMessage({
   message,
   onRefresh,
@@ -33,8 +33,8 @@ export default function ChatMessage({
     try {
       await navigator.clipboard.writeText(code);
       console.log("Code copied to clipboard!");
-    } catch (_err) {
-      console.error("Failed to copy code:", _err);
+    } catch (err) {
+      console.error("Failed to copy code:", err);
     }
   };
 
@@ -58,8 +58,8 @@ export default function ChatMessage({
       if (!response.ok) throw new Error("Conversion API call failed");
 
       await onRefresh();
-    } catch (_error) {
-      console.error("Failed to request code conversion:", _error);
+    } catch (error) {
+      console.error("Failed to request code conversion:", error);
     }
   };
 
@@ -106,24 +106,24 @@ export default function ChatMessage({
   const parts = Array.isArray(message.parts)
     ? message.parts
     : Array.isArray(message.content)
-      ? message.content
-      : [];
+    ? message.content
+    : [];
 
   const partsAttachments = (parts.filter((part: any) => part.type === "file") ||
     []) as FileAttachment[];
   const expAttachments = (message as any).experimental_attachments || [];
   const expFileAttachments = Array.isArray(expAttachments)
     ? expAttachments.map((att: any) => ({
-      type: "file",
-      mimeType: att.mimeType || att.contentType,
-      data:
-        att.data ||
-        (att.url && att.url.startsWith("data:")
-          ? att.url.split(",")[1]
-          : undefined),
-      name: att.name,
-      url: att.url,
-    }))
+        type: "file",
+        mimeType: att.mimeType || att.contentType,
+        data:
+          att.data ||
+          (att.url && att.url.startsWith("data:")
+            ? att.url.split(",")[1]
+            : undefined),
+        name: att.name,
+        url: att.url,
+      }))
     : [];
   const dbAttachments = (message as any).attachments || [];
   const allAttachments = [...partsAttachments, ...expFileAttachments];
@@ -217,24 +217,25 @@ export default function ChatMessage({
         </div>
       )}
       <div
-        className={`max-w-[80%] rounded-2xl p-5 shadow-xl whitespace-pre-wrap break-words ${isUser ? "rounded-br-3xl" : "rounded-bl-3xl"
-          }`}
+        className={`max-w-[80%] rounded-2xl p-5 shadow-xl whitespace-pre-wrap break-words ${
+          isUser ? "rounded-br-3xl" : "rounded-bl-3xl"
+        }`}
         style={
           isUser
             ? {
-              background: theme.buttonBg,
-              color: theme.buttonText,
-              border: `1.5px solid ${theme.buttonBorder}`,
-              boxShadow: "0 8px 32px 0 rgba(31,38,135,0.10)",
-              marginRight: 0,
-            }
+                background: theme.buttonBg,
+                color: theme.buttonText,
+                border: `1.5px solid ${theme.buttonBorder}`,
+                boxShadow: "0 8px 32px 0 rgba(31,38,135,0.10)",
+                marginRight: 0,
+              }
             : {
-              background: theme.inputGlass,
-              color: theme.inputText,
-              border: `1.5px solid ${theme.buttonBorder}`,
-              boxShadow: "0 8px 32px 0 rgba(31,38,135,0.10)",
-              marginLeft: 0,
-            }
+                background: theme.inputGlass,
+                color: theme.inputText,
+                border: `1.5px solid ${theme.buttonBorder}`,
+                boxShadow: "0 8px 32px 0 rgba(31,38,135,0.10)",
+                marginLeft: 0,
+              }
         }
       >
         {parsedContent.map((part, idx) => {
@@ -260,8 +261,7 @@ export default function ChatMessage({
           if (part.type === "code_block") {
             const relevantConversions =
               message.conversions?.filter(
-                (c: CodeConversion) =>
-                  c.code_block_index !== undefined && c.code_block_index === part.index
+                (c: CodeConversion) => c.code_block_index === part.index
               ) || [];
             return (
               <CodeBlock
@@ -289,7 +289,7 @@ export default function ChatMessage({
                   : attachment.url;
                 return (
                   <div key={`part-${idx}`} className="relative group">
-                    <Image
+                    <img
                       src={imageUrl}
                       alt={attachment.name || "Attachment"}
                       className="rounded-lg w-full h-48 object-cover hover:opacity-90 transition-opacity"
@@ -304,7 +304,7 @@ export default function ChatMessage({
               if (attachment.file_type.startsWith("image/")) {
                 return (
                   <div key={`db-${attachment.id}`} className="relative group">
-                    <Image
+                    <img
                       src={attachment.url}
                       alt={attachment.file_name}
                       className="rounded-lg w-full h-48 object-cover hover:opacity-90 transition-opacity"

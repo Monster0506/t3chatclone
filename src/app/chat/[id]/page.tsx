@@ -111,8 +111,8 @@ export default function Page() {
           }
         }
         setInitialMessages(mergedMessages);
-      } catch (_err) {
-        console.error("Error fetching initial messages:", _err);
+      } catch (err) {
+        console.error("Error fetching initial messages:", err);
       }
       setLoading(false);
     };

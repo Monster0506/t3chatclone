@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { modelFamilies} from './modelData';
+import Button from '@/components/UI/Button';
 import Card from '@/components/UI/Card';
 import { X, Grid } from 'lucide-react';
 import { useTheme } from '@/theme/ThemeProvider';

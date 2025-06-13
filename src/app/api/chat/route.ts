@@ -1,4 +1,5 @@
-import { streamText } from 'ai';
+import { streamText, generateObject } from 'ai';
+import { z } from 'zod';
 import { supabaseServer } from '@/lib/supabase/server';
 import { calculatorTool } from '@/tools/calculator-tool';
 import { wikipediaTool } from '@/tools/wikipedia-tool';
@@ -8,14 +9,45 @@ import { google } from '@ai-sdk/google';
 
 import { modelFamilies as modelMap } from '@/components/ModelSelector/modelData';
 import { FlatModelMap, ModelDefinition } from '@/lib/types';
-import { createSystemPrompt, determinePersistance, generateTitleAndTags } from '@/lib/api/ai';
 
+
+
+async function generateTitleAndTags(messages: any[]): Promise<{ title?: string; tags: string[] }> {
+    const context = messages.slice(0, 2).map((m: any) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n');
+    const prompt = `Given the following conversation, generate a concise chat title and 3-5 relevant tags.`;
+    const schema = z.object({
+        title: z.string(),
+        tags: z.array(z.string()),
+    });
+    try {
+        const { object } = await generateObject({
+            model: google('gemini-2.0-flash'),
+            schema,
+            prompt: `${prompt}\n\n${context}`,
+        });
+        return {
+            title: object.title,
+            tags: object.tags,
+        };
+    } catch (e) {
+        console.error('Failed to generate Gemini title/tags object:', e);
+        return { title: undefined, tags: [] };
+    }
+}
 
 export async function POST(req: Request) {
 
+    const indexSchema = z.object({
+        important: z.boolean().describe('Whether this message is important for future reference.'),
+        type: z.enum(['question', 'answer', 'code', 'summary', 'decision'])
+            .describe('The type of important message: question, answer, code, summary, or decision.'),
+        snippet: z.string().describe('A short, user-facing summary or excerpt of the important message.'),
+        metadata: z.any().describe('Additional metadata or context for this index item.'),
+    });
     const body = await req.json();
     console.log('Incoming request body:', JSON.stringify(body));
     const { messages, model: modelId, userSettings, chat_id, ...customFields } = body;
+
 
     const flatModelMap: FlatModelMap = modelMap.reduce((accumulator, family) => {
         family.models.forEach((model: ModelDefinition) => {
@@ -25,8 +57,8 @@ export async function POST(req: Request) {
     }, {} as FlatModelMap);
 
     if (!modelId.startsWith('gemini-2.0-flash')) {
+
         const encoder = new TextEncoder();
-        // this does not work correctly, but we can handle it in the client grossly.
         const stream = new ReadableStream({
             start(controller) {
                 const message = {
@@ -50,7 +82,30 @@ export async function POST(req: Request) {
     const model = flatModelMap[modelId]?.aiFn || google('gemini-2.0-flash');
 
 
-    const systemPrompt = createSystemPrompt(userSettings);
+    let systemPrompt = 'You are a helpful assistant.';
+    if (userSettings) {
+        const promptParts: string[] = [];
+
+        if (userSettings.name?.trim()) {
+            const name = userSettings.name.trim();
+            const occupation = userSettings.occupation?.trim();
+            promptParts.push(`You are a helpful assistant talking to ${name}${occupation ? ` who is a ${occupation}` : ''}.`);
+        }
+
+        const traits = Array.isArray(userSettings.traits) ? userSettings.traits.filter((t: string) => typeof t === 'string' && t.trim()) : [];
+        if (traits.length > 0) {
+            promptParts.push(`Your communication style should be: ${traits.join(', ')}.`);
+        }
+
+        if (userSettings.extra?.trim()) {
+            promptParts.push(`Additional context: ${userSettings.extra.trim()}`);
+        }
+
+        if (promptParts.length > 0) {
+            systemPrompt = promptParts.join('\n') + '\n\nPlease maintain this style throughout the conversation.';
+        }
+    }
+    systemPrompt += "\n\nYou can perform various tasks, such as writing code, answering questions, and creating text or stories. You can also use tools to perform tasks. You always write in markdown format, and when writing code, always indicate the language of the code you are writing."
 
     const result = streamText({
         model,
@@ -71,6 +126,7 @@ export async function POST(req: Request) {
             const newUserMsg = messages[messages.length - 1];
             const newAssistantMsgs = response.messages;
             const toPersist: any[] = [];
+            let lastSavedMessageId: string | null = null;
 
             if (newUserMsg) {
                 let content = newUserMsg.content;
@@ -105,6 +161,8 @@ export async function POST(req: Request) {
                 if (saveError) {
                     console.error('Error saving message:', saveError);
                 } else {
+                    lastSavedMessageId = savedMessage.id;
+
                     if (savedMessage && newUserMsg.experimental_attachments) {
                         for (const attachment of newUserMsg.experimental_attachments) {
                             const { error: attachmentError } = await supabaseServer
@@ -125,9 +183,14 @@ export async function POST(req: Request) {
                             }
                         }
                     }
-
+                    
                     try {
-                        const indexResult = await determinePersistance(newUserMsg, content);
+                        const prompt = `Given the following message in a chat, determine if it is important for future reference (e.g., a key question, answer, code, decision, or summary). If so, return true for 'important' and provide a type, a short snippet, and any relevant metadata.\n\nMessage:\nrole: ${newUserMsg.role}\ncontent: ${content}`;
+                        const { object: indexResult } = await generateObject({
+                            model: google('gemini-2.0-flash'),
+                            schema: indexSchema,
+                            prompt,
+                        });
                         console.log('indexResult', indexResult);
                         if (indexResult.important && indexResult.type && indexResult.snippet) {
                             await supabaseServer.from('chat_index' as any).insert({
@@ -139,8 +202,8 @@ export async function POST(req: Request) {
                                 metadata: indexResult.metadata || null,
                             });
                         }
-                    } catch (_e) {
-                        console.error('Error generating or saving chat index for user message:', _e);
+                    } catch (e) {
+                        console.error('Error generating or saving chat index for user message:', e);
                     }
                 }
             }
@@ -185,8 +248,12 @@ export async function POST(req: Request) {
                     console.error('Error saving assistant/tool message:', saveError);
                 } else {
                     try {
-                        const indexResult = await determinePersistance(msg, content);
-                        console.log('indexResult', indexResult);
+                        const prompt = `Given the following message in a chat, determine if it is important for future reference (e.g., a key question, answer, code, decision, or summary). If so, return true for 'important' and provide a type, a short snippet, and any relevant metadata.\n\nMessage:\nrole: ${msg.role}\ncontent: ${content}`;
+                        const { object: indexResult } = await generateObject({
+                            model: google('gemini-2.0-flash'),
+                            schema: indexSchema,
+                            prompt,
+                        });
                         if (indexResult.important && indexResult.type && indexResult.snippet) {
                             await supabaseServer.from('chat_index' as any).insert({
                                 chat_id,
@@ -198,8 +265,8 @@ export async function POST(req: Request) {
                                 metadata: indexResult.metadata || null,
                             });
                         }
-                    } catch (_e) {
-                        console.error('Error generating or saving chat index for assistant/tool message:', _e);
+                    } catch (e) {
+                        console.error('Error generating or saving chat index for assistant/tool message:', e);
                     }
                 }
             }

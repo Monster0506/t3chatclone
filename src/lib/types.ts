@@ -6,9 +6,6 @@ import { mistral } from '@ai-sdk/mistral';
 import { google } from '@ai-sdk/google';
 import { deepseek } from '@ai-sdk/deepseek';
 import { cerebras } from '@ai-sdk/cerebras';
-
-
-
 export type Theme = {
     name: string;
     representativeBg: string;
@@ -40,7 +37,7 @@ export interface IndexItem {
 export interface CodeConversion {
     target_language: string;
     converted_content: string;
-    code_block_index?: number;
+    code_block_index: number;
 }
 export type ExtendedMessage = Omit<Message, 'role'> & {
     role: 'system' | 'user' | 'assistant' | 'data' | 'tool';
@@ -86,7 +83,7 @@ export interface DBAttachment {
     file_type: string;
     file_size: number;
     url: string;
-    metadata: any;
+    metadata: unknown;
 }
 
 export type ModelDefinition = {

@@ -1,5 +1,5 @@
-import { useRef, useState, useEffect } from 'react';
-import { MoreVertical, Pin, Globe } from 'lucide-react';
+import { useRef, useState, useEffect, RefObject } from 'react';
+import { MoreVertical, Pin, Trash2, Edit2, Globe } from 'lucide-react';
 import type { Tables } from '@/lib/supabase/types';
 import SidebarChatContextMenu from './SidebarChatContextMenu';
 import { useTheme } from '@/theme/ThemeProvider';

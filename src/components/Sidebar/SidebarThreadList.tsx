@@ -3,11 +3,20 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from '@supabase/auth-helpers-react';
 import { supabase } from '@/lib/supabase/client';
 import type { Tables } from '@/lib/supabase/types';
-import { Pin, MessageSquare, ChevronDown, ChevronRight, Archive, Globe } from 'lucide-react';
+import { MoreVertical, Pin, Trash2, Edit2, MessageSquare, ChevronDown, ChevronRight, Archive, Globe } from 'lucide-react';
 import SidebarChatItem from './SidebarChatItem';
+import Badge from '@/components/UI/Badge';
 import { useTheme } from '@/theme/ThemeProvider';
-import { differenceInCalendarDays } from 'date-fns';
+import { differenceInCalendarDays, parseISO } from 'date-fns';
 
+function formatTime(ts: string) {
+  const date = new Date(ts);
+  const now = new Date();
+  if (date.toDateString() === now.toDateString()) {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  return date.toLocaleDateString();
+}
 
 function getTagsFromMetadata(metadata: any): string[] {
   if (metadata && typeof metadata === 'object' && !Array.isArray(metadata) && Array.isArray(metadata.tags)) {
@@ -27,23 +36,25 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
   const pathname = usePathname();
   const inputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const [, setCurrentThread] = useState<Tables<'chats'> | null>(null);
-  const [, setTagAnchorRef] = useState<React.RefObject<HTMLDivElement> | null>(null);
+  const [currentThread, setCurrentThread] = useState<Tables<'chats'> | null>(null);
+  const [tagAnchorRef, setTagAnchorRef] = useState<React.RefObject<HTMLDivElement> | null>(null);
   const [archivedOpen, setArchivedOpen] = useState(false);
   const { theme } = useTheme();
 
 
-  const fetchThreads = useCallback(async () => {
-		if (!session?.user) return;
-		setLoading(true);
-		const { data, error } = await supabase
-			.from("chats")
-			.select("*")
-			.eq("user_id", session.user.id)
-			.order("updated_at", { ascending: false });
-		if (!error && data) setThreads(data);
-		setLoading(false);
-	}, [session]);
+
+  const fetchThreads = async () => {
+    if (!session?.user) return;
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('chats')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('updated_at', { ascending: false });
+    if (!error && data) setThreads(data);
+    setLoading(false);
+  };
+
 
   useEffect(() => {
     const handleRefresh = () => {
@@ -139,7 +150,7 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
   };
   const handleClone = async (thread: Tables<'chats'>) => {
     const meta = typeof thread.metadata === 'object' && thread.metadata ? { ...thread.metadata, archived: false } : {};
-    const { data: newChat } = await supabase
+    const { data: newChat, error } = await supabase
       .from('chats')
       .insert({
         user_id: thread.user_id,
@@ -157,7 +168,7 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
       if (messages && messages.length > 0) {
         const newMessages = messages.map(m => ({
           ...m,
-          id: undefined,
+          id: undefined, 
           chat_id: newChat.id,
           created_at: new Date().toISOString(),
         }));
@@ -193,6 +204,16 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
     setTagAnchorRef(menuRef);
   };
 
+  const handleSaveTags = async (tags: string[]) => {
+    if (currentThread) {
+      const meta = typeof currentThread.metadata === 'object' && !Array.isArray(currentThread.metadata) && currentThread.metadata ? { ...currentThread.metadata } : {};
+      meta.tags = tags;
+      await supabase
+        .from('chats')
+        .update({ metadata: meta })
+        .eq('id', currentThread.id);
+    }
+  };
 
   const handleUpdateTags = async (thread: Tables<'chats'>, tags: string[]) => {
     const meta = typeof thread.metadata === 'object' && !Array.isArray(thread.metadata) && thread.metadata ? { ...thread.metadata } : {};
@@ -277,7 +298,7 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
       if (!session?.user) return;
       (async () => {
         setLoading(true);
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('chats')
           .insert({
             user_id: session.user.id,

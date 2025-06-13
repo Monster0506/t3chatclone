@@ -1,4 +1,4 @@
-import { WrenchIcon } from 'lucide-react';
+import { Calculator, BookOpen } from 'lucide-react';
 import CalculatorResult from './CalculatorResult';
 import { useTheme } from '@/theme/ThemeProvider';
 import React from 'react';
@@ -18,7 +18,7 @@ export default function ToolResult({ toolName, result, state }: ToolResultProps)
         className="flex items-center gap-2 px-4 py-2 rounded-xl shadow"
         style={{ background: theme.inputGlass, color: theme.inputText, border: `1.5px solid ${theme.buttonBorder}` }}
       >
-        <WrenchIcon className="animate-spin" size={18} />
+        <Calculator className="animate-spin" size={18} />
         <span className="font-medium">Calculating...</span>
       </div>
     );
