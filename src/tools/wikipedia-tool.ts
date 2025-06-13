@@ -49,8 +49,8 @@ export const wikipediaTool = tool({
         matchedTitle: bestTitle,
         fullContent,
       };
-    } catch (error) {
-      return { error: 'Failed to fetch Wikipedia summary, please try again.' + (error as Error).message };
+    } catch (_error) {
+      return { error: 'Failed to fetch Wikipedia summary, please try again.' + (_error as Error).message };
     }
   },
 }); 

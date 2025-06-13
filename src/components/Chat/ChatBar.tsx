@@ -3,9 +3,8 @@ import Button from '@/components/UI/Button';
 import { modelFamilies } from '../ModelSelector/modelData';
 import { useTheme } from '@/theme/ThemeProvider';
 
-export default function ChatBar({ selectedModelId, onModelChange, onOpenModelSelector, onOpenSettings }: {
+export default function ChatBar({ selectedModelId, onOpenModelSelector, onOpenSettings }: {
   selectedModelId: string;
-  onModelChange: (modelId: string) => void;
   onOpenModelSelector: () => void;
   onOpenSettings: () => void;
 }) {

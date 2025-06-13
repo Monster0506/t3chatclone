@@ -36,12 +36,10 @@ function fileToBase64(file: File): Promise<string> {
 export default function ChatContainer({
   chatId,
   initialMessages = [],
-  sidebarCollapsed,
   disabled = false,
 }: {
   chatId: string;
   initialMessages?: any[];
-  sidebarCollapsed?: boolean;
   disabled?: boolean;
 }) {
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL);
@@ -71,7 +69,6 @@ export default function ChatContainer({
   const {
     messages,
     input,
-    handleInputChange,
     handleSubmit,
     status,
     stop,
@@ -101,8 +98,8 @@ export default function ChatContainer({
       }));
 
       setMessages(processedMessages);
-    } catch (err) {
-      console.error("Error refreshing messages:", err);
+    } catch (_err) {
+      console.error("Error refreshing messages:", _err);
     }
   }, [chatId, setMessages]);
 
@@ -194,8 +191,8 @@ export default function ChatContainer({
       } else {
         setUserSettings(data);
       }
-    } catch (error) {
-      console.error("Unexpected error saving settings:", error);
+    } catch (_error) {
+      console.error("Unexpected error saving settings:", _error);
     } finally {
       setSettingsLoading(false);
       setSettingsOpen(false);
@@ -232,7 +229,6 @@ export default function ChatContainer({
         <Card className="w-full max-w-4xl mx-auto p-0 md:p-2 shadow-none bg-transparent">
           <ChatBar
             selectedModelId={selectedModel}
-            onModelChange={setSelectedModel}
             onOpenModelSelector={() => setModelSelectorOpen(true)}
             onOpenSettings={() => setSettingsOpen(true)}
           />

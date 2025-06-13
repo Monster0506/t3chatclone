@@ -101,11 +101,11 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json(savedConversion, { status: 200 });
-  } catch (e: any) {
-    if (e instanceof z.ZodError) {
-      return NextResponse.json({ error: e.errors }, { status: 400 });
+  } catch (_e: any) {
+    if (_e instanceof z.ZodError) {
+      return NextResponse.json({ error: _e.errors }, { status: 400 });
     }
-    console.error("An unexpected error occurred:", e.message);
+    console.error("An unexpected error occurred:", _e.message);
     return NextResponse.json(
       { error: "An unexpected error occurred." },
       { status: 500 }

@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useCloseModal } from '@/hooks/use-close-modal';
 import { useRouter } from 'next/navigation';
 import { X, HelpCircle, FileText, Code2, ListChecks, Info } from 'lucide-react';
 import { useSession } from '@supabase/auth-helpers-react';
 import { useTheme } from '@/theme/ThemeProvider';
 import Card from '@/components/UI/Card';
 import { IndexItem } from '@/lib/types';
+import { useCloseModal } from '@/hooks/use-close-modal';
 
 
 const typeIcon: Record<IndexItem['type'], React.ReactNode> = {
@@ -24,12 +24,8 @@ export default function AllChatsIndex({ open, onClose }: { open: boolean; onClos
   const router = useRouter();
   const { theme } = useTheme();
   const modalRef = useRef<HTMLDivElement>(null);
+  useCloseModal({ ref: modalRef, isOpen: open, onClose });
 
-  useCloseModal({
-    ref: modalRef,
-    isOpen: open,
-    onClose,
-  });
 
   useEffect(() => {
     if (!open) return;
@@ -48,7 +44,7 @@ export default function AllChatsIndex({ open, onClose }: { open: boolean; onClos
         setIndexData(data);
         setLoading(false);
       })
-      .catch(err => {
+      .catch(_err => {
         setError('Failed to load index.');
         setLoading(false);
         setIndexData([]);

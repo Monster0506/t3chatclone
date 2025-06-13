@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState } from 'react';
 import { SidebarHeader, SidebarSearch, SidebarThreadList, SidebarNewChatButton } from './index';
 import Card from '@/components/UI/Card';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -18,12 +18,12 @@ export default function Sidebar({ collapsed = false, onCollapse, children }: Sid
   const { theme } = useTheme();
   const session = useSession();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [,setLoading] = useState(false);
 
   const handleNewChat = async () => {
     if (!session?.user) return;
     setLoading(true);
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('chats')
       .insert({
         user_id: session.user.id,

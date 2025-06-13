@@ -50,7 +50,7 @@ export function useKeyboardShortcuts(shortcuts: Record<string, ShortcutHandler>)
 export const shortcutHandlers = {
   // Toggle sidebar (Ctrl+B)
   toggleSidebar: (setSidebarCollapsed: (collapsed: boolean | ((prev: boolean) => boolean)) => void) => 
-    (e: KeyboardEvent) => setSidebarCollapsed(c => !c),
+    (_e: KeyboardEvent) => setSidebarCollapsed(c => !c),
   
   // Focus search (Ctrl+K)
   focusSearch: () => {

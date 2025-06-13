@@ -2,7 +2,7 @@
 import Sidebar from '../Sidebar/Sidebar';
 import { useSession } from '@supabase/auth-helpers-react';
 import LoginModal from '../Auth/LoginModal';
-import { ReactNode, useState, useRef, useEffect } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -20,7 +20,6 @@ export default function AppLayout({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const pathname = usePathname();
   const { theme } = useTheme();
-  const searchInputRef = useRef<HTMLInputElement>(null);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
 

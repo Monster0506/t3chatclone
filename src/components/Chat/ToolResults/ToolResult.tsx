@@ -1,4 +1,4 @@
-import { Calculator, BookOpen } from 'lucide-react';
+import { Calculator } from 'lucide-react';
 import CalculatorResult from './CalculatorResult';
 import { useTheme } from '@/theme/ThemeProvider';
 import React from 'react';

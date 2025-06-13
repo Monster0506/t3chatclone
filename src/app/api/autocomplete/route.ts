@@ -61,8 +61,8 @@ export async function POST(req: Request) {
       startPos,
       endPos,
     });
-  } catch (error) {
-    console.error('Autocomplete error:', error);
+  } catch (_error) {
+    console.error('Autocomplete error:', _error);
     return new Response(JSON.stringify({ error: 'Failed to generate completion' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

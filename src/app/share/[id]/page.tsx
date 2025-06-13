@@ -9,7 +9,7 @@ export default function SharePage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [initialMessages, setInitialMessages] = useState<any[]>([]);
-  const [chat, setChat] = useState<any>(null);
+  const [, setChat] = useState<any>(null);
 
   const id = Array.isArray(chatId) ? chatId[0] : chatId;
 
@@ -89,8 +89,8 @@ export default function SharePage() {
           }
         }
         setInitialMessages(mergedMessages);
-      } catch (err) {
-        console.error('Error fetching initial messages:', err);
+      } catch (_err) {
+        console.error('Error fetching initial messages:', _err);
       }
       setLoading(false);
     };

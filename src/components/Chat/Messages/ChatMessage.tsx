@@ -5,6 +5,7 @@ import ToolResult from "../ToolResults/ToolResult";
 import { useTheme } from "@/theme/ThemeProvider";
 import { FileAttachment, DBAttachment, ExtendedMessage, CodeConversion } from "@/lib/types";
 import React, { useMemo } from "react";
+import Image from "next/image";
 
 export default function ChatMessage({
   message,
@@ -33,8 +34,8 @@ export default function ChatMessage({
     try {
       await navigator.clipboard.writeText(code);
       console.log("Code copied to clipboard!");
-    } catch (err) {
-      console.error("Failed to copy code:", err);
+    } catch (_err) {
+      console.error("Failed to copy code:", _err);
     }
   };
 
@@ -58,8 +59,8 @@ export default function ChatMessage({
       if (!response.ok) throw new Error("Conversion API call failed");
 
       await onRefresh();
-    } catch (error) {
-      console.error("Failed to request code conversion:", error);
+    } catch (_error) {
+      console.error("Failed to request code conversion:", _error);
     }
   };
 
@@ -289,8 +290,10 @@ export default function ChatMessage({
                   : attachment.url;
                 return (
                   <div key={`part-${idx}`} className="relative group">
-                    <img
+                    <Image
                       src={imageUrl}
+                      width={500}
+                      height={500}
                       alt={attachment.name || "Attachment"}
                       className="rounded-lg w-full h-48 object-cover hover:opacity-90 transition-opacity"
                       style={{ border: `1.5px solid ${theme.buttonBorder}` }}
@@ -304,8 +307,10 @@ export default function ChatMessage({
               if (attachment.file_type.startsWith("image/")) {
                 return (
                   <div key={`db-${attachment.id}`} className="relative group">
-                    <img
+                    <Image
                       src={attachment.url}
+                      width={500}
+                      height={500}
                       alt={attachment.file_name}
                       className="rounded-lg w-full h-48 object-cover hover:opacity-90 transition-opacity"
                       style={{ border: `1.5px solid ${theme.buttonBorder}` }}

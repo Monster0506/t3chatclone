@@ -29,8 +29,8 @@ async function generateTitleAndTags(messages: any[]): Promise<{ title?: string; 
             title: object.title,
             tags: object.tags,
         };
-    } catch (e) {
-        console.error('Failed to generate Gemini title/tags object:', e);
+    } catch (_e) {
+        console.error('Failed to generate Gemini title/tags object:', _e);
         return { title: undefined, tags: [] };
     }
 }
@@ -126,7 +126,6 @@ export async function POST(req: Request) {
             const newUserMsg = messages[messages.length - 1];
             const newAssistantMsgs = response.messages;
             const toPersist: any[] = [];
-            let lastSavedMessageId: string | null = null;
 
             if (newUserMsg) {
                 let content = newUserMsg.content;
@@ -161,7 +160,6 @@ export async function POST(req: Request) {
                 if (saveError) {
                     console.error('Error saving message:', saveError);
                 } else {
-                    lastSavedMessageId = savedMessage.id;
 
                     if (savedMessage && newUserMsg.experimental_attachments) {
                         for (const attachment of newUserMsg.experimental_attachments) {
@@ -183,7 +181,7 @@ export async function POST(req: Request) {
                             }
                         }
                     }
-                    
+
                     try {
                         const prompt = `Given the following message in a chat, determine if it is important for future reference (e.g., a key question, answer, code, decision, or summary). If so, return true for 'important' and provide a type, a short snippet, and any relevant metadata.\n\nMessage:\nrole: ${newUserMsg.role}\ncontent: ${content}`;
                         const { object: indexResult } = await generateObject({
@@ -202,8 +200,8 @@ export async function POST(req: Request) {
                                 metadata: indexResult.metadata || null,
                             });
                         }
-                    } catch (e) {
-                        console.error('Error generating or saving chat index for user message:', e);
+                    } catch (_e) {
+                        console.error('Error generating or saving chat index for user message:', _e);
                     }
                 }
             }
@@ -265,8 +263,8 @@ export async function POST(req: Request) {
                                 metadata: indexResult.metadata || null,
                             });
                         }
-                    } catch (e) {
-                        console.error('Error generating or saving chat index for assistant/tool message:', e);
+                    } catch (_e) {
+                        console.error('Error generating or saving chat index for assistant/tool message:', _e);
                     }
                 }
             }
