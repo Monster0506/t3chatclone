@@ -53,7 +53,17 @@ const ChecklistItem = ({
 );
 
 // --- Helper: Card for Unique Features ---
-const UniqueFeatureCard = ({ icon, title, description, theme }: { icon: React.ReactNode, title: string, description: string, theme: Theme }) => (
+const UniqueFeatureCard = ({
+  icon,
+  title,
+  description,
+  theme,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  theme: Theme;
+}) => (
   <div
     className="p-8 rounded-xl text-center flex flex-col items-center h-full"
     style={{
@@ -70,7 +80,15 @@ const UniqueFeatureCard = ({ icon, title, description, theme }: { icon: React.Re
 );
 
 // --- Helper: Detail item for the Personalization Card ---
-const PersonalizationDetail = ({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) => (
+const PersonalizationDetail = ({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) => (
   <div className="flex items-start gap-4">
     <div className="flex-shrink-0 w-8 h-8 mt-1">{icon}</div>
     <div>
@@ -81,7 +99,17 @@ const PersonalizationDetail = ({ icon, title, description }: { icon: React.React
 );
 
 // --- Helper: Stat Card ---
-const StatCard = ({ value, label, icon, theme }: { value: string, label: string, icon: React.ReactNode, theme: Theme }) => (
+const StatCard = ({
+  value,
+  label,
+  icon,
+  theme,
+}: {
+  value: string;
+  label: string;
+  icon: React.ReactNode;
+  theme: Theme;
+}) => (
   <div
     className="p-6 rounded-xl text-center flex flex-col justify-center"
     style={{
@@ -101,7 +129,13 @@ const StatCard = ({ value, label, icon, theme }: { value: string, label: string,
 );
 
 // --- Helper: Shortcut Display ---
-const ShortcutDisplay = ({ shortcuts, theme }: { shortcuts: ShortcutGroup[], theme: Theme }) => (
+const ShortcutDisplay = ({
+  shortcuts,
+  theme,
+}: {
+  shortcuts: ShortcutGroup[];
+  theme: Theme;
+}) => (
   <div
     className="w-full text-left space-y-4 p-6 rounded-xl"
     style={{
@@ -200,8 +234,8 @@ export default function NewChatEntry() {
             Yet Another AI Chat App.
           </h1>
           <p className="text-lg md:text-xl max-w-3xl mx-auto opacity-80 mb-8">
-            The brief was &quot;build a cool AI chat app.&quot; I may have taken that a
-            bit too seriously.
+            The brief was &quot;build a cool AI chat app.&quot; I may have taken
+            that a bit too seriously.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
             <Button
@@ -217,9 +251,7 @@ export default function NewChatEntry() {
               rel="noopener noreferrer"
               className="w-full sm:w-auto"
             >
-              <Button
-                className="px-8 py-4 text-xl font-semibold shadow-lg w-full"
-              >
+              <Button className="px-8 py-4 text-xl font-semibold shadow-lg w-full">
                 Judge My Code
               </Button>
             </a>
@@ -318,6 +350,12 @@ export default function NewChatEntry() {
                   status="done"
                   title="Keyboard Shortcuts"
                   notes="A full suite of hotkeys because real pros don't use the mouse. Press Ctrl+? to see the cheat sheet."
+                  theme={theme}
+                />
+                <ChecklistItem
+                  status="done"
+                  title="Mind-Reading Autocomplete"
+                  notes="Starts completing your sentences as you type. It's either incredibly helpful or a sign the AI is getting a little too familiar. You decide."
                   theme={theme}
                 />
                 <ChecklistItem
