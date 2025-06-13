@@ -13,8 +13,6 @@ function EnsureProfile() {
       }
 
       try {
-
-
         const profileData = {
           id: session.user.id,
           email: session.user.email,
@@ -24,7 +22,7 @@ function EnsureProfile() {
         };
 
 
-        const { data, error: upsertError } = await supabase
+        const { error: upsertError } = await supabase
           .from('profiles')
           .upsert(profileData, {
             onConflict: 'id',
@@ -36,14 +34,15 @@ function EnsureProfile() {
         if (upsertError) {
           console.error('Error upserting profile:', upsertError);
         }
-      } catch (error) {
-        console.error('Unexpected error in profile creation:', error);
+      } catch (_error) {
+        console.error('Unexpected error in profile creation:', _error);
       }
     };
 
     if (session) {
       createProfile();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, supabase]);
   return null;
 }

@@ -151,7 +151,7 @@ export default function NewChatEntry() {
   const handleNewChat = async () => {
     if (!session?.user) return;
     setLoading(true);
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('chats')
       .insert({
         user_id: session.user.id,
@@ -200,7 +200,7 @@ export default function NewChatEntry() {
             Yet Another AI Chat App.
           </h1>
           <p className="text-lg md:text-xl max-w-3xl mx-auto opacity-80 mb-8">
-            The brief was "build a cool AI chat app." I may have taken that a
+            The brief was &quot;build a cool AI chat app.&quot; I may have taken that a
             bit too seriously.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
@@ -226,7 +226,7 @@ export default function NewChatEntry() {
           </div>
           <div className="max-w-sm mx-auto">
             <p className="text-sm font-semibold mb-2 opacity-80">
-              Don't Like the Vibe? Change It.
+              Don&apos;t Like the Vibe? Change It.
             </p>
             <ThemePicker
               selectedThemeName={selectedTheme}

@@ -63,7 +63,7 @@ export default function LanguageSelectionModal({
         lang !== currentLanguage &&
         !existingConversions.includes(lang)
     );
-  }, [searchTerm, availableLanguages, currentLanguage, existingConversions]);
+  }, [searchTerm, currentLanguage, existingConversions]);
 
   const handleSelect = (lang: string) => {
     onSelect(lang.toLowerCase());

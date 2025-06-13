@@ -41,7 +41,7 @@ export default function AllChatsIndex({ open, onClose }: { open: boolean; onClos
         setIndexData(data);
         setLoading(false);
       })
-      .catch(err => {
+      .catch(() => {
         setError('Failed to load index.');
         setLoading(false);
         setIndexData([]);
