@@ -3,6 +3,7 @@ import { ChangeEvent, FormEvent, useRef, useState, useEffect } from 'react';
 import { useSession } from '@supabase/auth-helpers-react';
 import { Paperclip, Send, X, File as FileIcon, Image as ImageIcon } from 'lucide-react';
 import { useTheme } from '@/theme/ThemeProvider';
+import { useAutocomplete } from '@/hooks/use-autocomplete';
 
 interface ChatInputProps {
   input: string;
@@ -49,8 +50,15 @@ export default function ChatInput({ input, onInputChange, onSubmit, disabled }: 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<FileList | undefined>(undefined);
   const session = useSession();
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
+  const textareaRef = useRef<HTMLTextAreaElement>(null!); // Non-null assertion as we know it will be set
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const { suggestion, isLoading, acceptSuggestion } = useAutocomplete({
+    input,
+    cursorPosition,
+    onInputChange,
+    textareaRef,
+    setCursorPosition
+  });
   useEffect(() => {
     function handleFocusEvent() {
       textareaRef.current?.focus();
@@ -82,7 +90,15 @@ export default function ChatInput({ input, onInputChange, onSubmit, disabled }: 
     }
   };
 
+
+
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (suggestion && (e.key === 'Tab')) {
+      e.preventDefault();
+      acceptSuggestion();
+      return;
+    }
+    
     if (e.key === 'Enter') {
       if (e.shiftKey) {
         return;
@@ -122,17 +138,57 @@ export default function ChatInput({ input, onInputChange, onSubmit, disabled }: 
           boxShadow: '0 8px 32px 0 rgba(31,38,135,0.10)',
         }}
       >
-        <textarea
-          ref={textareaRef}
-          value={input}
-          onChange={onInputChange}
-          onKeyDown={handleKeyDown}
-          placeholder="Type your message here..."
-          className="flex-1 min-w-0 max-w-full text-base px-4 py-3 rounded-xl resize-none border-none bg-transparent focus:outline-none"
-          style={{ color: theme.inputText, boxShadow: 'none', background: 'transparent' }}
-          rows={1}
-          disabled={disabled || !session}
-        />
+        <div className="relative flex-1">
+          <div className="relative">
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => {
+                // Update the cursor position before calling onInputChange
+                const target = e.target as HTMLTextAreaElement;
+                setCursorPosition(target.selectionStart || 0);
+                onInputChange(e);
+              }}
+              onKeyDown={handleKeyDown}
+              onSelect={(e) => {
+                const target = e.target as HTMLTextAreaElement;
+                setCursorPosition(target.selectionStart || 0);
+              }}
+              onClick={(e) => {
+                // Update cursor position on click as well
+                const target = e.target as HTMLTextAreaElement;
+                setCursorPosition(target.selectionStart || 0);
+              }}
+              placeholder="Type your message here..."
+              className="w-full min-w-0 text-base px-4 py-3 rounded-xl resize-none border-none bg-transparent focus:outline-none"
+              style={{ 
+                color: theme.inputText, 
+                boxShadow: 'none', 
+                background: 'transparent',
+                position: 'relative',
+                zIndex: 10,
+                caretColor: theme.inputText,
+              }}
+              rows={1}
+              disabled={disabled || !session}
+            />
+            {suggestion && (
+              <div 
+                className="absolute top-0 left-0 w-full h-full pointer-events-none px-4 py-3"
+                style={{
+                  color: `${theme.inputText}80`,
+                  whiteSpace: 'pre',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  zIndex: 1,
+                }}
+              >
+                {input}
+                <span style={{ opacity: 0.6 }}>{suggestion}</span>
+              </div>
+            )}
+          </div>
+        </div>
         <input
           type="file"
           multiple

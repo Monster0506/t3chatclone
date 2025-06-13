@@ -44,8 +44,13 @@ export async function POST(req: Request) {
       }
     }
 
-    // Clean up the completion
+    // Clean up the completion - remove any prefix that matches the input
     completion = completion.split('\n')[0].trim();
+    
+    // Remove any prefix that matches the input text to prevent duplication
+    if (completion.toLowerCase().startsWith(textBeforeCursor.toLowerCase())) {
+      completion = completion.slice(textBeforeCursor.length);
+    }
 
     // Calculate the position information
     const startPos = lastNewLine;
