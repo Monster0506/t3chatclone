@@ -1,5 +1,4 @@
-import { streamText, generateObject } from 'ai';
-import { z } from 'zod';
+import { streamText } from 'ai';
 import { supabaseServer } from '@/lib/supabase/server';
 import { calculatorTool } from '@/tools/calculator-tool';
 import { wikipediaTool } from '@/tools/wikipedia-tool';
@@ -9,45 +8,13 @@ import { google } from '@ai-sdk/google';
 
 import { modelFamilies as modelMap } from '@/components/ModelSelector/modelData';
 import { FlatModelMap, ModelDefinition } from '@/lib/types';
+import { generateTitleAndTags, getImportanceIndex, buildSystemPrompt } from '@/lib/api/ai';
 
-
-
-async function generateTitleAndTags(messages: any[]): Promise<{ title?: string; tags: string[] }> {
-    const context = messages.slice(0, 2).map((m: any) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n');
-    const prompt = `Given the following conversation, generate a concise chat title and 3-5 relevant tags.`;
-    const schema = z.object({
-        title: z.string(),
-        tags: z.array(z.string()),
-    });
-    try {
-        const { object } = await generateObject({
-            model: google('gemini-2.0-flash'),
-            schema,
-            prompt: `${prompt}\n\n${context}`,
-        });
-        return {
-            title: object.title,
-            tags: object.tags,
-        };
-    } catch (_e) {
-        console.error('Failed to generate Gemini title/tags object:', _e);
-        return { title: undefined, tags: [] };
-    }
-}
 
 export async function POST(req: Request) {
-
-    const indexSchema = z.object({
-        important: z.boolean().describe('Whether this message is important for future reference.'),
-        type: z.enum(['question', 'answer', 'code', 'summary', 'decision'])
-            .describe('The type of important message: question, answer, code, summary, or decision.'),
-        snippet: z.string().describe('A short, user-facing summary or excerpt of the important message.'),
-        metadata: z.any().describe('Additional metadata or context for this index item.'),
-    });
     const body = await req.json();
     console.log('Incoming request body:', JSON.stringify(body));
     const { messages, model: modelId, userSettings, chat_id, ...customFields } = body;
-
 
     const flatModelMap: FlatModelMap = modelMap.reduce((accumulator, family) => {
         family.models.forEach((model: ModelDefinition) => {
@@ -81,42 +48,59 @@ export async function POST(req: Request) {
     }
     const model = flatModelMap[modelId]?.aiFn || google('gemini-2.0-flash');
 
+    const systemPrompt = buildSystemPrompt(userSettings);
+    console.log("System prompt built")
 
-    let systemPrompt = 'You are a helpful assistant.';
-    if (userSettings) {
-        const promptParts: string[] = [];
 
-        if (userSettings.name?.trim()) {
-            const name = userSettings.name.trim();
-            const occupation = userSettings.occupation?.trim();
-            promptParts.push(`You are a helpful assistant talking to ${name}${occupation ? ` who is a ${occupation}` : ''}.`);
-        }
+    const filteredMessages = messages
+        .filter((m: any) => {
+            // Keep tool messages and messages with content
+            if (m.role === 'tool' || m.content) return true;
 
-        const traits = Array.isArray(userSettings.traits) ? userSettings.traits.filter((t: string) => typeof t === 'string' && t.trim()) : [];
-        if (traits.length > 0) {
-            promptParts.push(`Your communication style should be: ${traits.join(', ')}.`);
-        }
+            // For messages with parts, ensure at least one part has content
+            if (m.parts && Array.isArray(m.parts)) {
+                return m.parts.some((part: any) => {
+                    if (part.text && part.text.trim() !== '') return true;
+                    if (part.inlineData) return true; // Keep inline data parts
+                    return false;
+                });
+            }
+            return false;
+        })
+        .map((m: any) => {
+            // For messages with parts, filter out empty parts
+            if (m.parts && Array.isArray(m.parts)) {
+                return {
+                    ...m,
+                    parts: m.parts.filter((part: any) => {
+                        if (part.text && part.text.trim() !== '') return true;
+                        if (part.inlineData) return true;
+                        return false;
+                    })
+                };
+            }
+            return m;
+        })
+        .filter((m: any) => {
+            // Final check to ensure we don't have empty parts arrays
+            if (m.parts && Array.isArray(m.parts) && m.parts.length === 0) return false;
+            return true;
+        });
 
-        if (userSettings.extra?.trim()) {
-            promptParts.push(`Additional context: ${userSettings.extra.trim()}`);
-        }
-
-        if (promptParts.length > 0) {
-            systemPrompt = promptParts.join('\n') + '\n\nPlease maintain this style throughout the conversation.';
-        }
-    }
-    systemPrompt += "\n\nYou can perform various tasks, such as writing code, answering questions, and creating text or stories. You can also use tools to perform tasks. You always write in markdown format, and when writing code, always indicate the language of the code you are writing."
-
+    console.log('Filtered messages:', JSON.stringify(filteredMessages, null, 2));
     const result = streamText({
         model,
         system: systemPrompt,
-        messages: messages.filter((m: any) => m.role !== 'tool'),
+        messages: filteredMessages,
         ...customFields,
         tools: {
             calculator: calculatorTool,
             wikipedia: wikipediaTool,
         },
         maxSteps: 5,
+        async onError({ error }) {
+            console.error('onError', error);
+        },
         async onFinish({ response }) {
             console.log('onFinish', response);
             if (!chat_id) {
@@ -183,12 +167,7 @@ export async function POST(req: Request) {
                     }
 
                     try {
-                        const prompt = `Given the following message in a chat, determine if it is important for future reference (e.g., a key question, answer, code, decision, or summary). If so, return true for 'important' and provide a type, a short snippet, and any relevant metadata.\n\nMessage:\nrole: ${newUserMsg.role}\ncontent: ${content}`;
-                        const { object: indexResult } = await generateObject({
-                            model: google('gemini-2.0-flash'),
-                            schema: indexSchema,
-                            prompt,
-                        });
+                        const indexResult = await getImportanceIndex(newUserMsg.role, content)
                         console.log('indexResult', indexResult);
                         if (indexResult.important && indexResult.type && indexResult.snippet) {
                             await supabaseServer.from('chat_index' as any).insert({
@@ -246,12 +225,7 @@ export async function POST(req: Request) {
                     console.error('Error saving assistant/tool message:', saveError);
                 } else {
                     try {
-                        const prompt = `Given the following message in a chat, determine if it is important for future reference (e.g., a key question, answer, code, decision, or summary). If so, return true for 'important' and provide a type, a short snippet, and any relevant metadata.\n\nMessage:\nrole: ${msg.role}\ncontent: ${content}`;
-                        const { object: indexResult } = await generateObject({
-                            model: google('gemini-2.0-flash'),
-                            schema: indexSchema,
-                            prompt,
-                        });
+                        const indexResult = await getImportanceIndex(msg.role, content);
                         if (indexResult.important && indexResult.type && indexResult.snippet) {
                             await supabaseServer.from('chat_index' as any).insert({
                                 chat_id,
@@ -290,8 +264,6 @@ export async function POST(req: Request) {
                     const { title, tags } = await generateTitleAndTags(allMsgs);
                     let newTitle = chatRow.title;
                     if (newTitle === 'New Chat' && title) newTitle = title;
-
-
                     const meta = typeof chatRow.metadata === 'object' && chatRow.metadata ? { ...chatRow.metadata } : {};
                     const existingTags = Array.isArray((meta as any).tags) ? ((meta as any).tags as any[]).filter((t: any) => typeof t === 'string') : [];
                     const allTags = Array.from(new Set([...(existingTags as string[]), ...(tags as string[])]));
