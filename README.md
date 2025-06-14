@@ -1,74 +1,49 @@
 # T3 Clone: My Entry for the T3 ChatCloneathon
 
-<p align="center">
-  <strong>Because the world needed one more AI chat app. This one comes with all the bells and whistles.</strong>
-</p>
+## Yet Another AI Chat App
 
-<p align="center">
-  <a href="https://t3chatclone-seven.vercel.app/"><strong>🚀 View Live Demo</strong></a>
-</p>
+The brief was "build a cool AI chat app." I may have taken that a bit too seriously.
 
-<p align="center">
-  <!-- Placeholder: Replace with a real screenshot of your app -->
-  <img src="https://i.imgur.com/3g2aZqL.png" alt="T3 Clone Application Screenshot" width="800"/>
-</p>
+This isn't just a T3 Chat clone -- it's a fully-featured, customizable AI chat platform built for power users, keyboard warriors, and anyone who's ever wished their LLM app had dark mode, 70+ model options, and a sense of humor.
 
-This repository contains my submission for the **T3 ChatCloneathon**. The brief was "build a cool AI chat app" and "have fun with it." I may have taken the first part a bit too seriously.
+Key features include:
 
-This project is a feature-rich, multi-provider AI chat platform built on Next.js, Supabase, and the Vercel AI SDK. It's designed to be a powerful tool, not just another `create-next-app` with an API key.
+- Multi-provider LLM support via Vercel AI SDK
+- Full Supabase Auth with RLS and synced history
+- One-click Vercel deploy with BYOK support
+- Attachment uploads, syntax highlighting, hotkeys, chat branching, and more
+- 51 hand-crafted UI themes and support for 259 languages
 
-## ✨ Feature Checklist for the Esteemed Judges
+Yeah. It's a bit much. You're welcome.
 
-This project was designed to meet all core requirements and then some, because "minimum requirements" is just a suggestion, right?
+---
 
-### Core Requirements
+## Tech Stack
 
-| Requirement | Status | Implementation Notes |
-| :--- | :---: | :--- |
-| **Chat with Various LLMs** | ✅ | Full support for **70+ models** from **7 providers** via the Vercel AI SDK. The `model` field in the `chats` table lets users pick their poison. |
-| **Authentication & Sync** | ✅ | Full user auth via Supabase. All chat history, settings, and attachments are dutifully synced, so users can't escape their questionable prompts. |
-| **Browser Friendly** | ✅ | A fully responsive web app that works on modern browsers. No, I did not test it on Internet Explorer. |
-| **Easy to Try** | ✅ | Deployed on Vercel with a public URL, so you don't have to wrangle my `node_modules`. A "Bring Your Own Key" model is supported. |
+- **Framework:** [Next.js](https://nextjs.org/) 14 (App Router)
+- **AI SDK:** [Vercel AI SDK](https://sdk.vercel.ai/)
+- **Database & Auth:** [Supabase](https://supabase.io/)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+- **UI:** [React](https://react.dev/), [Lucide Icons](https://lucide.dev/)
+- **Deployment:** [Vercel](https://vercel.com/)
 
-### Bonus Features
+---
 
-| Feature | Status | Implementation Notes |
-| :--- | :---: | :--- |
-| **Attachment Support** | ✅ | Implemented via Supabase Storage and a dedicated `attachments` table. Yes, you can ask it what's in the PDF. |
-| **Chat Sharing** | ✅ | Chats can be made public via a boolean flag, generating a read-only link to show off your brilliant (or horrifying) conversations. |
-| **Web Search** | ✅ | The "Wikipedia Search" tool provides integrated, real-time information retrieval. It's like giving the AI a library card. |
-| **Bring Your Own Key** | ✅ | The architecture is built for this. Users must provide API keys for the providers they wish to use. My wallet thanks you. |
-| **Syntax Highlighting** | ✅ | Implemented to make code snippets readable. Because staring at unformatted code is a form of cruel and unusual punishment. |
-| **Anything Else (Creativity)** | ✅ | Several unique features were implemented to make this more than just a wrapper around an API: |
-| | | **- Advanced Chat Org:** Pinning, Archiving, and Tagging. For the obsessively organized. |
-| | | **- Full Chat Index:** A `chat_index` table stores AI-generated summaries, allowing users to jump to any point in a long conversation. |
-| | | **- User Personalization:** A `user_settings` table stores user traits and theme preferences to tailor the experience. |
-| **Chat Branching** | 💡 | The "Clone Chat" feature provides a manual way to branch conversations. Because who doesn't love rewriting history? |
-
-## 💻 Tech Stack
-
-*   **Framework:** [Next.js](https://nextjs.org/) 14 (App Router)
-*   **AI SDK:** [Vercel AI SDK](https://sdk.vercel.ai/)
-*   **Database & Auth:** [Supabase](https://supabase.io/)
-*   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
-*   **UI:** [React](https://react.dev/), [Lucide Icons](https://lucide.dev/)
-*   **Deployment:** [Vercel](https://vercel.com/)
-
-## 🚀 Getting Started: Local Setup
+## Getting Started: Local Setup
 
 Follow these steps to get a local copy up and running. Or just click the demo link. Your call.
 
 ### 1. Prerequisites
 
-*   [Node.js](https://nodejs.org/en) (v18.x or later)
-*   [npm](https://www.npmjs.com/) or your preferred package manager
-*   A [Supabase](https://supabase.com/) account (The free tier is surprisingly generous)
-*   API keys for any AI providers you wish to use.
+- [Node.js](https://nodejs.org/en) (v18.x or later)
+- [npm](https://www.npmjs.com/) or your preferred package manager
+- A [Supabase](https://supabase.com/) account (The free tier is surprisingly generous)
+- API keys for any AI providers you wish to use.
 
 ### 2. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/t3-clone.git
+git clone https://github.com/monster0506/t3chatclone.git
 cd t3-clone
 ```
 
@@ -80,10 +55,10 @@ npm install
 
 ### 4. Set Up Supabase
 
-1.  Go to your [Supabase Dashboard](https://app.supabase.com/) and click **"New project"**.
-2.  Once the project is created, navigate to the **SQL Editor**.
-3.  Copy the entire contents of `/schema.sql` and run it. This will build the digital scaffolding for your app.
-4.  Navigate to **Project Settings > API** to find the keys for the next step.
+1. Go to your [Supabase Dashboard](https://app.supabase.com/) and click **"New project"**.
+2. Once the project is created, navigate to the **SQL Editor**.
+3. Copy the entire contents of `/schema.sql` and run it. This will build the digital scaffolding for your app.
+4. Navigate to **Project Settings > API** to find the keys for the next step.
 
 ### 5. Configure Environment Variables
 
@@ -118,26 +93,138 @@ Open [http://localhost:3000](http://localhost:3000) and witness your creation co
 
 ---
 
-## 🗃️ Database Schema Overview
+## Database Schema Overview
 
-Behold, the blueprint. The full schema is in `/schema.sql`, but here's the gossip on what each table does.
+Behold, the blueprint. The full schema is in `/schema.sql`, but here's what each table does.
+```mermaid
+erDiagram
+    profiles {
+        string id PK "Primary Key"
+        string email "User's email"
+        string avatar_url "URL for avatar"
+        string full_name "User's full name"
+        string created_at
+        string updated_at
+    }
 
-*   `profiles` & `user_settings`: Manages users and their very important theme preferences.
-*   `chats`: The star of the show. Holds metadata for each conversation.
-*   `messages`: The actual back-and-forth. Where the magic (and nonsense) happens.
-*   `attachments`: A digital paperclip for every file a user uploads.
-*   `chat_index`: The table of contents for long, rambling chats. A real lifesaver.
+    user_settings {
+        string id PK "Primary Key"
+        string user_id FK "Foreign Key to profiles.id"
+        string theme
+        string language
+        string occupation
+        Json notification_preferences
+        Json traits
+        string created_at
+        string updated_at
+    }
 
-## 🌐 Deploy on Vercel
+    chats {
+        string id PK "Primary Key"
+        string user_id FK "Foreign Key to profiles.id"
+        string title "Chat title"
+        string model "AI model used"
+        boolean public "Is the chat public?"
+        Json metadata
+        string created_at
+        string updated_at
+    }
+
+    messages {
+        string id PK "Primary Key"
+        string chat_id FK "Foreign Key to chats.id"
+        string role "e.g., 'user', 'assistant'"
+        string content "Message content"
+        string type "Message type"
+        Json metadata
+        string created_at
+    }
+
+    attachments {
+        string id PK "Primary Key"
+        string message_id FK "Foreign Key to messages.id"
+        string file_name
+        number file_size
+        string file_type
+        string url
+        Json metadata
+        string created_at
+    }
+
+    code_conversions {
+        string id PK "Primary Key"
+        string message_id FK "Foreign Key to messages.id"
+        number code_block_index
+        string target_language
+        string converted_content
+        Json metadata
+        string created_at
+    }
+
+    chat_index {
+        string id PK "Primary Key"
+        string chat_id FK "Foreign Key to chats.id"
+        string message_id FK "Foreign Key to messages.id"
+        string snippet "Indexed text snippet"
+        string type "Index entry type"
+        number score "Relevance score"
+        Json metadata
+        string created_at
+    }
+
+    %% --- Relationships ---
+    profiles ||--|| user_settings : "has one"
+    profiles ||--o{ chats : "has many"
+    chats ||--o{ messages : "has many"
+    chats ||--o{ chat_index : "is indexed in"
+    messages ||--o{ attachments : "has many"
+    messages ||--o{ code_conversions : "has many"
+    messages ||--o{ chat_index : "is indexed in"
+```
+
+---
+
+## Deploy on Vercel
 
 The easiest way to deploy is to use the [Vercel Platform](https://vercel.com/new). Just remember to set your environment variables in the project settings.
 
-## ⚖️ Competition Rules Compliance
+---
 
-*   **Open Source:** This project is licensed under the MIT License. Go nuts.
-*   **Team Size:** Developed by [Your Name/Team Names]. We're still on speaking terms.
-*   **Content Usage:** I acknowledge that Theo may use this submission for content. Please make my code look good on camera.
+## Features at a Glance
 
-## 📄 License
+| Feature                     | Description                                                           |
+| --------------------------- | --------------------------------------------------------------------- |
+| **LLM Switching**           | Over 70 models supported across 7 providers                           |
+| **Authentication**          | Supabase Auth with full row-level security                            |
+| **UI Themes**               | 51 hand-crafted options, including _Synthwave Sunset_                 |
+| **Attachments**             | PDF and image uploads, stored in Supabase and analyzable by AI        |
+| **Syntax Highlighting**     | 259 languages. If you find a missing one, I will be impressed         |
+| **Hotkeys**                 | Full keyboard navigation suite. Ctrl+? shows the full list            |
+| **Web Search**              | Wikipedia integration with clean previews                             |
+| **Autocomplete**            | Mind-reading autocomplete as you type                                 |
+| **Chat Indexing**           | AI-generated summaries and jump points for long chats                 |
+| **Chat Branching**          | Clone any conversation to fork your own rabbit holes                  |
+| **Personalization**         | Set custom name, profession, personality, and persistent instructions |
+| **Polyglot Code Converter** | Translate code between 295+ languages, because why not?               |
+
+---
+
+## Competition Rules Compliance
+
+- **Open Source:** This project is licensed under the MIT License. Go nuts.
+- **Team Size:** Solo dev: [monster0506](https://github.com/monster0506). Still on speaking terms with myself.
+- **Content Usage:** I acknowledge that Theo may use this submission for content. Please make my code look good on camera.
+
+---
+
+## License
 
 This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+---
+
+## Built With Code and Vibes
+
+Thanks for reading. Now go [try it out](https://t3clone.monster0506.dev), break stuff, and if you like what you see, [judge the code](https://github.com/monster0506/t3chatclone).
+
+Built for the T3 ChatCloneathon with maximum scope creep.
