@@ -17,7 +17,9 @@ export function WikipediaResult({ title, summary, url, thumbnail }: { title: str
     >
       <div className="flex flex-col items-center md:items-start md:w-32">
         <Image
-          src={thumbnail || 'https://upload.wikimedia.org/wikipedia/commons/5/5a/Wikipedia%27s_W.svg'}
+          width={24}
+          height={24}
+          src={thumbnail || '/assets/Wikipedia%27s_W.svg'}
           alt={title}
           className="w-24 h-24 object-cover rounded-lg mb-3 border shadow" />
         <a
@@ -28,14 +30,14 @@ export function WikipediaResult({ title, summary, url, thumbnail }: { title: str
           style={{ textDecoration: 'none', marginTop: 4 }}
         >
           <span className="inline-flex items-center gap-1">
-            <Image src="https://en.wikipedia.org/favicon.ico" alt="Wikipedia" className="w-4 h-4" />
+            <Image width={16} height={16} src={"/assets/wikipedia.ico"} alt="Wikipedia" className="w-4 h-4" />
             Read on Wikipedia
           </span>
         </a>
       </div>
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-1">
-          <Image src="https://en.wikipedia.org/favicon.ico" alt="Wikipedia" className="w-5 h-5" />
+          <Image width={16} height={16} src={"/assets/wikipedia.ico"} alt="Wikipedia" className="w-5 h-5" />
           <span className="font-bold text-xl" style={{ color: theme.inputText }}>{title}</span>
         </div>
         <div className="text-base mt-1" style={{ color: theme.inputText }}>

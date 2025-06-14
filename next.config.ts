@@ -5,8 +5,13 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  images: {
+    unoptimized: true,
+    remotePatterns: [
+        new URL("https://upload.wikimedia.org/**")
+    ],
+  },
 
-  /* config options here */
 };
 
 export default nextConfig;

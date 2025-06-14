@@ -8,6 +8,8 @@ export default function Avatar({ src, alt, initials, className = '' }: { src?: s
     <Image
       src={src}
       alt={alt || 'Avatar'}
+      width={40}
+      height={40}
       className={`w-10 h-10 rounded-full object-cover border-2 ${className}`}
       style={{ borderColor: theme.buttonBorder, background: theme.glass }}
     />
