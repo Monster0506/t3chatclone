@@ -22,7 +22,7 @@ export default function CodeBlock({
   onConvertRequest?: (
     targetLanguage: string,
     codeBlockIndex: number | undefined,
-  ) => void;
+  ) => Promise<void>; // Updated prop type
 }) {
   const { theme } = useTheme();
   const style = oneDark;
@@ -33,6 +33,8 @@ export default function CodeBlock({
   const [loadingLanguage, setLoadingLanguage] = useState<string | null>(null);
 
   useEffect(() => {
+    // This effect runs when a conversion is successful and the `conversions`
+    // prop updates, clearing the loading state.
     if (
       loadingLanguage &&
       conversions.some((c) => c.target_language === loadingLanguage)
@@ -42,7 +44,7 @@ export default function CodeBlock({
   }, [conversions, loadingLanguage]);
 
   const { currentCode, currentLanguage } = useMemo(() => {
-    if (selectedLanguage === originalLanguage) {
+    if (selectedLanguage === (originalLanguage || "text")) {
       return {
         currentCode: originalCode,
         currentLanguage: originalLanguage,
@@ -57,43 +59,51 @@ export default function CodeBlock({
         currentLanguage: conversion.target_language,
       };
     }
-    if (loadingLanguage === selectedLanguage) {
-      return {
-        currentCode: `Converting to ${selectedLanguage}...`,
-        currentLanguage: selectedLanguage,
-      };
-    }
+    // This case is now primarily handled by the loading state
     return {
       currentCode: originalCode,
       currentLanguage: originalLanguage,
     };
-  }, [
-    selectedLanguage,
-    originalCode,
-    originalLanguage,
-    conversions,
-    loadingLanguage,
-  ]);
+  }, [selectedLanguage, originalCode, originalLanguage, conversions]);
 
   const mappedLanguage = useMemo(() => {
     const langKey = currentLanguage?.toLowerCase() ?? "";
     return languageMap[langKey] || currentLanguage || "text";
   }, [currentLanguage]);
 
-  const handleLanguageChange = (newLanguage: string) => {
-    setSelectedLanguage(newLanguage);
-    const isOriginal = newLanguage === originalLanguage;
+  const handleLanguageChange = async (newLanguage: string) => {
+    const previousLanguage = selectedLanguage;
+    setSelectedLanguage(newLanguage); // Optimistically update UI
+
+    const isOriginal = newLanguage === (originalLanguage || "text");
     const hasConversion = conversions.some(
       (c) => c.target_language === newLanguage,
     );
-    if (!isOriginal && !hasConversion) {
+
+    // If the selected language is new and needs conversion
+    if (!isOriginal && !hasConversion && onConvertRequest) {
       setLoadingLanguage(newLanguage);
-      onConvertRequest?.(newLanguage, codeBlockIndex);
+      try {
+        await onConvertRequest(newLanguage, codeBlockIndex);
+        // On success, the useEffect will clear the loading state
+        // once the new `conversions` prop arrives.
+      } catch (error) {
+        console.error("Conversion failed, reverting UI state.", error);
+        // On failure, revert the UI state.
+        setLoadingLanguage(null);
+        setSelectedLanguage(previousLanguage);
+      }
     }
   };
 
   const handleCopy = () => onCopy?.(currentCode);
   const isConverted = currentLanguage !== originalLanguage;
+
+  // Display a loading message if a conversion is in progress
+  const displayCode =
+    loadingLanguage === selectedLanguage
+      ? `Converting to ${selectedLanguage}...`
+      : currentCode;
 
   return (
     <div
@@ -112,7 +122,7 @@ export default function CodeBlock({
         customStyle={{ margin: 0, fontSize: "1rem", paddingBottom: "2.5rem" }}
         showLineNumbers={false}
       >
-        {currentCode}
+        {displayCode}
       </SyntaxHighlighter>
 
       <div className="absolute top-3 right-4 text-xs font-semibold opacity-60">
