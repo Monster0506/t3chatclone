@@ -75,11 +75,12 @@ export async function POST(req: Request) {
       \`\`\`
     `;
 
-    const { object: conversionResult } = await generateObject({
+    const conversionResult = await generateObject({
       model: google("gemini-2.0-flash"),
       schema: conversionSchema,
       prompt,
     });
+    const result = conversionResult.object;
 
     const { data: savedConversion, error: saveError } = await supabase
       .from("code_conversions")
@@ -87,7 +88,7 @@ export async function POST(req: Request) {
         message_id: messageId,
         code_block_index: codeBlockIndex,
         target_language: targetLanguage,
-        converted_content: conversionResult.convertedCode,
+        converted_content: result.convertedCode,
       })
       .select()
       .single();
