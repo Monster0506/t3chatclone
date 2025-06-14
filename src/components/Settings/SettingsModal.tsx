@@ -17,6 +17,7 @@ import {
   Check,
   ChevronDown,
 } from "lucide-react";
+import { UserSettings } from "@/lib/types";
 
 const TRAIT_LIMIT = 50;
 const TRAIT_MAX_LENGTH = 100;
@@ -116,7 +117,7 @@ export default function SettingsModal({
 }: {
   open: boolean;
   onClose: () => void;
-  onSave: (settings: any) => void;
+  onSave: (settings: UserSettings) => void;
   initial?: any;
   loading?: boolean;
 }) {
