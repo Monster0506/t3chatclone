@@ -44,7 +44,7 @@ Follow these steps to get a local copy up and running. Or just click the demo li
 
 ```bash
 git clone https://github.com/monster0506/t3chatclone.git
-cd t3-clone
+cd t3chatclone
 ```
 
 ### 3. Install Dependencies
