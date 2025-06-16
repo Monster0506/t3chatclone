@@ -114,6 +114,7 @@ export default function SidebarChatItem({
                 onClone={() => onClone(thread)}
                 onDownload={() => onDownload(thread)}
                 onArchive={() => onArchive(thread)}
+                isArchived={archived}
                 onDelete={() => onDelete(thread)}
                 tags={tags}
                 tagInput={tagInput}

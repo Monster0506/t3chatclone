@@ -1,5 +1,5 @@
 import React, { RefObject } from 'react';
-import { Pin, Edit2, Trash2, Link as LinkIcon } from 'lucide-react';
+import { Pin, Edit2, Trash2, Link as LinkIcon, Archive, Copy, Download } from 'lucide-react';
 import { useTheme } from '@/theme/ThemeProvider';
 import Card from '@/components/UI/Card';
 
@@ -11,6 +11,7 @@ interface SidebarChatContextMenuProps {
   onClone: () => void;
   onDownload: () => void;
   onArchive: () => void;
+  isArchived: boolean;
   onDelete: () => void;
   tags: string[];
   tagInput: string;
@@ -31,6 +32,7 @@ export default function SidebarChatContextMenu({
   onClone,
   onDownload,
   onArchive,
+  isArchived,
   onDelete,
   tags,
   tagInput,
@@ -70,9 +72,13 @@ export default function SidebarChatContextMenu({
           <button className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80" style={{ color: theme.buttonText }} onClick={onPin}><Pin size={16} /> Pin</button>
         )}
         <button className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80" style={{ color: theme.buttonText }} onClick={onRename}><Edit2 size={16} /> Rename</button>
-        <button className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80" style={{ color: theme.buttonText }} onClick={onClone}><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg> Clone</button>
-        <button className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80" style={{ color: theme.buttonText }} onClick={onDownload}><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg> Download</button>
-        <button className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80" style={{ color: theme.buttonText }} onClick={onArchive}><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-archive" viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="2"/><path d="M4 8v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/></svg> Archive</button>
+        <button className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80" style={{ color: theme.buttonText }} onClick={onClone}><Copy size={16} /> Clone</button>
+        <button className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80" style={{ color: theme.buttonText }} onClick={onDownload}><Download size={16} /> Download</button>
+        {isArchived ? (
+          <button className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80" style={{ color: theme.buttonText }} onClick={onArchive}><Archive size={16} /> Unarchive</button>
+        ) : (
+          <button className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80" style={{ color: theme.buttonText }} onClick={onArchive}><Archive size={16} /> Archive</button>
+        )}
         <button className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80" style={{ color: theme.buttonText }} onClick={handleShare}>
           <LinkIcon size={16} /> Share
           {copied && <span className="ml-2 text-xs" style={{ color: theme.inputText }}>Copied!</span>}

@@ -132,12 +132,22 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
     setMenuOpen(null);
   };
   const handleArchive = async (thread: Tables<'chats'>) => {
-    const meta = typeof thread.metadata === 'object' && thread.metadata ? thread.metadata : {};
-    await supabase
-      .from('chats')
-      .update({ metadata: { ...meta, archived: true } })
-      .eq('id', thread.id);
-    setThreads(ts => ts.map(t => t.id === thread.id ? { ...t, metadata: { ...meta, archived: true } } : t));
+    const currentMeta =
+      typeof thread.metadata === 'object' && thread.metadata
+        ? thread.metadata
+        : {};
+  
+    
+    //@ts-ignore
+    const newArchivedState = !currentMeta.archived;
+    const newMetadata = { ...currentMeta, archived: newArchivedState };
+  
+    await supabase.from('chats').update({ metadata: newMetadata }).eq('id', thread.id);
+  
+    setThreads((ts) =>
+      ts.map((t) => (t.id === thread.id ? { ...t, metadata: newMetadata } : t))
+    );
+  
     setMenuOpen(null);
   };
   const handleClone = async (thread: Tables<'chats'>) => {
