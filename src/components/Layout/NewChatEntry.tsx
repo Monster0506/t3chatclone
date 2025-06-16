@@ -237,7 +237,7 @@ export default function NewChatEntry() {
             The brief was &quot;build a cool AI chat app.&quot; I may have taken
             that a bit too seriously.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
             <Button
               onClick={handleNewChat}
               disabled={!session?.user || loading}
@@ -256,8 +256,11 @@ export default function NewChatEntry() {
               </Button>
             </a>
           </div>
-          <div className="max-w-sm mx-auto">
-            <p className="text-sm font-semibold mb-2 opacity-80">
+          <div
+            className="max-w-md mx-auto p-4 rounded-xl"
+            style={{ background: theme.buttonGlass }}
+          >
+            <p className="text-sm font-semibold mb-3 opacity-80">
               Don&apos;t Like the Vibe? Change It.
             </p>
             <ThemePicker
