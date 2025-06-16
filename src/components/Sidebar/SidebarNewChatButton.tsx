@@ -14,7 +14,7 @@ export default function SidebarNewChatButton({
   if (collapsed) {
     return (
       <div className="flex justify-center">
-        <Button
+        <button
           className="w-10 h-10 flex items-center justify-center rounded-full"
           style={{
             background: theme.buttonGlass,
@@ -24,8 +24,8 @@ export default function SidebarNewChatButton({
           onClick={onClick}
           aria-label="New Chat"
         >
-          <Plus size={24} />
-        </Button>
+          <Plus size={24} style={{ color: theme.buttonText }} />
+        </button>
       </div>
     );
   }
@@ -40,7 +40,7 @@ export default function SidebarNewChatButton({
       }}
       onClick={onClick}
     >
-      <Plus size={20} />
+      <Plus size={24} />
       New Chat
     </Button>
   );
