@@ -8,7 +8,7 @@ import SidebarChatItem from './SidebarChatItem';
 import { useTheme } from '@/theme/ThemeProvider';
 import { differenceInCalendarDays } from 'date-fns';
 import { useCloseModal } from '@/hooks/use-close-modal';
-
+import { handleDownload, DownloadFormat } from '@/lib/download';
 
 function getTagsFromMetadata(metadata: any): string[] {
   if (metadata && typeof metadata === 'object' && !Array.isArray(metadata) && Array.isArray(metadata.tags)) {
@@ -182,29 +182,24 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
       router.push(`/chat/${newChat.id}`);
     }
   };
-  const handleDownload = async (thread: Tables<'chats'>) => {
+  const handleDownloadRequest = async (
+    thread: Tables<'chats'>,
+    format: DownloadFormat,
+  ) => {
     const { data: messages } = await supabase
       .from('messages')
       .select('*')
       .eq('chat_id', thread.id);
+
     if (messages) {
-      const data = {
-        chat: thread,
-        messages,
-      };
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${thread.title || 'Untitled Chat'}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      handleDownload(thread, messages, format);
+      setMenuOpen(null); // Close the context menu after download
+    } else {
+      // You could add a user-facing error message here
+      console.error('Could not fetch messages for download.');
     }
   };
-  const handleTags = (thread: Tables<'chats'>, menuRef: React.RefObject<HTMLDivElement> | null) => {
-    setCurrentThread(thread);
-    setTagAnchorRef(menuRef);
-  };
+
 
 
   const handleUpdateTags = async (thread: Tables<'chats'>, tags: string[]) => {
@@ -363,8 +358,7 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
                     onPin={handlePin}
                     onArchive={handleArchive}
                     onClone={handleClone}
-                    onDownload={handleDownload}
-                    onUpdateTags={handleUpdateTags}
+                    onDownload={handleDownloadRequest}                    onUpdateTags={handleUpdateTags}
                     renamingId={renamingId}
                     renameValue={renameValue}
                     setRenamingId={setRenamingId}
@@ -397,7 +391,7 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
                       onPin={handlePin}
                       onArchive={handleArchive}
                       onClone={handleClone}
-                      onDownload={handleDownload}
+                      onDownload={handleDownloadRequest}
                       onUpdateTags={handleUpdateTags}
                       renamingId={renamingId}
                       renameValue={renameValue}
@@ -440,7 +434,7 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
                       onPin={handlePin}
                       onArchive={handleArchive}
                       onClone={handleClone}
-                      onDownload={handleDownload}
+                      onDownload={handleDownloadRequest}
                       onUpdateTags={handleUpdateTags}
                       renamingId={renamingId}
                       renameValue={renameValue}

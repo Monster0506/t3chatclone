@@ -1,7 +1,18 @@
-import React, { RefObject } from 'react';
-import { Pin, Edit2, Trash2, Link as LinkIcon, Archive, Copy, Download } from 'lucide-react';
+import React, { RefObject, useState } from 'react';
+import {
+  Pin,
+  Edit2,
+  Trash2,
+  Link as LinkIcon,
+  Archive,
+  Copy,
+  Download,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
 import { useTheme } from '@/theme/ThemeProvider';
 import Card from '@/components/UI/Card';
+import type { DownloadFormat } from '@/lib/download';
 
 interface SidebarChatContextMenuProps {
   menuRef: RefObject<HTMLDivElement | null>;
@@ -9,7 +20,7 @@ interface SidebarChatContextMenuProps {
   onPin: () => void;
   onRename: () => void;
   onClone: () => void;
-  onDownload: () => void;
+  onDownload: (format: DownloadFormat) => void;
   onArchive: () => void;
   isArchived: boolean;
   onDelete: () => void;
@@ -44,7 +55,10 @@ export default function SidebarChatContextMenu({
   chatId,
 }: SidebarChatContextMenuProps) {
   const { theme } = useTheme();
-  const [copied, setCopied] = React.useState(false);
+  const [copied, setCopied] = useState(false);
+  // State to manage the inline download menu
+  const [showDownloadOptions, setShowDownloadOptions] = useState(false);
+
   const handleShare = async () => {
     if (!isPublic) {
       await onTogglePublic();
@@ -54,6 +68,7 @@ export default function SidebarChatContextMenu({
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
+
   return (
     <Card
       ref={menuRef}
@@ -67,25 +82,119 @@ export default function SidebarChatContextMenu({
     >
       <div className="flex flex-col gap-1">
         {pinned ? (
-          <button className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80" style={{ color: theme.buttonText }} onClick={onPin}><Pin size={16} /> Unpin</button>
+          <button
+            className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80"
+            style={{ color: theme.buttonText }}
+            onClick={onPin}
+          >
+            <Pin size={16} /> Unpin
+          </button>
         ) : (
-          <button className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80" style={{ color: theme.buttonText }} onClick={onPin}><Pin size={16} /> Pin</button>
+          <button
+            className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80"
+            style={{ color: theme.buttonText }}
+            onClick={onPin}
+          >
+            <Pin size={16} /> Pin
+          </button>
         )}
-        <button className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80" style={{ color: theme.buttonText }} onClick={onRename}><Edit2 size={16} /> Rename</button>
-        <button className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80" style={{ color: theme.buttonText }} onClick={onClone}><Copy size={16} /> Clone</button>
-        <button className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80" style={{ color: theme.buttonText }} onClick={onDownload}><Download size={16} /> Download</button>
-        {isArchived ? (
-          <button className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80" style={{ color: theme.buttonText }} onClick={onArchive}><Archive size={16} /> Unarchive</button>
-        ) : (
-          <button className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80" style={{ color: theme.buttonText }} onClick={onArchive}><Archive size={16} /> Archive</button>
-        )}
-        <button className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80" style={{ color: theme.buttonText }} onClick={handleShare}>
-          <LinkIcon size={16} /> Share
-          {copied && <span className="ml-2 text-xs" style={{ color: theme.inputText }}>Copied!</span>}
+        <button
+          className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80"
+          style={{ color: theme.buttonText }}
+          onClick={onRename}
+        >
+          <Edit2 size={16} /> Rename
         </button>
-        <button className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80" style={{ color: '#e53935' }} onClick={onDelete}><Trash2 size={16} /> Delete</button>
+        <button
+          className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80"
+          style={{ color: theme.buttonText }}
+          onClick={onClone}
+        >
+          <Copy size={16} /> Clone
+        </button>
+
+        <button
+          className="w-full flex items-center justify-between gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80"
+          style={{ color: theme.buttonText }}
+          onClick={() => setShowDownloadOptions((prev) => !prev)}
+        >
+          <div className="flex items-center gap-2">
+            <Download size={16} /> Download
+          </div>
+          {showDownloadOptions ? (
+            <ChevronUp size={16} />
+          ) : (
+            <ChevronDown size={16} />
+          )}
+        </button>
+
+        {showDownloadOptions && (
+          <div className="flex flex-col pl-6">
+            <button
+              className="w-full text-left px-3 py-1.5 rounded-md text-sm hover:opacity-80"
+              style={{ color: theme.buttonText }}
+              onClick={() => onDownload('json')}
+            >
+              as JSON
+            </button>
+            <button
+              className="w-full text-left px-3 py-1.5 rounded-md text-sm hover:opacity-80"
+              style={{ color: theme.buttonText }}
+              onClick={() => onDownload('txt')}
+            >
+              as TXT
+            </button>
+            <button
+              className="w-full text-left px-3 py-1.5 rounded-md text-sm hover:opacity-80"
+              style={{ color: theme.buttonText }}
+              onClick={() => onDownload('pdf')}
+            >
+              as PDF
+            </button>
+          </div>
+        )}
+
+        {isArchived ? (
+          <button
+            className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80"
+            style={{ color: theme.buttonText }}
+            onClick={onArchive}
+          >
+            <Archive size={16} /> Unarchive
+          </button>
+        ) : (
+          <button
+            className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80"
+            style={{ color: theme.buttonText }}
+            onClick={onArchive}
+          >
+            <Archive size={16} /> Archive
+          </button>
+        )}
+        <button
+          className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80"
+          style={{ color: theme.buttonText }}
+          onClick={handleShare}
+        >
+          <LinkIcon size={16} /> Share
+          {copied && (
+            <span className="ml-2 text-xs" style={{ color: theme.inputText }}>
+              Copied!
+            </span>
+          )}
+        </button>
+        <button
+          className="w-full flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition hover:opacity-80"
+          style={{ color: '#e53935' }}
+          onClick={onDelete}
+        >
+          <Trash2 size={16} /> Delete
+        </button>
       </div>
-      <div className="border-t mt-2 pt-2 px-2 pb-2 flex flex-wrap gap-2 items-center" style={{ borderColor: theme.buttonBorder }}>
+      <div
+        className="border-t mt-2 pt-2 px-2 pb-2 flex flex-wrap gap-2 items-center"
+        style={{ borderColor: theme.buttonBorder }}
+      >
         {tags.map((tag: string) => (
           <span
             key={tag}
@@ -98,14 +207,18 @@ export default function SidebarChatContextMenu({
         ))}
         <input
           className="text-xs border rounded px-2 py-1 w-20 focus:outline-none font-semibold"
-          style={{ background: theme.inputGlass, color: theme.inputText, borderColor: theme.buttonBorder }}
+          style={{
+            background: theme.inputGlass,
+            color: theme.inputText,
+            borderColor: theme.buttonBorder,
+          }}
           type="text"
           value={tagInput}
           placeholder="+ tag"
-          onChange={e => setTagInput(e.target.value)}
+          onChange={(e) => setTagInput(e.target.value)}
           onKeyDown={onTagInputKeyDown}
         />
       </div>
     </Card>
   );
-} 
+}

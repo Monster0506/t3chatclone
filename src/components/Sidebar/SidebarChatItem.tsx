@@ -4,6 +4,7 @@ import type { Tables } from "@/lib/supabase/types";
 import SidebarChatContextMenu from "./SidebarChatContextMenu";
 import { useTheme } from "@/theme/ThemeProvider";
 import { useCloseModal } from "@/hooks/use-close-modal";
+import { DownloadFormat } from "@/lib/download";
 
 function getTags(metadata: any): string[] {
   if (
@@ -48,7 +49,7 @@ export default function SidebarChatItem({
   onPin: (thread: Tables<"chats">, pinned: boolean) => void;
   onArchive: (thread: Tables<"chats">) => void;
   onClone: (thread: Tables<"chats">) => void;
-  onDownload: (thread: Tables<"chats">) => void;
+  onDownload: (thread: Tables<'chats'>, format: DownloadFormat) => void;
   onUpdateTags: (thread: Tables<"chats">, tags: string[]) => void;
   renamingId: string | null;
   renameValue: string;
@@ -156,7 +157,7 @@ export default function SidebarChatItem({
                   setRenameValue(thread.title);
                 }}
                 onClone={() => onClone(thread)}
-                onDownload={() => onDownload(thread)}
+                onDownload={(format) => onDownload(thread, format)}
                 onArchive={() => onArchive(thread)}
                 isArchived={archived}
                 onDelete={() => onDelete(thread)}

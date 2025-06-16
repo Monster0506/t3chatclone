@@ -33,6 +33,7 @@
     "eslint": "^9.28.0",
     "eslint-config-next": "^15.3.3",
     "geist": "^1.4.2",
+    "jspdf": "^3.0.1",
     "lucide-react": "^0.513.0",
     "math-js": "^1.0.1",
     "mathjs": "^14.5.2",
