@@ -7,52 +7,18 @@ import Button from '@/components/UI/Button';
 import ThemePicker from '@/components/Settings/ThemePicker';
 import { useTheme } from '@/theme/ThemeProvider';
 import {
-  Lightbulb,
-  BookText,
-  Code,
-  BrainCircuit,
   Sparkles,
-  Rocket,
 } from 'lucide-react';
-import { Theme } from '@/lib/types';
-import { FeaturesModal } from '@/components/Layout/FeaturesModal'; // Import the modal
-
-// --- Helper: Suggestion Card for the new landing page ---
-const SuggestionCard = ({
-  icon,
-  title,
-  description,
-  theme,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  theme: Theme;
-}) => (
-  <div
-    className="p-4 rounded-xl text-left h-full transition-all duration-200 hover:scale-105"
-    style={{
-      background: theme.glass,
-      border: `1px solid ${theme.buttonBorder}`,
-    }}
-  >
-    <div className="flex items-center gap-3 mb-2">
-      <div style={{ color: theme.buttonBg }}>{icon}</div>
-      <h3 className="font-bold text-base">{title}</h3>
-    </div>
-    <p className="opacity-70 text-sm">{description}</p>
-  </div>
-);
+import { FeaturesModal } from '@/components/Layout/FeaturesModal'; 
 
 export default function NewChatEntry() {
-  const triggerButtonRef = useRef<HTMLDivElement | null>(null); // Ref for the trigger
+  const triggerButtonRef = useRef<HTMLDivElement | null>(null); 
   const session = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const { theme, setTheme, themes } = useTheme();
   const [selectedTheme, setSelectedTheme] = useState(theme.name);
-  const [isModalOpen, setIsModalOpen] = useState(false); // State for modal
-
+  const [isModalOpen, setIsModalOpen] = useState(false); 
   const handleNewChat = async () => {
     if (!session?.user) return;
     setLoading(true);

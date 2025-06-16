@@ -28,8 +28,6 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
   const pathname = usePathname();
   const inputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLElement>(null as unknown as HTMLElement);
-  const [, setCurrentThread] = useState<Tables<'chats'> | null>(null);
-  const [, setTagAnchorRef] = useState<React.RefObject<HTMLDivElement> | null>(null);
   const [archivedOpen, setArchivedOpen] = useState(false);
   const { theme } = useTheme();
 
@@ -138,7 +136,7 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
         : {};
   
     
-    //@ts-ignore
+    //@ts-expect-error
     const newArchivedState = !currentMeta.archived;
     const newMetadata = { ...currentMeta, archived: newArchivedState };
   

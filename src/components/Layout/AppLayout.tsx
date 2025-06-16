@@ -8,7 +8,6 @@ import { usePathname } from 'next/navigation';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { useTheme } from '@/theme/ThemeProvider';
 import KeyboardShortcutsModal from '@/components/UI/KeyboardShortcutsModal';
-import KeyboardShortcutsButton from '@/components/UI/KeyboardShortcutsButton';
 import CopiedToast from '@/components/UI/CopiedToast';
 import { PanelLeftClose } from 'lucide-react';
 

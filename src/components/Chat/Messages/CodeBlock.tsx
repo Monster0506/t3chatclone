@@ -97,7 +97,6 @@ export default function CodeBlock({
   };
 
   const handleCopy = () => onCopy?.(currentCode);
-  const isConverted = currentLanguage !== originalLanguage;
 
   // Display a loading message if a conversion is in progress
   const displayCode =
