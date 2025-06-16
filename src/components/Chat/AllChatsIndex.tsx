@@ -71,7 +71,7 @@ export default function AllChatsIndex({ open, onClose }: { open: boolean; onClos
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
       style={{ backdropFilter: 'blur(8px)' }}
     >
-      <Card ref={modalRef} className="w-full max-h-[80vh] mx-auto p-0 md:p-6 rounded-2xl shadow-xl" style={{ background: theme.glass, border: `1.5px solid ${theme.buttonBorder}` }}>
+      <Card ref={modalRef} className="w-full max-h-[80vh] mx-auto p-0 md:p-6 rounded-2xl shadow-xl" style={{ background: theme.background, border: `1.5px solid ${theme.buttonBorder}` }}>
         <div className="flex justify-between items-center mb-4">
           <div className="font-bold text-xl" style={{ color: theme.buttonText }}>All Important Messages</div>
           <button

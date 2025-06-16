@@ -6,19 +6,21 @@ import { useSession } from '@supabase/auth-helpers-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { PanelLeftOpen } from 'lucide-react';
+import KeyboardShortcutsButton from '../UI/KeyboardShortcutsButton';
 
 interface SidebarProps {
   collapsed?: boolean;
   onCollapse?: (collapsed: boolean) => void;
   children?: React.ReactNode;
+  setShortcutsOpen: (open: boolean) => void;
 }
 
-export default function Sidebar({ collapsed = false, onCollapse, children }: SidebarProps) {
+export default function Sidebar({ collapsed = false, onCollapse, children, setShortcutsOpen }: SidebarProps) {
   const [search, setSearch] = useState('');
   const { theme } = useTheme();
   const session = useSession();
   const router = useRouter();
-  const [,setLoading] = useState(false);
+  const [, setLoading] = useState(false);
 
   const handleNewChat = async () => {
     if (!session?.user) return;
@@ -43,28 +45,33 @@ export default function Sidebar({ collapsed = false, onCollapse, children }: Sid
       className={`h-screen flex flex-col justify-between transition-all duration-300 ${collapsed ? 'w-16 p-2' : 'w-72 p-6'}`}
       style={{ background: theme.glass, borderColor: theme.buttonBorder, boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)' }}
     >
+
       {children}
       {collapsed ? (
         <div className="flex flex-col items-center justify-center mt-4 mb-6">
+
           <button
             className="w-10 h-10 flex items-center justify-center rounded-full border-2 transition focus:outline-none"
             style={{ borderColor: theme.buttonBorder, background: theme.buttonGlass, color: theme.foreground }}
             onClick={() => onCollapse?.(false)}
             aria-label="Expand sidebar"
           >
+
             <PanelLeftOpen size={26} />
           </button>
+          <KeyboardShortcutsButton onClick={() => setShortcutsOpen(true)} size={40} sidebarCollapsed={collapsed} />
+
         </div>
       ) : (
         <div className="mb-6 px-2">
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <SidebarHeader />
+              <SidebarHeader setShortcutsOpen={setShortcutsOpen} collapsed={collapsed} />
             </div>
           </div>
           {!collapsed && (
             <div className="pt-2">
-              <SidebarSearch value={search} onChange={e => setSearch(e.target.value)}  />
+              <SidebarSearch value={search} onChange={e => setSearch(e.target.value)} />
             </div>
           )}
         </div>

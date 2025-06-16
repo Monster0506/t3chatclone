@@ -16,6 +16,7 @@ import {
   Globe,
   Check,
   ChevronDown,
+  X,
 } from "lucide-react";
 import { UserSettings } from "@/lib/types";
 
@@ -222,7 +223,7 @@ export default function SettingsModal({
       <Card
         ref={modalRef}
         className="w-full max-w-lg flex flex-col relative rounded-2xl shadow-xl max-h-[90vh]"
-        style={{ background: theme.glass, borderColor: theme.buttonBorder }}
+        style={{ background: theme.background, borderColor: theme.buttonBorder }}
       >
         <div
           className="p-8 pb-6 border-b"
@@ -230,9 +231,9 @@ export default function SettingsModal({
         >
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl z-10"
+            className="absolute top-4 right-4 text-2xl z-10"
           >
-            ×
+            <X style={{ color: theme.buttonText }} />
           </button>
           <h2
             className="text-2xl font-bold"

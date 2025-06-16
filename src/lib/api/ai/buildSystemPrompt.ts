@@ -30,8 +30,7 @@ export function buildSystemPrompt(userSettings?: UserSettings | null): string {
     const userName = userSettings.name.trim();
     const userOccupation = userSettings.occupation?.trim();
     audienceParts.push(
-      `You are speaking with ${userName}${
-        userOccupation ? `, a ${userOccupation}` : ""
+      `You are speaking with ${userName}${userOccupation ? `, a ${userOccupation}` : ""
       }.`,
     );
   }
@@ -80,7 +79,7 @@ You must adhere to these foundational rules in all responses. The user-defined P
 
 `;
 
-  const finalFraming = "You are now being connected with a person. Begin conversation.";
-
+  const finalFraming =
+    "You are now being connected with a person. Begin conversation.";
   return `${sections.join("\n\n")}\n\n${coreInstructions}\n\n${finalFraming}`;
 }

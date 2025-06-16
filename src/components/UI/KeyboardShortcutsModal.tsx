@@ -25,7 +25,7 @@ export default function KeyboardShortcutsModal({ open, onClose }: { open: boolea
         ref={modalRef}
         className="relative rounded-2xl shadow-2xl p-8 max-w-lg w-full mx-4"
         style={{
-          background: theme.glass,
+          background: theme.background,
           border: `2px solid ${theme.buttonBorder}`,
           color: theme.buttonText,
         }}

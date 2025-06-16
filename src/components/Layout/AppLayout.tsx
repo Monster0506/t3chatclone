@@ -61,11 +61,10 @@ export default function AppLayout({
         className="fixed inset-y-0 left-0 flex items-center z-30"
         style={{ width: sidebarWidth }}
       >
-        <Sidebar onCollapse={setSidebarCollapsed} collapsed={sidebarCollapsed} />
+        <Sidebar onCollapse={setSidebarCollapsed} collapsed={sidebarCollapsed} setShortcutsOpen={setShortcutsOpen} />
 
         {!sidebarCollapsed && (
           <div className="flex flex-row gap-2 items-center absolute top-4 right-4 z-50">
-            <KeyboardShortcutsButton onClick={() => setShortcutsOpen(true)} size={40} />
 
             <button
               className="w-10 h-10 flex items-center justify-center rounded-full border-2 transition focus:outline-none"

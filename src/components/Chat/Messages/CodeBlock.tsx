@@ -125,13 +125,6 @@ export default function CodeBlock({
         {displayCode}
       </SyntaxHighlighter>
 
-      <div className="absolute top-3 right-4 text-xs font-semibold opacity-60">
-        <span style={{ color: theme.inputText, letterSpacing: "0.05em" }}>
-          {currentLanguage}
-          {isConverted && originalLanguage && ` (from: ${originalLanguage})`}
-        </span>
-      </div>
-
       <CodeBlockActions
         onCopy={handleCopy}
         small

@@ -2,8 +2,22 @@ import React from 'react';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Keyboard } from 'lucide-react';
 
-export default function KeyboardShortcutsButton({ onClick, size = 40 }: { onClick: () => void; size?: number }) {
+export default function KeyboardShortcutsButton({ onClick, size = 40, sidebarCollapsed }: { onClick: () => void; size?: number, sidebarCollapsed: boolean }) {
   const { theme } = useTheme();
+  console.log('sidebarCollapsed', sidebarCollapsed);
+  if (sidebarCollapsed) {
+    console.log('sidebarCollapsed', sidebarCollapsed);
+    return (
+      <button
+        onClick={onClick}
+        className="w-10 h-10 flex items-center justify-center rounded-full border-2 transition focus:outline-none"
+        style={{ borderColor: theme.buttonBorder, background: theme.buttonGlass, color: theme.foreground }}
+      >
+        <Keyboard />
+      </button>
+    );
+  }
+
   return (
     <button
       onClick={onClick}
