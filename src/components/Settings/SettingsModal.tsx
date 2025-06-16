@@ -204,7 +204,10 @@ export default function SettingsModal({
     await supabase.auth.signOut();
     setLogoutLoading(false);
     onClose();
-    window.location.reload();
+    // Redirect to home page after logout
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
   };
 
   if (!open) return null;

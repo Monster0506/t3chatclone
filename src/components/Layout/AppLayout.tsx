@@ -1,7 +1,8 @@
 'use client';
 import Sidebar from '../Sidebar/Sidebar';
-import { useSession } from '@supabase/auth-helpers-react';
+import { useSession, useSessionContext } from '@supabase/auth-helpers-react';
 import LoginModal from '../Auth/LoginModal';
+import Spinner from '../UI/Spinner';
 import { ReactNode, useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
@@ -17,6 +18,7 @@ export default function AppLayout({
   children: ReactNode;
 }) {
   const session = useSession();
+  const { isLoading } = useSessionContext();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const pathname = usePathname();
   const { theme } = useTheme();
@@ -52,6 +54,24 @@ export default function AppLayout({
 
   const sidebarWidth = sidebarCollapsed ? '4rem' : '18rem';
 
+  // Show loading state while session is being determined
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center" style={{ background: theme.background }}>
+        <Spinner />
+      </div>
+    );
+  }
+
+  // If not authenticated, show login screen as main content
+  if (!session) {
+    return (
+      <div className="flex min-h-screen items-center justify-center" style={{ background: theme.background }}>
+        <LoginModal open={true} />
+      </div>
+    );
+  }
+
   return (
     <div
       className="flex min-h-screen"
@@ -85,7 +105,6 @@ export default function AppLayout({
       </main>
       <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
       <CopiedToast show={showCopied} />
-      {!session && <LoginModal open={true} />}
     </div>
   );
 } 

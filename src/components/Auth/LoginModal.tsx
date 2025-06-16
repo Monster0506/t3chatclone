@@ -18,12 +18,12 @@ export default function LoginModal({ open, onClose }: { open: boolean; onClose?:
     disableEscape: !onClose,
   });
 
-  if (!open || !onClose) return null;
+  if (!open) return null;
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" 
       style={{ backdropFilter: 'blur(10px)' }}
-      onClick={e => { if (onClose && e.target === e.currentTarget) onClose(); }}
+      onClick={onClose ? (e => { if (e.target === e.currentTarget) onClose(); }) : undefined}
     >
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div

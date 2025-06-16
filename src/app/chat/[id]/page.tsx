@@ -1,14 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { useSession } from "@supabase/auth-helpers-react";
+import { useSession, useSessionContext } from "@supabase/auth-helpers-react";
 import { supabase } from "@/lib/supabase/client";
 import ChatContainer from "@/components/Chat/ChatContainer";
-import LoginModal from "@/components/Auth/LoginModal";
 
 export default function Page() {
   const { id: chatId } = useParams();
   const session = useSession();
+  const { isLoading: sessionLoading } = useSessionContext();
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [initialMessages, setInitialMessages] = useState<any[]>([]);
@@ -17,7 +17,11 @@ export default function Page() {
 
   useEffect(() => {
     const fetchChat = async () => {
-      if (!session?.user || !id) return;
+      if (sessionLoading) return; // Wait for session to load
+      if (!session?.user || !id) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       const { data, error } = await supabase
         .from("chats")
@@ -117,7 +121,7 @@ export default function Page() {
       setLoading(false);
     };
     fetchChat();
-  }, [session, id]);
+  }, [session, sessionLoading, id]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -149,7 +153,6 @@ export default function Page() {
           <ChatContainer chatId={id} initialMessages={initialMessages} />
         ) : null}
       </main>
-      {!session && <LoginModal open={true} />}
     </>
   );
 }
