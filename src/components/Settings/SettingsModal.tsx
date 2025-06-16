@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, ElementType } from "react";
+import { useState, useEffect, useRef, ElementType, KeyboardEvent } from "react";
 import Button from "@/components/UI/Button";
 import Spinner from "@/components/UI/Spinner";
 import Card from "@/components/UI/Card";
@@ -173,14 +173,30 @@ export default function SettingsModal({
     }
   }, [traits, extra, activePersona]);
 
-  const addTrait = (trait: string) => {
-    if (
-      trait &&
-      !traits.includes(trait) &&
-      traits.length < TRAIT_LIMIT &&
-      trait.length <= TRAIT_MAX_LENGTH
-    ) {
-      setTraits([...traits, trait]);
+  const handleProcessTraitInput = () => {
+    const potentialTraits = traitInput
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    const uniqueNewTraits = [...new Set(potentialTraits)].filter(
+      (t) => !traits.includes(t) && t.length <= TRAIT_MAX_LENGTH
+    );
+
+    const availableSlots = TRAIT_LIMIT - traits.length;
+    const traitsToAdd = uniqueNewTraits.slice(0, availableSlots);
+
+    if (traitsToAdd.length > 0) {
+      setTraits([...traits, ...traitsToAdd]);
+    }
+
+    setTraitInput("");
+  };
+
+  const handleTraitKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleProcessTraitInput();
     }
   };
 
@@ -205,8 +221,8 @@ export default function SettingsModal({
     setLogoutLoading(false);
     onClose();
     // Redirect to home page after logout
-    if (typeof window !== 'undefined') {
-      window.location.href = '/';
+    if (typeof window !== "undefined") {
+      window.location.href = "/";
     }
   };
 
@@ -226,7 +242,10 @@ export default function SettingsModal({
       <Card
         ref={modalRef}
         className="w-full max-w-lg flex flex-col relative rounded-2xl shadow-xl max-h-[90vh]"
-        style={{ background: theme.background, borderColor: theme.buttonBorder }}
+        style={{
+          background: theme.background,
+          borderColor: theme.buttonBorder,
+        }}
       >
         <div
           className="p-8 pb-6 border-b"
@@ -342,9 +361,9 @@ export default function SettingsModal({
               <Input
                 value={traitInput}
                 onChange={(e) => setTraitInput(e.target.value)}
-                placeholder="Add trait"
+                onKeyDown={handleTraitKeyDown}
+                placeholder="Add trait(s), use comma to separate"
                 className="flex-1"
-                maxLength={TRAIT_MAX_LENGTH}
                 style={{
                   background: theme.inputGlass,
                   color: theme.inputText,
@@ -353,10 +372,7 @@ export default function SettingsModal({
               />
               <Button
                 type="button"
-                onClick={() => {
-                  addTrait(traitInput);
-                  setTraitInput("");
-                }}
+                onClick={handleProcessTraitInput}
                 style={{
                   background: theme.buttonGlass,
                   color: theme.buttonText,
