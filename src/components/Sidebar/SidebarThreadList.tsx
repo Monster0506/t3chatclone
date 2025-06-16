@@ -364,7 +364,6 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
                     onArchive={handleArchive}
                     onClone={handleClone}
                     onDownload={handleDownload}
-                    onTags={(thread, menuRef) => handleTags(thread, menuRef)}
                     onUpdateTags={handleUpdateTags}
                     renamingId={renamingId}
                     renameValue={renameValue}
@@ -399,7 +398,6 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
                       onArchive={handleArchive}
                       onClone={handleClone}
                       onDownload={handleDownload}
-                      onTags={(thread, menuRef) => handleTags(thread, menuRef)}
                       onUpdateTags={handleUpdateTags}
                       renamingId={renamingId}
                       renameValue={renameValue}
@@ -443,7 +441,6 @@ export default function SidebarThreadList({ search, collapsed }: { search: strin
                       onArchive={handleArchive}
                       onClone={handleClone}
                       onDownload={handleDownload}
-                      onTags={(thread, menuRef) => handleTags(thread, menuRef)}
                       onUpdateTags={handleUpdateTags}
                       renamingId={renamingId}
                       renameValue={renameValue}
