@@ -872,7 +872,7 @@ export const themes: Theme[] = [
     glass: "rgba(50,50,150,0.5)",
   },
 ];
-const defaultTheme = "Cherry Blossom";
+const defaultTheme = "Obsidian Shard";
 export const ThemeContext = createContext({
   theme: themes.find(t => t.name === defaultTheme) || themes[1],
   setTheme: (_name: string) => {},
