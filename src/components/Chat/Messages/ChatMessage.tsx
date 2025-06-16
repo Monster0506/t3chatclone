@@ -1,5 +1,9 @@
 import { User, Bot, Calculator } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 import CodeBlock from "./CodeBlock";
 import ToolResult from "../ToolResults/ToolResult";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -22,7 +26,7 @@ export default function ChatMessage({
   const { theme } = useTheme();
   const isUser = message.role === "user";
   const isTool = message.role === "tool";
-  const [apiError, setApiError] = useState<string | null>(null);
+  const [, setApiError] = useState<string | null>(null);
 
   const inlineCodeStyle = {
     backgroundColor: theme.inputGlass,
@@ -71,14 +75,16 @@ export default function ChatMessage({
     }
   };
 
-  const parsedContent = useMemo(() => {
+  const renderableParts = useMemo(() => {
     const content = message.content || "";
-    const combinedRegex = /```(\w+)?\n([\s\S]*?)\n```|`([^`\n]+)`/g;
+    if (!content) return [];
+
     const parts = [];
+    const codeBlockRegex = /```(\w+)?\n([\s\S]*?)\n```/g;
     let lastIndex = 0;
     let codeBlockIndex = 0;
 
-    for (const match of content.matchAll(combinedRegex)) {
+    for (const match of content.matchAll(codeBlockRegex)) {
       if (match.index > lastIndex) {
         parts.push({
           type: "text",
@@ -86,26 +92,23 @@ export default function ChatMessage({
         });
       }
 
-      if (match[2] !== undefined) {
-        parts.push({
-          type: "code_block",
-          language: match[1] || undefined,
-          content: match[2],
-          index: codeBlockIndex,
-        });
-        codeBlockIndex++;
-      } else if (match[3] !== undefined) {
-        parts.push({
-          type: "inline_code",
-          content: match[3],
-        });
-      }
+      parts.push({
+        type: "code_block",
+        language: match[1] || undefined,
+        content: match[2],
+        index: codeBlockIndex,
+      });
+      codeBlockIndex++;
 
       lastIndex = match.index + match[0].length;
     }
 
     if (lastIndex < content.length) {
       parts.push({ type: "text", content: content.substring(lastIndex) });
+    }
+
+    if (parts.length === 0 && content) {
+      parts.push({ type: "text", content });
     }
 
     return parts;
@@ -245,24 +248,26 @@ export default function ChatMessage({
             }
         }
       >
-        {parsedContent.map((part, idx) => {
+        {renderableParts.map((part, idx) => {
           if (part.type === "text") {
+            const processedContent = part.content.replace(
+              /\\\((.*?)\\\)/g,
+              "$$$1$$",
+            );
             return (
               <ReactMarkdown
                 key={idx}
+                remarkPlugins={[remarkGfm, remarkMath]}
+                rehypePlugins={[rehypeKatex]}
                 components={{
-                  p: ({ children }) => <>{children}</>,
+                  p: ({ children }) => <span className="inline">{children}</span>,
+                  code: ({ children }) => (
+                    <code style={inlineCodeStyle}>{children}</code>
+                  ),
                 }}
               >
-                {part.content}
+                {processedContent}
               </ReactMarkdown>
-            );
-          }
-          if (part.type === "inline_code") {
-            return (
-              <code key={idx} style={inlineCodeStyle}>
-                {part.content}
-              </code>
             );
           }
           if (part.type === "code_block") {
