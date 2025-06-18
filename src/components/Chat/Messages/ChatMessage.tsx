@@ -209,6 +209,125 @@ export default function ChatMessage({
     );
   }
 
+  // Handle assistant messages with tool invocations from streaming response
+  if (message.role === "assistant" && message.toolInvocations && message.toolInvocations.length > 0) {
+    return (
+      <div id={`msg-${message.id}`} className="flex justify-start mb-8">
+        <div className="flex-shrink-0 mr-3">
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg"
+            style={{
+              background: theme.inputGlass,
+              border: `1.5px solid ${theme.buttonBorder}`,
+            }}
+          >
+            <Bot style={{ color: theme.inputText }} size={22} />
+          </div>
+        </div>
+        <div
+          className="max-w-[80%] rounded-2xl p-5 shadow-xl"
+          style={{
+            background: theme.inputGlass,
+            color: theme.inputText,
+            border: `1.5px solid ${theme.buttonBorder}`,
+            boxShadow: "0 8px 32px 0 rgba(31,38,135,0.10)",
+            marginLeft: 0,
+          }}
+        >
+          {/* Render text content */}
+          {message.content && (
+            <div className="mb-4">
+              {renderableParts.map((part, idx) => {
+                if (part.type === "text") {
+                  const processedContent = part.content.replace(
+                    /\\\((.*?)\\\)/g,
+                    "$$$1$$",
+                  );
+                  return (
+                    <ReactMarkdown
+                      key={idx}
+                      remarkPlugins={[remarkGfm, remarkMath]}
+                      rehypePlugins={[rehypeKatex]}
+                      components={{
+                        p: ({ children }) => <span className="inline">{children}</span>,
+                        code: ({ children }) => (
+                          <code style={inlineCodeStyle}>{children}</code>
+                        ),
+                      }}
+                    >
+                      {processedContent}
+                    </ReactMarkdown>
+                  );
+                }
+                if (part.type === "code_block") {
+                  const relevantConversions =
+                    message.conversions?.filter(
+                      (c: CodeConversion) =>
+                        c.code_block_index !== undefined &&
+                        c.code_block_index === part.index,
+                    ) || [];
+                  return (
+                    <CodeBlock
+                      key={idx}
+                      originalCode={part.content}
+                      originalLanguage={part.language}
+                      codeBlockIndex={part.index}
+                      conversions={relevantConversions}
+                      onCopy={handleCopyToClipboard}
+                      onConvertRequest={handleConversionRequest}
+                    />
+                  );
+                }
+                return null;
+              })}
+            </div>
+          )}
+          
+          {/* Render tool invocations */}
+          {message.toolInvocations.map((invocation, idx) => {
+            const toolInvocation = invocation as any;
+            
+            if (toolInvocation.state === 'result' && toolInvocation.result && 
+                typeof toolInvocation.result === 'object' && Object.keys(toolInvocation.result).length > 0) {
+              return (
+                <div key={idx} className="mt-4">
+                  <ToolResult
+                    toolName={toolInvocation.toolName}
+                    result={toolInvocation.result}
+                    state="result"
+                  />
+                </div>
+              );
+            }
+            if (toolInvocation.state === 'error' && toolInvocation.result && 'error' in toolInvocation.result) {
+              return (
+                <div key={idx} className="mt-4">
+                  <ToolResult
+                    toolName={toolInvocation.toolName}
+                    result={toolInvocation.result}
+                    state="error"
+                  />
+                </div>
+              );
+            }
+            if (toolInvocation.state === 'loading') {
+              return (
+                <div key={idx} className="mt-4">
+                  <ToolResult
+                    toolName={toolInvocation.toolName}
+                    result={null}
+                    state="loading"
+                  />
+                </div>
+              );
+            }
+            return null;
+          })}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       id={`msg-${message.id}`}
