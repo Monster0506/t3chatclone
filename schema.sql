@@ -1,19 +1,26 @@
 -- Enable necessary extensions
-create extension if not exists "uuid-ossp";
+-- This extension is typically needed for uuid_generate_v4()
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Set timezone for default timestamps
+SET TIMEZONE TO 'UTC';
 
 -- Create tables
-create table if not exists public.profiles (
-    id uuid references auth.users on delete cascade not null primary key,
-    email text not null unique,
+
+-- public.profiles table
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id uuid REFERENCES auth.users ON DELETE CASCADE NOT NULL PRIMARY KEY,
+    email text NOT NULL UNIQUE,
     full_name text,
     avatar_url text,
-    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-    updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
-create table if not exists public.user_settings (
-    id uuid default uuid_generate_v4() primary key,
-    user_id uuid references public.profiles(id) on delete cascade not null,
+-- public.user_settings table
+CREATE TABLE IF NOT EXISTS public.user_settings (
+    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
     name text,
     occupation text,
     traits jsonb,
@@ -21,287 +28,296 @@ create table if not exists public.user_settings (
     language text,
     notification_preferences jsonb,
     extra text,
-    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-    updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
-    unique(user_id)
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    UNIQUE(user_id)
 );
 
-create table if not exists public.chats (
-    id uuid default uuid_generate_v4() primary key,
-    user_id uuid references public.profiles(id) on delete cascade not null,
-    title text not null,
-    model text not null,
-    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-    updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+-- public.chats table
+CREATE TABLE IF NOT EXISTS public.chats (
+    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    title text NOT NULL,
+    model text NOT NULL,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     metadata jsonb,
-    public boolean not null default false -- Whether this chat is public/shareable
+    public boolean NOT NULL DEFAULT false -- Whether this chat is public/shareable
 );
 
-create table if not exists public.messages (
-    id uuid default uuid_generate_v4() primary key,
-    chat_id uuid references public.chats(id) on delete cascade not null,
-    role text not null,
-    content text not null,
-    type text not null,
-    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+-- public.messages table
+-- Note: id is TEXT as per your requirement
+CREATE TABLE IF NOT EXISTS public.messages (
+    id text DEFAULT uuid_generate_v4()::text PRIMARY KEY, -- Changed to TEXT
+    chat_id uuid REFERENCES public.chats(id) ON DELETE CASCADE NOT NULL,
+    role text NOT NULL,
+    content text NOT NULL,
+    type text NOT NULL,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     metadata jsonb
 );
 
-create table if not exists public.attachments (
-    id uuid default uuid_generate_v4() primary key,
-    message_id uuid references public.messages(id) on delete cascade not null,
-    file_name text not null,
-    file_type text not null,
-    file_size bigint not null,
-    url text not null,
-    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+-- public.attachments table
+-- Note: message_id is TEXT to match public.messages.id
+CREATE TABLE IF NOT EXISTS public.attachments (
+    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    message_id text REFERENCES public.messages(id) ON DELETE CASCADE NOT NULL, -- Changed to TEXT
+    file_name text NOT NULL,
+    file_type text NOT NULL,
+    file_size bigint NOT NULL,
+    url text NOT NULL,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     metadata jsonb
 );
 
--- All Chats Index table
-create table if not exists public.chat_index (
-    id uuid default uuid_generate_v4() primary key,
-    chat_id uuid references public.chats(id) on delete cascade not null,
-    message_id uuid references public.messages(id) on delete cascade,
-    type text not null, -- e.g. 'question', 'answer', 'code', 'summary', 'decision'
-    snippet text not null,
+-- All Chats Index table (public.chat_index)
+-- Note: message_id is TEXT to match public.messages.id
+CREATE TABLE IF NOT EXISTS public.chat_index (
+    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    chat_id uuid REFERENCES public.chats(id) ON DELETE CASCADE NOT NULL,
+    message_id text REFERENCES public.messages(id) ON DELETE CASCADE, -- Changed to TEXT
+    type text NOT NULL, -- e.g. 'question', 'answer', 'code', 'summary', 'decision'
+    snippet text NOT NULL,
     score float,
-    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     metadata jsonb -- extensible for future use (e.g. tags, Gemini output, etc)
 );
 
--- Create indexes
-create index if not exists idx_profiles_email on public.profiles(email);
-create index if not exists idx_chats_user_id on public.chats(user_id);
-create index if not exists idx_messages_chat_id on public.messages(chat_id);
-create index if not exists idx_attachments_message_id on public.attachments(message_id);
-create index if not exists idx_chat_index_chat_id on public.chat_index(chat_id);
-create index if not exists idx_chat_index_message_id on public.chat_index(message_id);
+-- public.code_conversions table
+-- Note: message_id is TEXT to match public.messages.id
+CREATE TABLE IF NOT EXISTS public.code_conversions (
+    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    message_id text REFERENCES public.messages(id) ON DELETE CASCADE NOT NULL, -- Changed to TEXT
+    code_block_index integer NOT NULL, -- e.g., 0 for the first block, 1 for the second
+    target_language text NOT NULL,
+    converted_content text NOT NULL,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    metadata jsonb,
+    UNIQUE (message_id, code_block_index, target_language) -- Ensures uniqueness for each block, each language
+);
 
--- Create RLS policies
-alter table public.profiles enable row level security;
-alter table public.user_settings enable row level security;
-alter table public.chats enable row level security;
-alter table public.messages enable row level security;
-alter table public.attachments enable row level security;
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_profiles_email ON public.profiles(email);
+CREATE INDEX IF NOT EXISTS idx_chats_user_id ON public.chats(user_id);
+CREATE INDEX IF NOT EXISTS idx_messages_chat_id ON public.messages(chat_id);
+-- Index for message_id on attachments - now on TEXT type
+CREATE INDEX IF NOT EXISTS idx_attachments_message_id ON public.attachments(message_id);
+CREATE INDEX IF NOT EXISTS idx_chat_index_chat_id ON public.chat_index(chat_id);
+-- Index for message_id on chat_index - now on TEXT type
+CREATE INDEX IF NOT EXISTS idx_chat_index_message_id ON public.chat_index(message_id);
+-- Index for message_id on code_conversions - now on TEXT type
+CREATE INDEX IF NOT EXISTS idx_code_conversions_message_id ON public.code_conversions(message_id);
+
+
+-- Enable RLS policies
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chats ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.attachments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chat_index ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.code_conversions ENABLE ROW LEVEL SECURITY;
 
 -- Profiles policies
-create policy "Users can view their own profile"
-    on public.profiles for select
-    using (auth.uid() = id);
+CREATE POLICY "Users can view their own profile"
+    ON public.profiles FOR SELECT
+    USING (auth.uid() = id);
 
-create policy "Users can update their own profile"
-    on public.profiles for update
-    using (auth.uid() = id);
+CREATE POLICY "Users can update their own profile"
+    ON public.profiles FOR UPDATE
+    USING (auth.uid() = id);
 
-create policy "Users can insert their own profile"
-    on public.profiles for insert
-    with check (auth.uid() = id);
+CREATE POLICY "Users can insert their own profile"
+    ON public.profiles FOR INSERT
+    WITH CHECK (auth.uid() = id);
 
 -- User settings policies
-create policy "Users can view their own settings"
-    on public.user_settings for select
-    using (auth.uid() = user_id);
+CREATE POLICY "Users can view their own settings"
+    ON public.user_settings FOR SELECT
+    USING (auth.uid() = user_id);
 
-create policy "Users can update their own settings"
-    on public.user_settings for update
-    using (auth.uid() = user_id);
+CREATE POLICY "Users can update their own settings"
+    ON public.user_settings FOR UPDATE
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own settings"
+    ON public.user_settings FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
 
 -- Chats policies
-create policy "Users can view their own chats"
-    on public.chats for select
-    using (auth.uid() = user_id OR public);
+CREATE POLICY "Users can view their own chats"
+    ON public.chats FOR SELECT
+    USING (auth.uid() = user_id OR public);
 
-create policy "Users can create their own chats"
-    on public.chats for insert
-    with check (auth.uid() = user_id);
+CREATE POLICY "Users can create their own chats"
+    ON public.chats FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
 
-create policy "Users can update their own chats"
-    on public.chats for update
-    using (auth.uid() = user_id);
+CREATE POLICY "Users can update their own chats"
+    ON public.chats FOR UPDATE
+    USING (auth.uid() = user_id);
 
-create policy "Users can delete their own chats"
-    on public.chats for delete
-    using (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own chats"
+    ON public.chats FOR DELETE
+    USING (auth.uid() = user_id);
 
 -- Messages policies
-create policy "Users can view messages in their chats"
-    on public.messages for select
-    using (
-        exists (
-            select 1 from public.chats
-            where chats.id = messages.chat_id
-            and chats.user_id = auth.uid()
+CREATE POLICY "Users can view messages in their chats"
+    ON public.messages FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.chats
+            WHERE chats.id = messages.chat_id
+            AND chats.user_id = auth.uid()
         )
     );
 
-create policy "Users can create messages in their chats"
-    on public.messages for insert
-    with check (
-        exists (
-            select 1 from public.chats
-            where chats.id = messages.chat_id
-            and chats.user_id = auth.uid()
+CREATE POLICY "Users can create messages in their chats"
+    ON public.messages FOR INSERT
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.chats
+            WHERE chats.id = messages.chat_id
+            AND chats.user_id = auth.uid()
         )
     );
 
-create policy "Users can update messages in their chats"
-    on public.messages for update
-    using (
-        exists (
-            select 1 from public.chats
-            where chats.id = messages.chat_id
-            and chats.user_id = auth.uid()
+CREATE POLICY "Users can update messages in their chats"
+    ON public.messages FOR UPDATE
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.chats
+            WHERE chats.id = messages.chat_id
+            AND chats.user_id = auth.uid()
         )
     );
 
-create policy "Users can delete messages in their chats"
-    on public.messages for delete
-    using (
-        exists (
-            select 1 from public.chats
-            where chats.id = messages.chat_id
-            and chats.user_id = auth.uid()
+CREATE POLICY "Users can delete messages in their chats"
+    ON public.messages FOR DELETE
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.chats
+            WHERE chats.id = messages.chat_id
+            AND chats.user_id = auth.uid()
         )
     );
 
 -- Attachments policies
-create policy "Users can view attachments in their messages"
-    on public.attachments for select
-    using (
-        exists (
-            select 1 from public.messages
-            join public.chats on chats.id = messages.chat_id
-            where messages.id = attachments.message_id
-            and chats.user_id = auth.uid()
+CREATE POLICY "Users can view attachments in their messages"
+    ON public.attachments FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.messages
+            JOIN public.chats ON chats.id = messages.chat_id
+            WHERE messages.id = attachments.message_id
+            AND chats.user_id = auth.uid()
         )
     );
 
-create policy "Users can create attachments in their messages"
-    on public.attachments for insert
-    with check (
-        exists (
-            select 1 from public.messages
-            join public.chats on chats.id = messages.chat_id
-            where messages.id = attachments.message_id
-            and chats.user_id = auth.uid()
+CREATE POLICY "Users can create attachments in their messages"
+    ON public.attachments FOR INSERT
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.messages
+            JOIN public.chats ON chats.id = messages.chat_id
+            WHERE messages.id = attachments.message_id
+            AND chats.user_id = auth.uid()
         )
     );
 
-create policy "Users can delete attachments in their messages"
-    on public.attachments for delete
-    using (
-        exists (
-            select 1 from public.messages
-            join public.chats on chats.id = messages.chat_id
-            where messages.id = attachments.message_id
-            and chats.user_id = auth.uid()
+CREATE POLICY "Users can delete attachments in their messages"
+    ON public.attachments FOR DELETE
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.messages
+            JOIN public.chats ON chats.id = messages.chat_id
+            WHERE messages.id = attachments.message_id
+            AND chats.user_id = auth.uid()
         )
-    ); 
-
-create policy "Users can insert their own settings"
-    on public.user_settings for insert
-    with check (auth.uid() = user_id);
-
-    -- Enable RLS for chat_index
-alter table public.chat_index enable row level security;
+    );
 
 -- RLS policies for chat_index
-create policy "Users can view index items in their chats"
-    on public.chat_index for select
-    using (
-        exists (
-            select 1 from public.chats
-            where chats.id = chat_index.chat_id
-            and chats.user_id = auth.uid()
+CREATE POLICY "Users can view index items in their chats"
+    ON public.chat_index FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.chats
+            WHERE chats.id = chat_index.chat_id
+            AND chats.user_id = auth.uid()
         )
     );
 
-create policy "Users can insert index items in their chats"
-    on public.chat_index for insert
-    with check (
-        exists (
-            select 1 from public.chats
-            where chats.id = chat_index.chat_id
-            and chats.user_id = auth.uid()
+CREATE POLICY "Users can insert index items in their chats"
+    ON public.chat_index FOR INSERT
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.chats
+            WHERE chats.id = chat_index.chat_id
+            AND chats.user_id = auth.uid()
         )
     );
 
-create policy "Users can update index items in their chats"
-    on public.chat_index for update
-    using (
-        exists (
-            select 1 from public.chats
-            where chats.id = chat_index.chat_id
-            and chats.user_id = auth.uid()
+CREATE POLICY "Users can update index items in their chats"
+    ON public.chat_index FOR UPDATE
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.chats
+            WHERE chats.id = chat_index.chat_id
+            AND chats.user_id = auth.uid()
         )
     );
 
-create policy "Users can delete index items in their chats"
-    on public.chat_index for delete
-    using (
-        exists (
-            select 1 from public.chats
-            where chats.id = chat_index.chat_id
-            and chats.user_id = auth.uid()
+CREATE POLICY "Users can delete index items in their chats"
+    ON public.chat_index FOR DELETE
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.chats
+            WHERE chats.id = chat_index.chat_id
+            AND chats.user_id = auth.uid()
         )
     );
-
-create table if not exists public.code_conversions (
-    id uuid default uuid_generate_v4() primary key,
-    message_id uuid references public.messages(id) on delete cascade not null,
-    code_block_index integer not null, -- e.g., 0 for the first block, 1 for the second
-    target_language text not null,
-    converted_content text not null,
-    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-    metadata jsonb,
-    unique (message_id, code_block_index, target_language) -- Ensures uniqueness for each block, each language
-); 
-
--- Enable RLS for code_conversions
-alter table public.code_conversions enable row level security;
 
 -- RLS policies for code_conversions
-create policy "Users can view code conversions in their chats"
-    on public.code_conversions for select
-    using (
-        exists (
-            select 1 from public.messages
-            join public.chats on chats.id = messages.chat_id
-            where messages.id = code_conversions.message_id
-            and chats.user_id = auth.uid()
+CREATE POLICY "Users can view code conversions in their chats"
+    ON public.code_conversions FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.messages
+            JOIN public.chats ON chats.id = messages.chat_id
+            WHERE messages.id = code_conversions.message_id
+            AND chats.user_id = auth.uid()
         )
     );
 
-create policy "Users can create code conversions in their chats"
-    on public.code_conversions for insert
-    with check (
-        exists (
-            select 1 from public.messages
-            join public.chats on chats.id = messages.chat_id
-            where messages.id = code_conversions.message_id
-            and chats.user_id = auth.uid()
+CREATE POLICY "Users can create code conversions in their chats"
+    ON public.code_conversions FOR INSERT
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.messages
+            JOIN public.chats ON chats.id = messages.chat_id
+            WHERE messages.id = code_conversions.message_id
+            AND chats.user_id = auth.uid()
         )
     );
 
-create policy "Users can update code conversions in their chats"
-    on public.code_conversions for update
-    using (
-        exists (
-            select 1 from public.messages
-            join public.chats on chats.id = messages.chat_id
-            where messages.id = code_conversions.message_id
-            and chats.user_id = auth.uid()
+CREATE POLICY "Users can update code conversions in their chats"
+    ON public.code_conversions FOR UPDATE
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.messages
+            JOIN public.chats ON chats.id = messages.chat_id
+            WHERE messages.id = code_conversions.message_id
+            AND chats.user_id = auth.uid()
         )
     );
 
-create policy "Users can delete code conversions in their chats"
-    on public.code_conversions for delete
-    using (
-        exists (
-            select 1 from public.messages
-            join public.chats on chats.id = messages.chat_id
-            where messages.id = code_conversions.message_id
-            and chats.user_id = auth.uid()
+CREATE POLICY "Users can delete code conversions in their chats"
+    ON public.code_conversions FOR DELETE
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.messages
+            JOIN public.chats ON chats.id = messages.chat_id
+            WHERE messages.id = code_conversions.message_id
+            AND chats.user_id = auth.uid()
         )
     );
